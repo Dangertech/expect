@@ -22,7 +22,7 @@ expectations are realistic, but this is what I want to achieve, very roughly:
 	- A vignette
 	- Multiple "windows" (viewports) that can be zoomed independently
 	  (just think of cogmind, but the top bar, the sidebar and the actual
-	  game view can be zoomed, independently
+	  game view can be zoomed, independently)
 - An infinite, procedurally-generated cyberpunk megacity
 	- Every tile is fully destructible
 	- The city makes heavy use of vertical exploration (skyscrapers, giant buildings, etc.)

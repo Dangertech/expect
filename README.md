@@ -18,4 +18,4 @@ The things I currently work on are **frama.h**, a library to display
 text grids with certain graphical effects, and the project documentation
 (which I want to come naturally with the time).
 
-(Look at [[garden/Initial\_Working\_Plan.md]] for more info)
+(Look at (Inital\_Working\_Plan.md)[garden/Initial\_Working\_Plan.md] for more info)

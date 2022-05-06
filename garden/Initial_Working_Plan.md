@@ -10,7 +10,7 @@ This poses a new challenge for me, and I had to look after graphics
 libraries that are suited for my goals. I also want to add 
 post-processing effects and things like vertical grid layers with
 lower opacity, so it's gonna be a tiny bit complex (All general goals
-can be found in [[Goals.md]]). I know it's a
+can be found in [Goals.md](Goals.md)). I know it's a
 standard choice for graphical software written in C++, but I want
 to give **SFML** a try. I think it's a good choice, because:
 
