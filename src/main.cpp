@@ -6,14 +6,12 @@
 int main()
 {
 	sf::Font font;
-	font.loadFromFile("font.ttf");
+	font.loadFromFile("font.otb");
 	fr::ObjRep wall
-	(L"#", font, sf::Color(255, 180, 45, 255), 
-		sf::Color::Green, 28, sf::Color(255, 128, 37, 255),
-		2,
-		0);
+	(L"#", sf::Color(255, 255, 255, 255), 
+		sf::Color::Green, 1);
 	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT");
-	fr::Frame frame(win);
+	fr::Frame frame(win, font, 32, {0.f, 200.f}, {200.f, 400.f});
 	frame.set_char(wall, 0, 0);
 	frame.set_char(wall, 2, 2);
 	

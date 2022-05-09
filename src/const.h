@@ -1,0 +1,1 @@
+#define ERR_OVERFLOW 999
