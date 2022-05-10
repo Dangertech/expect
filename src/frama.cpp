@@ -20,7 +20,7 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
  
 void fr::Frame::draw()
 {
-	sf::RectangleShape frame_bg(sf::Vector2f(100.f, 100.f));
+	sf::RectangleShape frame_bg(sf::Vector2f(end.first - origin.first, end.second - origin.second));
 	frame_bg.setFillColor(frame_bg_col);
 	frame_bg.setPosition(origin.first, origin.second);
 	win->draw(frame_bg);
@@ -49,10 +49,17 @@ void fr::Frame::draw()
 			 * evened out when calculating the character position
 			 */
 			text.setOrigin(lcl.width/2, lcl.height/2);
-			text.setPosition(
-				x*(15*standard_scale)+ origin.first + lcl.width/2,
-				y*(32*standard_scale)+ origin.second + lcl.height/2
-			);
+				/* character column/row * char width * extra scaling on frame + 
+				 * frame origin displacement + local origin fix
+				 */
+			int x_pos = x*(lcl.width*standard_scale) 
+				+ origin.first + lcl.width*standard_scale/2;
+			int y_pos = y*(lcl.height*standard_scale) 
+				+ origin.second + lcl.height*standard_scale/2;
+			if (x_pos > win->getSize().x || y_pos > win->getSize().y
+				|| x_pos > end.first || y_pos > end.second)
+				continue; // Character won't be visible anyways
+			text.setPosition(x_pos, y_pos);
 			text.scale(standard_scale * ch.size_mod, standard_scale * ch.size_mod);
 			
 			// Set up background shape (from GlobalBounds)
@@ -60,12 +67,19 @@ void fr::Frame::draw()
 			sf::RectangleShape bg(sf::Vector2f(bnds.width, bnds.height));
 			bg.setFillColor(ch.bg);
 			bg.setPosition(bnds.left, bnds.top);
-
+			
 			// Draw background and then text over it
 			win->draw(bg);
 			win->draw(text);
 		}
 	}
+}
+
+void fr::Frame::set_standard_scale(float scale)
+{
+	if (scale <= 0)
+		throw ERR_OVERFLOW;
+	standard_scale = scale;
 }
 
 void fr::Frame::set_origin(std::pair<float, float> my_ori)
@@ -74,9 +88,8 @@ void fr::Frame::set_origin(std::pair<float, float> my_ori)
 	origin = my_ori;
 }
 
-void fr::Frame::set_standard_scale(float scale)
+void fr::Frame::set_end(std::pair<float, float> my_end)
 {
-	if (scale <= 0)
-		throw ERR_OVERFLOW;
-	standard_scale = scale;
+	/* TODO: Check if end is in window */
+	end = my_end;
 }

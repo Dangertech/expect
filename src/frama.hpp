@@ -61,10 +61,13 @@ namespace fr
 			void set_standard_scale(float scale);
 			 
 			sf::Color get_frame_bg();
-			void set_frame_bg(sf::Color col);
+			void set_frame_bg(sf::Color col){frame_bg_col = col;}
 			
 			std::pair<float, float> get_origin() { return origin; }
-			void set_origin(std::pair<float, float>);
+			void set_origin(std::pair<float, float> origin);
+
+			std::pair<float, float> get_end() { return end; }
+			void set_end(std::pair<float, float> end);
 			
 			void draw();
 		private:
