@@ -24,14 +24,13 @@ void fr::Frame::draw()
 	frame_bg.setFillColor(frame_bg_col);
 	frame_bg.setPosition(origin.first, origin.second);
 	win->draw(frame_bg);
-	sf::Rect<float> char_bounds(origin.first, origin.second, 0,
-			0);
 	if (grid.size() == 0)
 		throw ERR;
 	for (int y = 0; y < grid.size(); y++)
 	{
 		for (int x = 0; x < grid[y].size(); x++)
 		{
+			// Set up general properties
 			fr::ObjRep ch = grid[y][x];
 			sf::Text text;
 			text.setFont(*font); /* Font of Frame */
@@ -41,17 +40,28 @@ void fr::Frame::draw()
 			text.setOutlineColor(ch.ol);
 			text.setOutlineThickness(ch.ol_thickness);
 			text.setStyle(ch.style);
+			 
+			// Transformations
+			sf::Rect<float> lcl = text.getLocalBounds();
+			/* To support even scaling of individual characters,
+			 * the origin is set to the center of the character;
+			 * To keep the correct position, however, this is 
+			 * evened out when calculating the character position
+			 */
+			text.setOrigin(lcl.width/2, lcl.height/2);
 			text.setPosition(
-				x*(15*standard_scale)+ origin.first, 
-				y*(32*standard_scale)+ origin.second);
+				x*(15*standard_scale)+ origin.first + lcl.width/2,
+				y*(32*standard_scale)+ origin.second + lcl.height/2
+			);
 			text.scale(standard_scale * ch.size_mod, standard_scale * ch.size_mod);
-			char_bounds = text.getLocalBounds();
 			
 			// Set up background shape (from GlobalBounds)
 			sf::Rect<float> bnds = text.getGlobalBounds();
 			sf::RectangleShape bg(sf::Vector2f(bnds.width, bnds.height));
 			bg.setFillColor(ch.bg);
 			bg.setPosition(bnds.left, bnds.top);
+
+			// Draw background and then text over it
 			win->draw(bg);
 			win->draw(text);
 		}
