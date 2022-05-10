@@ -14,7 +14,7 @@ namespace fr
 	struct ObjRep
 	{
 		std::wstring ch;
-		unsigned int size;
+		float size_mod;
 		sf::Color fill;
 		sf::Color ol; // outline
 		unsigned int ol_thickness;
@@ -24,16 +24,16 @@ namespace fr
 		ObjRep
 		(
 			std::wstring my_ch,
-			sf::Color my_fill = sf::Color(255, 255, 255, 0),
+			sf::Color my_fill = sf::Color(255, 255, 255, 255),
 			sf::Color my_bg = sf::Color(0, 0, 0, 0), 
-			unsigned int my_size = 2, 
+			float my_size_mod = 1, 
 			sf::Color my_ol = sf::Color(0, 0, 0, 0), 
-			unsigned int my_ol_thickness = 0,
+			unsigned my_ol_thickness = 0,
 			uint32_t my_style = 0
 		)
 		{
 			ch = my_ch[0];
-			size = my_size; fill = my_fill;
+			size_mod = my_size_mod; fill = my_fill;
 			ol = my_ol; ol_thickness = my_ol_thickness;
 			bg = my_bg; style = my_style;
 		}
@@ -56,18 +56,26 @@ namespace fr
 			 
 			std::wstring get_char(int x, int y);
 			void set_char(ObjRep rep, int x, int y);
+			
+			float get_standard_scale() {return standard_scale; }
+			void set_standard_scale(float scale);
 			 
 			sf::Color get_frame_bg();
 			void set_frame_bg(sf::Color col);
 			
-			std::pair<float, float> get_origin();
-			int set_origin(std::pair<float, float>);
+			std::pair<float, float> get_origin() { return origin; }
+			void set_origin(std::pair<float, float>);
 			
-			int draw();
+			void draw();
 		private:
 			std::vector<std::vector<ObjRep>> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
+			/* The default scale of the characters;
+			 * Single chars can modify this value through
+			 * the size_mod value in their ObjectRepresentation
+			 */
+			float standard_scale = 1;
 			/* Fill the background of the frame;
 			 * Useful for status bars and stuff
 			 * that should not be obstructed by other frames

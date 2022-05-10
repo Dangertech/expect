@@ -1,3 +1,4 @@
+#include <iostream>
 #include "frama.hpp"
 #include "const.h"
 
@@ -17,17 +18,21 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	grid[y][x] = rep;
 }
  
-int fr::Frame::draw()
+void fr::Frame::draw()
 {
 	sf::RectangleShape frame_bg(sf::Vector2f(100.f, 100.f));
 	frame_bg.setFillColor(frame_bg_col);
 	frame_bg.setPosition(origin.first, origin.second);
 	win->draw(frame_bg);
-	for (int i = 0; i < grid.size(); i++)
+	sf::Rect<float> char_bounds(origin.first, origin.second, 0,
+			0);
+	if (grid.size() == 0)
+		throw ERR;
+	for (int y = 0; y < grid.size(); y++)
 	{
-		for (int j = 0; j < grid[i].size(); j++)
+		for (int x = 0; x < grid[y].size(); x++)
 		{
-			fr::ObjRep ch = grid[i][j];
+			fr::ObjRep ch = grid[y][x];
 			sf::Text text;
 			text.setFont(*font); /* Font of Frame */
 			text.setCharacterSize(font_size);
@@ -36,21 +41,32 @@ int fr::Frame::draw()
 			text.setOutlineColor(ch.ol);
 			text.setOutlineThickness(ch.ol_thickness);
 			text.setStyle(ch.style);
-			text.setPosition(i*24+origin.first, j*24+origin.second);
-			text.scale(ch.size, ch.size);
+			text.setPosition(
+				x*(15*standard_scale)+ origin.first, 
+				y*(32*standard_scale)+ origin.second);
+			text.scale(standard_scale * ch.size_mod, standard_scale * ch.size_mod);
+			char_bounds = text.getLocalBounds();
+			
+			// Set up background shape (from GlobalBounds)
+			sf::Rect<float> bnds = text.getGlobalBounds();
+			sf::RectangleShape bg(sf::Vector2f(bnds.width, bnds.height));
+			bg.setFillColor(ch.bg);
+			bg.setPosition(bnds.left, bnds.top);
+			win->draw(bg);
 			win->draw(text);
 		}
 	}
-	return 0;
 }
 
-std::pair<float, float> fr::Frame::get_origin()
+void fr::Frame::set_origin(std::pair<float, float> my_ori)
 {
-	return origin;
-}
-
-int fr::Frame::set_origin(std::pair<float, float> my_ori)
-{
+	/* TODO: Check if origin is in window */
 	origin = my_ori;
-	return 0;
+}
+
+void fr::Frame::set_standard_scale(float scale)
+{
+	if (scale <= 0)
+		throw ERR_OVERFLOW;
+	standard_scale = scale;
 }
