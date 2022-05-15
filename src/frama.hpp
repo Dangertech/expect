@@ -44,8 +44,8 @@ namespace fr
 		public:
 			Frame(sf::RenderWindow& my_win, sf::Font& my_font, 
 				int my_font_size,
-				std::pair<float, float> my_ori, 
-				std::pair<float, float> my_end)
+				sf::Vector2f my_ori, 
+				sf::Vector2f my_end)
 			{
 				win = &my_win;
 				font = &my_font;
@@ -61,13 +61,16 @@ namespace fr
 			void set_standard_scale(float scale);
 			 
 			sf::Color get_frame_bg();
-			void set_frame_bg(sf::Color col){frame_bg_col = col;}
+			void set_frame_bg(sf::Color col) {frame_bg_col = col;}
 			
-			std::pair<float, float> get_origin() { return origin; }
-			void set_origin(std::pair<float, float> origin);
-
-			std::pair<float, float> get_end() { return end; }
-			void set_end(std::pair<float, float> end);
+			sf::Vector2f get_origin() { return origin; }
+			void set_origin(sf::Vector2f origin);
+			
+			sf::Vector2f get_end() { return end; }
+			void set_end(sf::Vector2f end);
+			
+			bool get_fit_to_text() { return fit_to_text; }
+			void set_fit_to_text(bool new_fit) {fit_to_text = new_fit;}
 			
 			void draw();
 		private:
@@ -84,9 +87,13 @@ namespace fr
 			 * that should not be obstructed by other frames
 			 */
 			sf::Color frame_bg_col = sf::Color(0, 0, 0, 0);
+			/* Aligns the frame_bg to the last character that is
+			 * still rendered because it's almost 100% not even with
+			 * the end position*/
+			bool fit_to_text = true;
 			/* Top left beginning of text */
-			std::pair<float, float> origin;
-			/* UNUSED YET */
-			std::pair<float, float> end;
+			sf::Vector2f origin;
+			/* Bottom right end */
+			sf::Vector2f end;
 	};
 };
