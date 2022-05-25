@@ -66,6 +66,7 @@ void fr::Frame::draw()
 			
 		}
 	}
+	/* Set up frame background */
 	sf::RectangleShape frame_bg;
 	frame_bg.setPosition(origin.x, origin.y);
 	if (!fit_to_text)
@@ -83,14 +84,30 @@ void fr::Frame::draw()
 				j = 0;
 				i++;
 			}
+			while (grid[i].size() == 0)
+			{
+				j = 0;
+				i++;
+			}
 			std::cout << i << " " << j << "\n";
+			if (i >= grid.size()-1)
+			{
+				/* Grid not big enough, everything is alright */
+				h_x = end.x; h_y = end.y;
+				std::cout << "Broken;" << std::endl;
+				break;
+			}
+			else
+			{
+				h_x = grid[i][j].r.getPosition().x;
+				h_y = grid[i][j].r.getPosition().y;
+			}
 		}
-		h_x = grid[i][j].r.getPosition().x;
-		h_y = grid[i][j].r.getPosition().y;
 		frame_bg.setSize(sf::Vector2f(h_x-origin.x, h_y-origin.y));
 	}
 	frame_bg.setFillColor(frame_bg_col);
 	win->draw(frame_bg);
+	/* Draw queues */
 	for (int i = 0; i<text_queue.size(); i++)
 	{
 		if(bg_queue[i].getPosition().x < end.x && bg_queue[i].getPosition().y < end.y)
