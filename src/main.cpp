@@ -8,7 +8,7 @@ int main()
 	sf::Font font;
 	font.loadFromFile("font.otb");
 	fr::ObjRep wall
-	(L"#", sf::Color(255, 255, 255, 255), 
+	(L"#", sf::Color(128, 128, 255, 255), 
 		sf::Color(0, 255, 0, 128), 1);
 	fr::ObjRep excl (L"!");
 	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT");
@@ -28,8 +28,10 @@ int main()
 			{
 				if (x%2 == 0)
 					frame.set_char(wall, x, y);
+				/*
 				else
 					frame.set_char(excl, x, y);
+					*/
 			}
 			else
 			{
@@ -39,7 +41,6 @@ int main()
 					frame.set_char(excl, x, y);
 			}
 		}
-	}
 	
 	while (win.isOpen())
 	{

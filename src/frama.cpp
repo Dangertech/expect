@@ -7,15 +7,47 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
 	if (rep.ch.size() > 1)
 		throw ERR_OVERFLOW;
+	/* Empty text to shove into tiles that are left empty */
+	GridObj def;
+	def.t.setFont(*font);
+	def.t.setCharacterSize(font_size);
+	def.t.setString(L" ");
 	while (y >= grid.size())
-		grid.push_back(std::vector<fr::ObjRep>());
+		grid.push_back(std::vector<GridObj>());
 	while (x >= grid[y].size())
-	{
-		sf::Font font;
-		fr::ObjRep rep(L" ");
-		grid[y].push_back(rep);
-	}
-	grid[y][x] = rep;
+		grid[y].push_back(def);
+	sf::Text text;
+	text.setFont(*font);
+	text.setCharacterSize(font_size);
+	text.setString(rep.ch);
+	text.setFillColor(rep.fill);
+	text.setOutlineColor(rep.ol);
+	text.setOutlineThickness(rep.ol_thickness);
+	text.setStyle(rep.style);
+	 
+	/* Set position and scale */
+	sf::Rect<float> lcl = text.getLocalBounds();
+	/* To support even scaling of individual characters,
+	 * the origin is set to the center of the character;
+	 * To keep the correct position, however, this is 
+	 * evened out when calculating the character position
+	 */
+	text.setOrigin(lcl.width/2, lcl.height/2);
+	
+	float x_top = x*(lcl.width*standard_scale) + origin.x;
+	float y_top = y*(lcl.height*standard_scale) + origin.y;
+	text.setPosition(x_top + lcl.width*standard_scale/2, y_top + lcl.height*standard_scale/2);
+	text.setScale(standard_scale * rep.size_mod, standard_scale * rep.size_mod);
+	grid[y][x].size_mod = rep.size_mod;
+	grid[y][x].t = text;
+	
+	/* Manage background */
+	sf::RectangleShape bg(sf::Vector2f(lcl.width*standard_scale*rep.size_mod, 
+				lcl.height*standard_scale*rep.size_mod));
+	bg.setPosition(x_top, y_top);
+	bg.setFillColor(rep.bg);
+	grid[y][x].r = bg;
+	
 }
 
 void fr::Frame::draw()
@@ -25,96 +57,47 @@ void fr::Frame::draw()
 	/* Queues to be filled with characters */
 	std::vector<sf::Text> text_queue;
 	std::vector<sf::RectangleShape> bg_queue;
-	int posfix = 0; // Bodge for a really weird bug
-	/* Stores the maximum size of the frame */
-	int max_left = 0, max_down = 0; 
 	for (int y = 0; y < grid.size(); y++)
 	{
 		for (int x = 0; x < grid[y].size(); x++)
 		{
-			/* Set up general properties */
-			fr::ObjRep ch = grid[y][x];
-			sf::Text text;
-			text.setFont(*font); /* Font of Frame */
-			text.setCharacterSize(font_size);
-			text.setString(ch.ch);
-			text.setFillColor(ch.fill);
-			text.setOutlineColor(ch.ol);
-			text.setOutlineThickness(ch.ol_thickness);
-			text.setStyle(ch.style);
-			 
-			/* Transformations */
-			sf::Rect<float> lcl = text.getLocalBounds();
-			/* To support even scaling of individual characters,
-			 * the origin is set to the center of the character;
-			 * To keep the correct position, however, this is 
-			 * evened out when calculating the character position
-			 */
-			text.setOrigin(lcl.width/2, lcl.height/2);
-			/* character column/row * char width * extra scaling on frame + 
-			 * frame origin displacement + local origin fix
-			 */
-			float x_pos = x*(lcl.width*standard_scale) 
-				+ origin.x + lcl.width*standard_scale/2;
-			float y_pos = y*(lcl.height*standard_scale) 
-				+ origin.y + lcl.height*standard_scale/2 - posfix;
-			/* + 2 is a safe margin to prevent flickering when
-			 * moving frames;
-			 * Also, it's a steady play with that origin; Remove the origin
-			 * point from the position again...
-			 */
-			if (x_pos-lcl.width/2 > win->getSize().x 
-				|| y_pos-lcl.height/2 > win->getSize().y
-				|| x_pos > end.x + 2
-				|| y_pos > end.y + 2)
-				continue; /* Character won't be visible anyways */
-			text.setPosition(x_pos, y_pos);
-			/* To fix a bug that offsets the y position of the text
-			 * seemingly at random; Probably I'm just too stupid to fix
-			 * this bug so this is a quick bodge
-			 */
-			if (y == 0 && x == 0)
-			{
-				posfix = text.getGlobalBounds().top - origin.y;
-				text.setPosition(x_pos, y_pos - posfix);
-			}
-			text.setScale(standard_scale * ch.size_mod, standard_scale * ch.size_mod);
+			text_queue.push_back(grid[y][x].t);
+			bg_queue.push_back(grid[y][x].r);
 			
-			 
-			/* Set up background shape (from GlobalBounds) */
-			sf::Rect<float> bnds = text.getGlobalBounds();
-			sf::RectangleShape bg(sf::Vector2f(bnds.width, bnds.height));
-			bg.setFillColor(ch.bg);
-			bg.setPosition(bnds.left, bnds.top);
-			
-			/* Schedule bg and character for drawing */
-			text_queue.push_back(text);
-			bg_queue.push_back(bg);
-			
-			/* For the frame bg if fit_to_text is true */
-			if (bnds.left + bnds.width - origin.x > max_left)
-				max_left = bnds.left + bnds.width - origin.x;
-			if (bnds.top + bnds.height - origin.y > max_down)
-				max_down = bnds.top + bnds.height - origin.y;
-			 
 		}
 	}
-	 
-	/* Determine correct frame background from filled queue */
 	sf::RectangleShape frame_bg;
+	frame_bg.setPosition(origin.x, origin.y);
 	if (!fit_to_text)
 		frame_bg.setSize(sf::Vector2f(end.x-origin.x, end.y-origin.y));
 	else
-		frame_bg.setSize(sf::Vector2f(max_left, max_down));
+	{
+		float h_x = 0.f, h_y = 0.f;
+		int i = 0, j = 0;
+		while (grid[i][j].r.getPosition().x < end.x
+				|| grid[i][j].r.getPosition().y < end.y)
+		{
+			j++;
+			if (j >= grid[i].size()-1)
+			{
+				j = 0;
+				i++;
+			}
+			std::cout << i << " " << j << "\n";
+		}
+		h_x = grid[i][j].r.getPosition().x;
+		h_y = grid[i][j].r.getPosition().y;
+		frame_bg.setSize(sf::Vector2f(h_x-origin.x, h_y-origin.y));
+	}
 	frame_bg.setFillColor(frame_bg_col);
-	frame_bg.setPosition(origin.x, origin.y);
 	win->draw(frame_bg);
-	
-	/* Draw everything in the queues */
 	for (int i = 0; i<text_queue.size(); i++)
 	{
-		win->draw(bg_queue[i]);
-		win->draw(text_queue[i]);
+		if(bg_queue[i].getPosition().x < end.x && bg_queue[i].getPosition().y < end.y)
+		{
+			win->draw(text_queue[i]);
+			win->draw(bg_queue[i]);
+		}
 	}
 }
 
@@ -123,11 +106,33 @@ void fr::Frame::set_standard_scale(float scale)
 	if (scale <= 0)
 		throw ERR_OVERFLOW;
 	standard_scale = scale;
+	for (int y = 0; y < grid.size(); y++)
+	{
+		for (int x = 0; x < grid[y].size(); x++)
+		{
+			grid[y][x].t.setScale(standard_scale * grid[y][x].size_mod, 
+					standard_scale * grid[y][x].size_mod);
+			sf::Rect<float> lcl = grid[y][x].t.getLocalBounds();
+			grid[y][x].r.setSize(sf::Vector2f(lcl.width*standard_scale*grid[y][x].size_mod,
+						lcl.height*standard_scale*grid[y][x].size_mod));
+		}
+	}
 }
 
 void fr::Frame::set_origin(sf::Vector2f my_ori)
 {
 	origin = my_ori;
+	for (int y = 0; y < grid.size(); y++)
+	{
+		for (int x = 0; x < grid[y].size(); x++)
+		{
+			sf::Rect<float> lcl = grid[y][x].t.getLocalBounds();
+			float x_top = x*(lcl.width*standard_scale) + origin.x;
+			float y_top = y*(lcl.height*standard_scale) + origin.y;
+			grid[y][x].t.setPosition(x_top + lcl.width*standard_scale/2, y_top + lcl.height*standard_scale/2);
+			grid[y][x].r.setPosition(x_top, y_top);
+		}
+	}
 }
 
 void fr::Frame::set_end(sf::Vector2f my_end)

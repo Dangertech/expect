@@ -74,7 +74,13 @@ namespace fr
 			
 			void draw();
 		private:
-			std::vector<std::vector<ObjRep>> grid;
+			struct GridObj
+			{
+				sf::Text t;
+				sf::RectangleShape r;
+				float size_mod = 1;
+			};
+			std::vector<std::vector<GridObj>> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
 			/* The default scale of the characters;
