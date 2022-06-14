@@ -11,6 +11,8 @@
 
 namespace fr
 {
+	enum CharPoint {TOP, LEFT, RIGHT, DOWN, TOP_LEFT, TOP_RIGHT, 
+		BOTTOM_LEFT, BOTTOM_RIGHT, CENTER};
 	struct ObjRep
 	{
 		std::wstring ch;
@@ -52,6 +54,7 @@ namespace fr
 				font_size = my_font_size;
 				origin = my_ori;
 				end = my_end;
+				fill_grid();
 			}
 			 
 			std::wstring get_char(int x, int y);
@@ -71,6 +74,24 @@ namespace fr
 			
 			bool get_fit_to_text() { return fit_to_text; }
 			void set_fit_to_text(bool new_fit) {fit_to_text = new_fit;}
+			
+			/* Returns the bounding box of the # character with font size,
+			 * standard scale and size_mod if provided;
+			 * (as a representation for every character in a monospace font)
+			 */
+			sf::Vector2f get_char_size(int size_mod = 1);
+			
+			/* Returns the bounding box of the # character with
+			 * the set font and font size but without additional scaling
+			 */
+			sf::Vector2f get_standard_char_size();
+			
+			/* Get the amount of possible columns and rows with the current size */
+			sf::Vector2<int> get_grid_size();
+			
+			/* Get the position of a character on the grid, 
+			 * at any of the 9 geometrical points */
+			sf::Vector2f get_char_pos(int x, int y, CharPoint point = CENTER);
 			
 			void draw();
 		private:
@@ -101,5 +122,11 @@ namespace fr
 			sf::Vector2f origin;
 			/* Bottom right end */
 			sf::Vector2f end;
+			
+			/* Fills the grid up with default grid objects 
+			 * This is used to ensure that the grid always corresponds
+			 * to it's wanted size 
+			 */
+			void fill_grid();
 	};
 };

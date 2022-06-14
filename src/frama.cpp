@@ -6,16 +6,13 @@
 void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
 	if (rep.ch.size() > 1)
+		throw ERR_INVALID_IPT;
+	
+	fill_grid();
+
+	if (y > grid.size() || x > grid[y].size())
 		throw ERR_OVERFLOW;
-	/* Empty text to shove into tiles that are left empty */
-	GridObj def;
-	def.t.setFont(*font);
-	def.t.setCharacterSize(font_size);
-	def.t.setString(L" ");
-	while (y >= grid.size())
-		grid.push_back(std::vector<GridObj>());
-	while (x >= grid[y].size())
-		grid[y].push_back(def);
+	 
 	sf::Text text;
 	text.setFont(*font);
 	text.setCharacterSize(font_size);
@@ -89,12 +86,10 @@ void fr::Frame::draw()
 				j = 0;
 				i++;
 			}
-			std::cout << i << " " << j << "\n";
 			if (i >= grid.size()-1)
 			{
 				/* Grid not big enough, everything is alright */
 				h_x = end.x; h_y = end.y;
-				std::cout << "Broken;" << std::endl;
 				break;
 			}
 			else
@@ -134,16 +129,18 @@ void fr::Frame::set_standard_scale(float scale)
 						lcl.height*standard_scale*grid[y][x].size_mod));
 		}
 	}
+	fill_grid();
 }
 
 void fr::Frame::set_origin(sf::Vector2f my_ori)
 {
 	origin = my_ori;
+	fill_grid();
 	for (int y = 0; y < grid.size(); y++)
 	{
 		for (int x = 0; x < grid[y].size(); x++)
 		{
-			sf::Rect<float> lcl = grid[y][x].t.getLocalBounds();
+			sf::Rect<float> lcl(0,0, get_standard_char_size().x, get_standard_char_size().y);
 			float x_top = x*(lcl.width*standard_scale) + origin.x;
 			float y_top = y*(lcl.height*standard_scale) + origin.y;
 			grid[y][x].t.setPosition(x_top + lcl.width*standard_scale/2, y_top + lcl.height*standard_scale/2);
@@ -155,4 +152,83 @@ void fr::Frame::set_origin(sf::Vector2f my_ori)
 void fr::Frame::set_end(sf::Vector2f my_end)
 {
 	end = my_end;
+	fill_grid();
+}
+
+sf::Vector2f fr::Frame::get_char_size(int size_mod)
+{
+	sf::Text text;
+	text.setFont(*font);
+	text.setCharacterSize(font_size);
+	text.setString(L"#");
+	text.setScale(standard_scale * size_mod, standard_scale * size_mod);
+	sf::Rect<float> glb = text.getGlobalBounds();
+	return sf::Vector2f(glb.width, glb.height);
+}
+
+sf::Vector2f fr::Frame::get_standard_char_size()
+{
+	sf::Text text;
+	text.setFont(*font);
+	text.setCharacterSize(font_size);
+	text.setString(L"#");
+	sf::Rect<float> lcl = text.getLocalBounds();
+	return sf::Vector2f(lcl.width, lcl.height);
+}
+
+sf::Vector2<int> fr::Frame::get_grid_size()
+{
+	sf::Vector2f char_size = get_char_size();
+	/* Truncate/Floor the result to int */
+	return sf::Vector2<int>
+	(
+		int((end.x - origin.x)/char_size.x),
+		int((end.y-origin.y)/char_size.y)
+	);
+}
+
+sf::Vector2f fr::Frame::get_char_pos(int x, int y, CharPoint point)
+{
+	sf::Vector2f pos;
+	if (y > grid.size()-1 || x > grid[grid.size()-1].size()-1)
+		throw ERR_OVERFLOW;
+	switch(point)
+	{
+		case CENTER:
+			pos = grid[y][x].t.getPosition();
+			break;
+		default:
+			std::cout << "Ooops! This character point is not yet implemented...\n";
+			pos = grid[y][x].t.getPosition();
+			break;
+	}
+	return pos;
+}
+
+void fr::Frame::fill_grid()
+{
+	/* Default object to shove into empty spaces */
+	GridObj def;
+	def.t.setFont(*font);
+	def.t.setCharacterSize(font_size);
+	def.t.setString(L" ");
+	sf::Rect<float> dlcl(0,0,get_standard_char_size().x, get_standard_char_size().y);
+	def.t.setOrigin(dlcl.width/2, dlcl.height/2);
+	 
+	sf::Vector2<int> goal_size = get_grid_size();
+	while (grid.size() < goal_size.y)
+	{
+		grid.push_back(std::vector<GridObj>());
+	}
+	for (int y = 0; y < grid.size(); y++)
+	{
+		while (grid[y].size() < goal_size.x)
+		{
+			float x_top = grid[y].size() * (dlcl.width*standard_scale) + origin.x;
+			float y_top = y * (dlcl.height*standard_scale) + origin.y;
+			def.t.setPosition(x_top + dlcl.width*standard_scale/2, y_top + dlcl.height*standard_scale/2);
+			def.r.setPosition(x_top, y_top);
+			grid[y].push_back(def);
+		}
+	}
 }
