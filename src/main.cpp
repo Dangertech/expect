@@ -1,6 +1,6 @@
 #include <iostream>
 #include "frama.hpp"
-#include <SFML/Graphics.hpp>
+#include "const.h"
 
 fr::ObjRep wall
 (L"#", sf::Color(128, 128, 255, 255), 
@@ -26,7 +26,6 @@ std::vector<sf::CircleShape> pos_circles(fr::Frame frame)
 				pos.x = 20;
 				pos.y = 20;
 			}
-			std::cout << pos.x << " " << pos.y << "\n";
 			 
 			int radius = 4;
 			sf::CircleShape circ(radius);
@@ -237,6 +236,66 @@ void move(sf::Font &font, sf::RenderWindow &win)
 	}
 }
 
+/* Constructs a frame that should contain *exactly*
+ * a 5x5 grid
+ */
+void even(sf::Font &font, sf::RenderWindow &win)
+{
+	fr::Frame frame(win, font, 32, sf::Vector2f(0.f, 0.f), 
+		sf::Vector2f(80.f, 160.f));
+	frame.set_frame_bg(sf::Color(255, 0, 0, 255));
+	frame.set_standard_scale(1);
+	while (win.isOpen())
+	{
+		for (int i = 0; i< 20; i++)
+		{
+			for (int j = 0; j<20; j++)
+			{
+				try
+				{
+					frame.set_char(wall, i, j);
+				}
+				catch(int e)
+				{
+				}
+			}
+		}
+		auto circle_queue = pos_circles(frame);
+		sf::Event event;
+		/* fit to text press switch */
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
+			frame.set_fit_to_text(false);
+		else
+			frame.set_fit_to_text(true);
+		
+		/* Whatever is pressed, it should make no difference */
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+			frame.set_end_before_end(true);
+		else
+			frame.set_end_before_end(false);
+		
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+			frame.set_end(sf::Vector2f(80+10, 160+10));
+		else
+			frame.set_end(sf::Vector2f(80, 160));
+		 
+		while(win.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				win.close();
+		}
+		 
+		win.clear();
+		frame.draw();
+		for (auto x : circle_queue)
+		{
+			win.draw(x);
+		}
+		win.display();
+	}
+}
+
+
 int main(int argc, char* argv[])
 {
 	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT UNIT TESTS");
@@ -262,6 +321,9 @@ int main(int argc, char* argv[])
 			break;
 		case 3:
 			move(font, win);
+			break;
+		case 4:
+			even(font, win);
 			break;
 		default:
 			std::cout << "Unit test id invalid, running a default" << std::endl;

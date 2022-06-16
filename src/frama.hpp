@@ -73,7 +73,10 @@ namespace fr
 			void set_end(sf::Vector2f end);
 			
 			bool get_fit_to_text() { return fit_to_text; }
-			void set_fit_to_text(bool new_fit) {fit_to_text = new_fit;}
+			void set_fit_to_text(bool new_state) {fit_to_text = new_state;}
+			
+			bool get_end_before_end() { return end_before_end; }
+			void set_end_before_end(bool new_state) {end_before_end = new_state;}
 			
 			/* Returns the bounding box of the # character with font size,
 			 * standard scale and size_mod if provided;
@@ -116,8 +119,14 @@ namespace fr
 			sf::Color frame_bg_col = sf::Color(0, 0, 0, 0);
 			/* Aligns the frame_bg to the last character that is
 			 * still rendered because it's almost 100% not even with
-			 * the end position*/
+			 * the end position
+			 */
 			bool fit_to_text = true;
+			/* Determines if the final row/column of characters is
+			 * before or after the endpoint; By default, it's before
+			 * the set end point
+			 */
+			bool end_before_end = false;
 			/* Top left beginning of text */
 			sf::Vector2f origin;
 			/* Bottom right end */

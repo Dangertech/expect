@@ -1,4 +1,5 @@
 #include <iostream>
+#include "cmath"
 #include "frama.hpp"
 #include "const.h"
 
@@ -10,8 +11,10 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	
 	fill_grid();
 
-	if (y > grid.size() || x > grid[y].size())
+	if (y > grid.size()-1 || x > grid[y].size()-1)
+	{
 		throw ERR_OVERFLOW;
+	}
 	 
 	sf::Text text;
 	text.setFont(*font);
@@ -67,48 +70,52 @@ void fr::Frame::draw()
 	sf::RectangleShape frame_bg;
 	frame_bg.setPosition(origin.x, origin.y);
 	if (!fit_to_text)
+	{
 		frame_bg.setSize(sf::Vector2f(end.x-origin.x, end.y-origin.y));
+		std::cout << "Standard Shit" << std::endl;
+	}
 	else
 	{
-		float h_x = 0.f, h_y = 0.f;
-		int i = 0, j = 0;
-		while (grid[i][j].r.getPosition().x < end.x
-				|| grid[i][j].r.getPosition().y < end.y)
-		{
-			j++;
-			if (j >= grid[i].size()-1)
-			{
-				j = 0;
-				i++;
-			}
-			while (grid[i].size() == 0)
-			{
-				j = 0;
-				i++;
-			}
-			if (i >= grid.size()-1)
-			{
-				/* Grid not big enough, everything is alright */
-				h_x = end.x; h_y = end.y;
-				break;
-			}
-			else
-			{
-				h_x = grid[i][j].r.getPosition().x;
-				h_y = grid[i][j].r.getPosition().y;
-			}
-		}
-		frame_bg.setSize(sf::Vector2f(h_x-origin.x, h_y-origin.y));
+		std::cout << "Original shit" << std::endl;
+		sf::Vector2<int> grid_size = get_grid_size();
+		sf::Vector2f chr_size = get_char_size();
+		frame_bg.setSize(sf::Vector2f(grid_size.x*chr_size.x,
+			grid_size.y*chr_size.y));
 	}
 	frame_bg.setFillColor(frame_bg_col);
 	win->draw(frame_bg);
 	/* Draw queues */
-	for (int i = 0; i<text_queue.size(); i++)
+	if (end_before_end)
 	{
-		if(bg_queue[i].getPosition().x < end.x && bg_queue[i].getPosition().y < end.y)
+		/* Here, the bottom right is checked if 
+		 * it is beyond the end
+		 */
+		for (int i = 0; i<text_queue.size(); i++)
 		{
-			win->draw(text_queue[i]);
-			win->draw(bg_queue[i]);
+			sf::Vector2f brpos;
+			sf::Rect<float> lcl = bg_queue[i].getLocalBounds();
+			brpos.x = bg_queue[i].getPosition().x + lcl.width;
+			brpos.y = bg_queue[i].getPosition().y + lcl.height;
+			if (brpos.x <= end.x && brpos.y <= end.y)
+			{
+				win->draw(text_queue[i]);
+				win->draw(bg_queue[i]);
+			}
+		}
+	}
+	else
+	{
+		/* Here, the top left is checked if
+		 * it is beyond the end
+		 */
+		for (int i = 0; i<text_queue.size(); i++)
+		{
+			/* Use the backgrounds because their origin is still 0,0 */
+			if(bg_queue[i].getPosition().x < end.x && bg_queue[i].getPosition().y < end.y)
+			{
+				win->draw(text_queue[i]);
+				win->draw(bg_queue[i]);
+			}
 		}
 	}
 }
@@ -126,7 +133,7 @@ void fr::Frame::set_standard_scale(float scale)
 					standard_scale * grid[y][x].size_mod);
 			sf::Rect<float> lcl = grid[y][x].t.getLocalBounds();
 			grid[y][x].r.setSize(sf::Vector2f(lcl.width*standard_scale*grid[y][x].size_mod,
-						lcl.height*standard_scale*grid[y][x].size_mod));
+					lcl.height*standard_scale*grid[y][x].size_mod));
 		}
 	}
 	fill_grid();
@@ -179,12 +186,27 @@ sf::Vector2f fr::Frame::get_standard_char_size()
 sf::Vector2<int> fr::Frame::get_grid_size()
 {
 	sf::Vector2f char_size = get_char_size();
-	/* Truncate/Floor the result to int */
-	return sf::Vector2<int>
-	(
-		int((end.x - origin.x)/char_size.x),
-		int((end.y-origin.y)/char_size.y)
-	);
+	if (end_before_end)
+	{
+		/* Truncate/Floor the result to int */
+		return sf::Vector2<int>
+		(
+			int((end.x - origin.x)/char_size.x),
+			int((end.y-origin.y)/char_size.y)
+		);
+	}
+	else
+	{
+		sf::Vector2f size((end.x-origin.x)/char_size.x, (end.y-origin.y)/char_size.y);
+		if (ceil(size.x) != size.x)
+			size.x = ceil(size.x);
+		if (ceil(size.y) != size.y)
+			size.y = ceil(size.y);
+		return sf::Vector2<int>
+		(
+			int (size.x), int(size.y)
+		);
+	}
 }
 
 sf::Vector2f fr::Frame::get_char_pos(int x, int y, CharPoint point)
