@@ -39,6 +39,15 @@ namespace fr
 			ol = my_ol; ol_thickness = my_ol_thickness;
 			bg = my_bg; style = my_style;
 		}
+		ObjRep(){}
+		 
+		bool operator==(const ObjRep& r) const
+		{
+			return ch == r.ch && size_mod == r.size_mod
+				&& fill == r.fill && ol == r.ol
+				&& ol_thickness == r.ol_thickness
+				&& bg == r.bg && style == r.style;
+		}
 	};
 	 
 	class Frame
@@ -57,7 +66,7 @@ namespace fr
 				fill_grid();
 			}
 			 
-			std::wstring get_char(int x, int y);
+			ObjRep get_char(int x, int y);
 			void set_char(ObjRep rep, int x, int y);
 			
 			float get_standard_scale() {return standard_scale; }
@@ -95,6 +104,12 @@ namespace fr
 			/* Get the position of a character on the grid, 
 			 * at any of the 9 geometrical points */
 			sf::Vector2f get_char_pos(int x, int y, CharPoint point = CENTER);
+			
+			/* Takes in a window coordinate and returns the
+			 * grid coordinate of this frame. If there is no
+			 * grid at this position, it throws ERR
+			 */
+			sf::Vector2<int> get_char_at(int win_x, int win_y);
 			
 			void draw();
 		private:

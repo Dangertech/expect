@@ -3,7 +3,7 @@ BUILDDIR = build
 
 SRC = main.cpp frama.cpp
 OBJ = ${BUILDDIR}/main.o ${BUILDDIR}/frama.o
-FLAGS = -lsfml-graphics -lsfml-window -lsfml-system -ggdb
+FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 CC = g++
 

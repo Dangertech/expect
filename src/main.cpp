@@ -6,6 +6,8 @@ fr::ObjRep wall
 (L"#", sf::Color(128, 128, 255, 255), 
 	sf::Color(0, 255, 0, 128), 1);
 fr::ObjRep excl (L"!");
+fr::ObjRep mark(L"X", sf::Color(239, 108, 29, 255));
+fr::ObjRep empty(L" ");
 
 std::vector<sf::CircleShape> pos_circles(fr::Frame frame)
 {
@@ -74,8 +76,29 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 	
 	while (win.isOpen())
 	{
+
 		auto circle_queue = pos_circles(frame);
 		sf::Event event;
+		
+		while(win.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				win.close();
+			else if (event.type == sf::Event::MouseMoved)
+			{
+				sf::Vector2<int> mp = sf::Mouse::getPosition(win);
+				try
+				{
+					sf::Vector2<int> grid_mp = frame.get_char_at(mp.x, mp.y);
+					std::cout << grid_mp.x << " " << grid_mp.y << std::endl;
+					frame.set_char(mark, grid_mp.x, grid_mp.y);
+				}
+				catch(int e)
+				{
+					std::cout << "Mouse not over grid" << std::endl;
+				}
+			}
+		}
 		/* fit to text press switch */
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
 			frame.set_fit_to_text(false);
@@ -89,11 +112,6 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 			frame.set_end(sf::Vector2f(200.f, 400.f));
 		}
 		 
-		while(win.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				win.close();
-		}
 		 
 		win.clear();
 		try
@@ -136,11 +154,37 @@ void irregular_positions(sf::Font &font, sf::RenderWindow &win)
 	auto circle_queue = pos_circles(frame);
 	while (win.isOpen())
 	{
+		/* I know that this is super shitty and doesn't
+		 * really work but it shows that the function works 
+		 */
+		auto grid_size = frame.get_grid_size();
+		for (int i = 0; i<grid_size.x; i++)
+		{
+			for (int j = 0; j<grid_size.y; j++)
+			{
+				if (frame.get_char(i, j) == mark)
+					frame.set_char(empty, i, j);
+			}
+		}
 		sf::Event event;
 		while(win.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 				win.close();
+			else if (event.type == sf::Event::MouseMoved)
+			{
+				sf::Vector2<int> mp = sf::Mouse::getPosition(win);
+				try
+				{
+					sf::Vector2<int> grid_mp = frame.get_char_at(mp.x, mp.y);
+					std::cout << grid_mp.x << " " << grid_mp.y << std::endl;
+					frame.set_char(mark, grid_mp.x, grid_mp.y);
+				}
+				catch(int e)
+				{
+					std::cout << "Mouse not over grid" << std::endl;
+				}
+			}
 		}
 		 
 		win.clear();

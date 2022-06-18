@@ -36,7 +36,8 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	
 	float x_top = x*(lcl.width*standard_scale) + origin.x;
 	float y_top = y*(lcl.height*standard_scale) + origin.y;
-	text.setPosition(x_top + lcl.width*standard_scale/2, y_top + lcl.height*standard_scale/2);
+	text.setPosition(x_top + lcl.width*standard_scale/2, 
+			y_top + lcl.height*standard_scale/2);
 	text.setScale(standard_scale * rep.size_mod, standard_scale * rep.size_mod);
 	grid[y][x].size_mod = rep.size_mod;
 	grid[y][x].t = text;
@@ -48,6 +49,23 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	bg.setFillColor(rep.bg);
 	grid[y][x].r = bg;
 	
+}
+
+fr::ObjRep fr::Frame::get_char(int x, int y)
+{
+	auto grid_size = get_grid_size();
+	if (x > grid_size.x || y > grid_size.y)
+		throw ERR_OVERFLOW;
+	GridObj th = grid[y][x];
+	ObjRep ret;
+	ret.ch = th.t.getString();
+	ret.size_mod = th.size_mod;
+	ret.fill = th.t.getFillColor();
+	ret.ol = th.t.getOutlineColor();
+	ret.ol_thickness = th.t.getOutlineThickness();
+	ret.bg = th.r.getFillColor();
+	ret.style = th.t.getStyle();
+	return ret;
 }
 
 void fr::Frame::draw()
@@ -72,11 +90,9 @@ void fr::Frame::draw()
 	if (!fit_to_text)
 	{
 		frame_bg.setSize(sf::Vector2f(end.x-origin.x, end.y-origin.y));
-		std::cout << "Standard Shit" << std::endl;
 	}
 	else
 	{
-		std::cout << "Original shit" << std::endl;
 		sf::Vector2<int> grid_size = get_grid_size();
 		sf::Vector2f chr_size = get_char_size();
 		frame_bg.setSize(sf::Vector2f(grid_size.x*chr_size.x,
@@ -111,7 +127,8 @@ void fr::Frame::draw()
 		for (int i = 0; i<text_queue.size(); i++)
 		{
 			/* Use the backgrounds because their origin is still 0,0 */
-			if(bg_queue[i].getPosition().x < end.x && bg_queue[i].getPosition().y < end.y)
+			if(bg_queue[i].getPosition().x < end.x 
+					&& bg_queue[i].getPosition().y < end.y)
 			{
 				win->draw(text_queue[i]);
 				win->draw(bg_queue[i]);
@@ -147,10 +164,12 @@ void fr::Frame::set_origin(sf::Vector2f my_ori)
 	{
 		for (int x = 0; x < grid[y].size(); x++)
 		{
-			sf::Rect<float> lcl(0,0, get_standard_char_size().x, get_standard_char_size().y);
+			sf::Rect<float> lcl(0,0, get_standard_char_size().x, 
+					get_standard_char_size().y);
 			float x_top = x*(lcl.width*standard_scale) + origin.x;
 			float y_top = y*(lcl.height*standard_scale) + origin.y;
-			grid[y][x].t.setPosition(x_top + lcl.width*standard_scale/2, y_top + lcl.height*standard_scale/2);
+			grid[y][x].t.setPosition(x_top + lcl.width*standard_scale/2, 
+					y_top + lcl.height*standard_scale/2);
 			grid[y][x].r.setPosition(x_top, y_top);
 		}
 	}
@@ -197,7 +216,8 @@ sf::Vector2<int> fr::Frame::get_grid_size()
 	}
 	else
 	{
-		sf::Vector2f size((end.x-origin.x)/char_size.x, (end.y-origin.y)/char_size.y);
+		sf::Vector2f size((end.x-origin.x)/char_size.x, 
+				(end.y-origin.y)/char_size.y);
 		if (ceil(size.x) != size.x)
 			size.x = ceil(size.x);
 		if (ceil(size.y) != size.y)
@@ -227,6 +247,19 @@ sf::Vector2f fr::Frame::get_char_pos(int x, int y, CharPoint point)
 	return pos;
 }
 
+sf::Vector2<int> fr::Frame::get_char_at(int win_x, int win_y)
+{
+	sf::Vector2f char_size = get_char_size();
+	float x = (win_x-origin.x)/char_size.x, y = (win_y-origin.y)/char_size.y;
+	
+	/* Check if the grid is this large */
+	sf::Vector2<int> grid_size = get_grid_size();
+	if (x > grid_size.x || y > grid_size.y || x < 0 || y < 0)
+		throw ERR;
+	/* Truncated automatically*/
+	return sf::Vector2<int>(x, y);
+}
+
 void fr::Frame::fill_grid()
 {
 	/* Default object to shove into empty spaces */
@@ -234,7 +267,8 @@ void fr::Frame::fill_grid()
 	def.t.setFont(*font);
 	def.t.setCharacterSize(font_size);
 	def.t.setString(L" ");
-	sf::Rect<float> dlcl(0,0,get_standard_char_size().x, get_standard_char_size().y);
+	sf::Rect<float> dlcl(0,0,get_standard_char_size().x, 
+			get_standard_char_size().y);
 	def.t.setOrigin(dlcl.width/2, dlcl.height/2);
 	 
 	sf::Vector2<int> goal_size = get_grid_size();
@@ -248,9 +282,12 @@ void fr::Frame::fill_grid()
 		{
 			float x_top = grid[y].size() * (dlcl.width*standard_scale) + origin.x;
 			float y_top = y * (dlcl.height*standard_scale) + origin.y;
-			def.t.setPosition(x_top + dlcl.width*standard_scale/2, y_top + dlcl.height*standard_scale/2);
+			def.t.setPosition(x_top + dlcl.width*standard_scale/2, 
+					y_top + dlcl.height*standard_scale/2);
 			def.r.setPosition(x_top, y_top);
 			grid[y].push_back(def);
 		}
 	}
 }
+
+
