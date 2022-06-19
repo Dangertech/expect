@@ -1,0 +1,36 @@
+<h1 class="center hover">#00 - Mind-Blowing Blogs</h1>
+<h2 class="center hover">2022-06-19</h2>
+<p class="center">
+	I am proud to announce that you are reading the <gl>very first entry
+	for the EXPECT blogs</gl> through the newly 
+	set up <gl>blog management system</gl>
+	on <a href="http://dangers.works">dangers.works</a>. Just click on the
+	<gl>EXPECT Blog</gl> dropdown menu there and be astonished by the 
+	just works automation that my Raspberry Pi integrates. This blog
+	should of course be about EXPECT and it's development but I'll just
+	drop a few words to explain how this system works. 
+</p>
+<p class="center">
+	The actual blog content is stored on the EXPECT github repo. This repo
+	is stored and updated every few seconds on my Raspberry Pi, the very
+	same on which <a href="http://dangers.works">dangers.works</a> is
+	hosted (Yes, I am hosting my homepage on a Pi. Get over it). When someone
+	visits the website, located just next to the github clone, a PHP script
+	queries the github clone for all blogs found in 
+	<gl class="special">$EXPECT_ROOT/garden/blogs</gl>
+	and encloses their names in links. These links just point to a sort of
+	shell page with a query string with the name of the blog entry appended.
+	The shell page only contains a php oneliner that echoes the content of 
+	the file associated with the blog name in the very same directory. And
+	Halleluja, this way I can create new blog entries in the EXPECT repo
+	and they are available for visitors of 
+	<a href="http://dangers.works">dangers.works</a> (almost) instantly.
+	Also, I can effortlessly style the blog entries with everything
+	that HTML offers and also utilize the features of the website stylesheet.
+</p>
+<p class="center">
+	And that's everything for this very first post! I'll upload the actual
+	first entry soon, where I want to talk about the frama framework
+	and the upcoming infra framework that builds on top of the former.
+</p>
+<h2 class="center hover">C ya!</h2>
