@@ -339,6 +339,47 @@ void even(sf::Font &font, sf::RenderWindow &win)
 	}
 }
 
+void game(sf::Font& font, sf::RenderWindow &win)
+{
+	class Player
+	{
+		unsigned int health = 100;
+		sf::Vector2i position();
+	};
+	/* The grid of all visible objects
+	 * In a "real" game, the actual, universal grid
+	 * of game objects would be stored somewhere else
+	 * TODO: Read up on how to arrange different classes
+	 * in that grid
+	 */
+	std::vector<std::vector<int>> visi_grid;
+	/* Window Size (should actually be continually updated) */
+	sf::Vector2u win_size = win.getSize();
+	/* Game View window */
+	fr::Frame gv(win, font, 32, sf::Vector2f(0.f, 0.f),
+			sf::Vector2f(win_size.x - 150, win_size.y));
+	/* Sidebar */
+	fr::Frame sb(win, font, 32, sf::Vector2f(win_size.x - 150, 0),
+			sf::Vector2f(win_size.x, win_size.y));
+	gv.set_frame_bg(sf::Color(54, 17, 7));
+	sb.set_frame_bg(sf::Color(255, 0, 0));
+	while (win.isOpen())
+	{
+		sf::Event event;
+		while(win.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				win.close();
+		}
+		gv.draw();
+		/* Draw sidebar OVER gameview to avoid overlapping at the
+		 * edges of the two frames
+		 */
+		sb.draw();
+		win.display();
+	}
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -368,6 +409,9 @@ int main(int argc, char* argv[])
 			break;
 		case 4:
 			even(font, win);
+			break;
+		case 5:
+			game(font, win);
 			break;
 		default:
 			std::cout << "Unit test id invalid, running a default" << std::endl;
