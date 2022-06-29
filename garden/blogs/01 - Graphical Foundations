@@ -1,0 +1,117 @@
+<h1 class="center hover">#01 - Graphical Foundations</h1>
+<h2 class="center hover">2022-06-29</h2>
+<p class="center">
+	Now, the first central thing to decide on for a video game is, besides
+	the concept, the <gl>user interface</gl>(UI). For most video game developers,
+	this is an easy choice: If it's a 3D game, use the 3D capabilities of your
+	game engine. If it's 2D, use 2D. But I don't have an engine. I have C++.
+	Bummer. 
+	<br>
+	<br>
+	Firstly, I need a general interface to the display systems of all
+	my development targets - Linux and Windows. As this is a giant project and
+	I don't want to do all this myself while the system is barely working, I
+	settle on a library for this, <gl>SFML</gl>. Why SFML? It's popular, it's
+	easy to use and it has some solid 2D features. I will see later on, especially
+	when trying to create special effects, if this was such an awesome idea,
+	but I'll have to stick to it for now. So now there's SFML, where I can
+	smash random stuff, like text, on random positions in a window. That's a great
+	start, but roguelikes are usually <gl>grid-based</gl>. Somehow, the program
+	needs to emulate the behaviour of a terminal, displaying characters in a
+	monospace font. And now, when I am in the interesting position on shaping
+	my own character display system, why shouldn't I give it some treats that
+	improve on the classical terminal? And that's why I made <gl>frama</gl>.
+</p>
+<h2 class="center hover">FRAMA</h2>
+<p class="center">
+	frama is a (comparatively) low-level framework for displaying <gl>frames</gl>
+	that hold <gl>character-grids</gl>, operating on top of SFML. 
+	You can instance a new frame, give it
+	a SFML window it can display in, 
+	give it a font and a size and then you can happily
+	place characters within the grid. This is all pretty straightforward in one
+	central class, <code>Frame</code>, which draws itself through the public
+	function <code>Frame::draw()</code>, into the SFML window it was fed with
+	in the constructor.
+</p>
+	<pre><code>
+		namespace fr
+		{
+			struct ObjRep
+			{
+				std::wstring ch;
+				sf::Color fill;
+				sf::Color bg;
+				uint32_t style;
+				/* ... */
+			};
+			class Frame
+			{
+				public:
+					/* Constructor -> feeds root window, font and inital sizes */
+					/* Various interaction functions */
+				private:
+					sf::Font *font;
+					std::vector<std::vector<GridObj>> grid;
+			}
+		}
+	</code></pre>
+<p class="center">
+	And this is pretty much everything that this framework operates with! It is
+	really lean and small because it only does a small but central job. I am
+	careful to completely <gl>encapsulate</gl> frama into its own thing so 
+	nothing gets mixed up and intertwined. There's the possibility to draw
+	characters, other pieces of code can interact with it, that's it. 
+	<br>
+	<br>
+	The neat thing here is now, that you aren't limited to ONE frame: You
+	can instance as many as you want! And they all have independent fonts, sizes
+	and background colors? A practical example where this will come in handy
+	is with the sidebars/overlays in EXPECT: They could be scalable independently
+	from the main game view. If the player finds the game viewport a bit too small,
+	he can zoom it in and his eyes rest easy while the sidebar with information
+	stays the same size. This is a central advantage of frama in comparison to
+	a classical roguelike played in the terminal.
+</p>
+<h3 class="center hover">One Issue with frame boundaries</h3>
+<p class="center">
+	There's one problem I have with my design that I want to mention: A frame
+	is defined by giving it an origin and an end, in window coordinates. While
+	this might be useful in some cases, it is annoying in others: Although you
+	can exactly define where a frame should go, it is of course not guaranteed 
+	that the shown characters end where the set end is:
+	<br>
+	<img class="marginauto" src="https://i.imgur.com/fHtd72P.png" alt="Visible overlap between characters and frame border">
+	<br>
+	In this image (it is functional test 1 btw), the red background shows the
+	borders of the actual frame, the area between origin (top left) and 
+	end (bottom right). But the characters on the grid go beyond that because
+	they have their respective size and the final character of course doesn't
+	exactly stop on the end coordinate. I have implemented some features for
+	developers to combat this, like the option if the characters should overlap
+	or leave space free (one column/row less is shown) or functions to force the
+	visual background (not the actual end coordinate) to the nearest character, etc.
+	But in the end, it's still pretty annoying in some cases. But just making the
+	developer set an origin point and then just their preferred grid size is
+	even worse: It involves some annoying arithmetics every time the developer
+	wants to know the actual boundaries of their frame. There isn't <i>the</i>
+	optimal design - both have their tradeoffs.
+	<br>
+	<br>
+</p>
+<h2 class="center hover">In the future...</h2>
+<p class="center">
+	But displaying a grid is just the beginning, of course. As soon as I advance
+	to actual game logic, it might get messy. That's why I plan on implementing
+	another, intermediate framework, <gl>infra</gl> that operates on top
+	of frama and SFML. It does <i>everything</i> that is related to showing the
+	stuff that happens in game to the player, it sets up viewports, message
+	boxes, the sidebars, visual effects, everything. And then, in turn, nothing
+	of the actual game logic has to handle anything related to frama or SFML.
+	Or at least that's my cherry-blossom inexperienced view of my future code;
+	I'm yet unsure if this is really practical or makes any sense to use. In 
+	general, I'm really unsure in which direction this game, from the gameplay,
+	story and concept on one side, and from the code architecture on the other,
+	will take off. Let's see what the future holds.
+</p>
+<h2 class="center hover">C ya!</h2>
