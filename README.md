@@ -18,4 +18,24 @@ The things I currently work on are **frama.h**, a library to display
 text grids with certain graphical effects, and the project documentation
 (which I want to come naturally with the time).
 
-(Look at (Inital\_Working\_Plan.md)[garden/Initial\_Working\_Plan.md] for more info)
+(Look at [Inital\_Working\_Plan.md](garden/Initial\_Working\_Plan.md) for more info)
+
+## Project Development
+
+Interesting things are to be found in the `/garden/` subdirectory.
+I plan to put my reference materials and blog there.
+
+The blog is also hosted live on [dangers.works](https://dangers.works).
+It is currently a bit cluttered but I plan to rework the website and make
+it cleaner and more directed towards expect and my other projects.
+
+## Installation
+
+The game is currently not a game and just an aggregation of C++ code.
+Installing it will result in immediate disappointment. But things change,
+of course, I've got to be somewhere until March 2025. So stay tuned!
+
+If you want to install this project anyway, do these generic things:
+
+- Clone the repo and `cd` into it (Usual Stuff, you got this)
+- `make`
