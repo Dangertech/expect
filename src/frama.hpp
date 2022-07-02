@@ -13,6 +13,7 @@ namespace fr
 {
 	enum CharPoint {TOP, LEFT, RIGHT, DOWN, TOP_LEFT, TOP_RIGHT, 
 		BOTTOM_LEFT, BOTTOM_RIGHT, CENTER};
+	 
 	struct ObjRep
 	{
 		std::wstring ch;
@@ -69,6 +70,24 @@ namespace fr
 			ObjRep get_char(int x, int y);
 			void set_char(ObjRep rep, int x, int y);
 			
+			/* Allows to print a whole string in a line
+			 * at a specified position. 
+			 * In the given ObjRep, the character is ignored but
+			 * all characters will obey to the specified styling;
+			 * Newlines are supported and will return to the
+			 * specified x position one row below.
+			 * If autobreak is true, line breaks will be made automatically
+			 * if the function runs out of space in a line. If it is false,
+			 * the function will simply truncate until a manual \n is encountered
+			 * Return:
+			 * 	 0 means stayed in the same line
+			 * 	 any positive number n means made n line breaks
+			 * 	-1 means could not make another line break 
+			 * 		because it reached the y grid end
+			 */
+			int print(std::wstring input, int x, int y, 
+					ObjRep rep, bool autobreak = true);
+			
 			float get_standard_scale() {return standard_scale; }
 			void set_standard_scale(float scale);
 			 
@@ -102,7 +121,8 @@ namespace fr
 			sf::Vector2<int> get_grid_size();
 			
 			/* Get the position of a character on the grid, 
-			 * at any of the 9 geometrical points */
+			 * at any of the 9 geometrical points 
+			 */
 			sf::Vector2f get_char_pos(int x, int y, CharPoint point = CENTER);
 			
 			/* Takes in a window coordinate and returns the

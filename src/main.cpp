@@ -76,7 +76,6 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 	
 	while (win.isOpen())
 	{
-
 		auto circle_queue = pos_circles(frame);
 		sf::Event event;
 		
@@ -341,10 +340,12 @@ void even(sf::Font &font, sf::RenderWindow &win)
 
 void game(sf::Font& font, sf::RenderWindow &win)
 {
+	int sb_width = 350;
 	class Player
 	{
-		unsigned int health = 100;
-		sf::Vector2i position();
+		public:
+			unsigned int health = 100;
+			sf::Vector2i position();
 	};
 	/* The grid of all visible objects
 	 * In a "real" game, the actual, universal grid
@@ -357,12 +358,15 @@ void game(sf::Font& font, sf::RenderWindow &win)
 	sf::Vector2u win_size = win.getSize();
 	/* Game View window */
 	fr::Frame gv(win, font, 32, sf::Vector2f(0.f, 0.f),
-			sf::Vector2f(win_size.x - 150, win_size.y));
+			sf::Vector2f(win_size.x - sb_width, win_size.y));
 	/* Sidebar */
-	fr::Frame sb(win, font, 32, sf::Vector2f(win_size.x - 150, 0),
+	fr::Frame sb(win, font, 32, sf::Vector2f(win_size.x - sb_width, 0),
 			sf::Vector2f(win_size.x, win_size.y));
 	gv.set_frame_bg(sf::Color(54, 17, 7));
 	sb.set_frame_bg(sf::Color(255, 0, 0));
+	sb.set_standard_scale(0.8);
+
+	Player p;
 	while (win.isOpen())
 	{
 		sf::Event event;
@@ -370,6 +374,15 @@ void game(sf::Font& font, sf::RenderWindow &win)
 		{
 			if (event.type == sf::Event::Closed)
 				win.close();
+		}
+		try
+		{
+			sb.print(L"Player Character:", 2, 1, wall);
+			sb.print(L"Health: " + std::to_wstring(p.health) + L"/100", 2, 2, excl);
+		}
+		catch (int e)
+		{
+			std::cerr << "sidebar printing threw " << e << std::endl;
 		}
 		gv.draw();
 		/* Draw sidebar OVER gameview to avoid overlapping at the
@@ -383,7 +396,7 @@ void game(sf::Font& font, sf::RenderWindow &win)
 
 int main(int argc, char* argv[])
 {
-	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT UNIT TESTS");
+	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT FUNCTIONAL TESTS");
 	/* Really janky and makeshift testing suite */
 	int ipt = 0;
 	ipt = atoi(argv[1]);

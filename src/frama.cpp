@@ -3,6 +3,22 @@
 #include "frama.hpp"
 #include "const.h"
 
+fr::ObjRep fr::Frame::get_char(int x, int y)
+{
+	auto grid_size = get_grid_size();
+	if (x > grid_size.x || y > grid_size.y)
+		throw ERR_OVERFLOW;
+	GridObj th = grid[y][x];
+	ObjRep ret;
+	ret.ch = th.t.getString();
+	ret.size_mod = th.size_mod;
+	ret.fill = th.t.getFillColor();
+	ret.ol = th.t.getOutlineColor();
+	ret.ol_thickness = th.t.getOutlineThickness();
+	ret.bg = th.r.getFillColor();
+	ret.style = th.t.getStyle();
+	return ret;
+}
 
 void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
@@ -10,7 +26,7 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 		throw ERR_INVALID_IPT;
 	
 	fill_grid();
-
+	
 	if (y > grid.size()-1 || x > grid[y].size()-1)
 	{
 		throw ERR_OVERFLOW;
@@ -51,22 +67,52 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	
 }
 
-fr::ObjRep fr::Frame::get_char(int x, int y)
+int fr::Frame::print(std::wstring input, int x, int y, 
+		fr::ObjRep rep, bool autobreak)
 {
-	auto grid_size = get_grid_size();
-	if (x > grid_size.x || y > grid_size.y)
+	auto g_size = get_grid_size();
+	if (x > g_size.x)
 		throw ERR_OVERFLOW;
-	GridObj th = grid[y][x];
-	ObjRep ret;
-	ret.ch = th.t.getString();
-	ret.size_mod = th.size_mod;
-	ret.fill = th.t.getFillColor();
-	ret.ol = th.t.getOutlineColor();
-	ret.ol_thickness = th.t.getOutlineThickness();
-	ret.bg = th.r.getFillColor();
-	ret.style = th.t.getStyle();
-	return ret;
+	/* Simply set a sequence of chars
+	 * Yeah, functions we can depend on!
+	 */
+	int my_x = x;
+	int my_y = y;
+	for (int i = 0; i<input.size(); i++)
+	{
+		if (my_y > g_size.y-1)
+			return -1;
+		/* Manual newline detected */
+		if (input[i] == '\n')
+		{
+			my_x = x;
+			my_y++;
+			continue;
+		}
+		ObjRep this_rep = rep;
+		this_rep.ch = input[i];
+		 
+		try
+		{
+			set_char(this_rep, my_x, my_y);
+		}
+		catch (int e)
+		{
+			std::cerr << "fr::Frame::print: set_char threw error " << e
+				<< "; This should not be possible. Passing this error on." << std::endl;
+			throw e;
+		}
+		
+		my_x++;
+		if (my_x > g_size.x-1)
+		{
+			my_x = x;
+			my_y++;
+		}
+	}
+	return my_x-x;
 }
+
 
 void fr::Frame::draw()
 {
