@@ -32,6 +32,7 @@ std::vector<sf::CircleShape> pos_circles(fr::Frame frame)
 			int radius = 4;
 			sf::CircleShape circ(radius);
 			circ.setPosition(pos.x-radius, pos.y-radius);
+			circ.setFillColor(sf::Color::Blue);
 			circle_queue.push_back(circ);
 		}
 	}
@@ -131,10 +132,10 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 			<< frame.get_char_size().x << " " << frame.get_char_size().y << "\n";
 		sf::Vector2f std = frame.get_standard_char_size();
 		std::cout << "Size of an unscaled character: " << std.x << " " << std.y << std::endl;
-		frame.set_standard_scale(frame.get_standard_scale()+0.0002);
-		frame.set_origin(sf::Vector2f(frame.get_origin().x+0.01, 
+		frame.set_standard_scale(frame.get_standard_scale()+0.002);
+		frame.set_origin(sf::Vector2f(frame.get_origin().x+0.1, 
 			frame.get_origin().y));
-		frame.set_end(sf::Vector2f(frame.get_end().x+0.001,
+		frame.set_end(sf::Vector2f(frame.get_end().x+0.01,
 			frame.get_end().y));
 	}
 }
@@ -365,10 +366,10 @@ void game(sf::Font& font, sf::RenderWindow &win)
 	gv.set_frame_bg(sf::Color(54, 17, 7));
 	sb.set_frame_bg(sf::Color(255, 0, 0));
 	sb.set_standard_scale(0.8);
-
 	Player p;
 	while (win.isOpen())
 	{
+		auto circle_queue = pos_circles(sb);
 		sf::Event event;
 		while(win.pollEvent(event))
 		{
@@ -376,6 +377,7 @@ void game(sf::Font& font, sf::RenderWindow &win)
 				win.close();
 		}
 		 
+		win.clear();
 		try
 		{
 			sb.print(L"Player Character:", 2, 1, wall);
@@ -390,6 +392,10 @@ void game(sf::Font& font, sf::RenderWindow &win)
 		 * edges of the two frames
 		 */
 		sb.draw();
+		for (auto x : circle_queue)
+		{
+			win.draw(x);
+		}
 		win.display();
 	}
 }

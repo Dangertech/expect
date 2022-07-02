@@ -64,6 +64,12 @@ namespace fr
 				font_size = my_font_size;
 				origin = my_ori;
 				end = my_end;
+				 
+				/* Add a local bound rectangle that can be
+				 * referenced to get the size of any character
+				 */
+				set_size_ref();
+				 
 				fill_grid();
 			}
 			 
@@ -142,6 +148,11 @@ namespace fr
 			std::vector<std::vector<GridObj>> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
+			/* Keeps track of the size of a character through
+			 * set_size_ref and can be referenced by all functions;
+			 * Returned to the user through get_standard_char_size
+			 */
+			sf::Rect<float> sref;
 			/* The default scale of the characters;
 			 * Single chars can modify this value through
 			 * the size_mod value in their ObjectRepresentation
@@ -172,5 +183,10 @@ namespace fr
 			 * to it's wanted size 
 			 */
 			void fill_grid();
+		 /* Sets the sref sf::Rect to reference
+			* the size of a character; This is done on
+			* object initialization
+			*/
+			void set_size_ref();
 	};
 };
