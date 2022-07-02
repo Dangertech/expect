@@ -119,14 +119,14 @@ void fr::Frame::draw()
 	if (grid.size() == 0)
 		throw ERR;
 	/* Queues to be filled with characters */
-	std::vector<sf::Text> text_queue;
-	std::vector<sf::RectangleShape> bg_queue;
+	std::vector<sf::Text*> text_queue;
+	std::vector<sf::RectangleShape*> bg_queue;
 	for (int y = 0; y < grid.size(); y++)
 	{
 		for (int x = 0; x < grid[y].size(); x++)
 		{
-			text_queue.push_back(grid[y][x].t);
-			bg_queue.push_back(grid[y][x].r);
+			text_queue.push_back(&grid[y][x].t);
+			bg_queue.push_back(&grid[y][x].r);
 			
 		}
 	}
@@ -146,6 +146,7 @@ void fr::Frame::draw()
 	}
 	frame_bg.setFillColor(frame_bg_col);
 	win->draw(frame_bg);
+	 
 	/* Draw queues */
 	if (end_before_end)
 	{
@@ -155,13 +156,13 @@ void fr::Frame::draw()
 		for (int i = 0; i<text_queue.size(); i++)
 		{
 			sf::Vector2f brpos;
-			sf::Rect<float> lcl = bg_queue[i].getLocalBounds();
-			brpos.x = bg_queue[i].getPosition().x + lcl.width;
-			brpos.y = bg_queue[i].getPosition().y + lcl.height;
+			sf::Rect<float> lcl = bg_queue[i]->getLocalBounds();
+			brpos.x = bg_queue[i]->getPosition().x + lcl.width;
+			brpos.y = bg_queue[i]->getPosition().y + lcl.height;
 			if (brpos.x <= end.x && brpos.y <= end.y)
 			{
-				win->draw(text_queue[i]);
-				win->draw(bg_queue[i]);
+				win->draw(*text_queue[i]);
+				win->draw(*bg_queue[i]);
 			}
 		}
 	}
@@ -173,11 +174,11 @@ void fr::Frame::draw()
 		for (int i = 0; i<text_queue.size(); i++)
 		{
 			/* Use the backgrounds because their origin is still 0,0 */
-			if(bg_queue[i].getPosition().x < end.x 
-					&& bg_queue[i].getPosition().y < end.y)
+			if(bg_queue[i]->getPosition().x < end.x 
+					&& bg_queue[i]->getPosition().y < end.y)
 			{
-				win->draw(text_queue[i]);
-				win->draw(bg_queue[i]);
+				win->draw(*text_queue[i]);
+				win->draw(*bg_queue[i]);
 			}
 		}
 	}

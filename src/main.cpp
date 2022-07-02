@@ -375,6 +375,7 @@ void game(sf::Font& font, sf::RenderWindow &win)
 			if (event.type == sf::Event::Closed)
 				win.close();
 		}
+		 
 		try
 		{
 			sb.print(L"Player Character:", 2, 1, wall);
@@ -397,6 +398,8 @@ void game(sf::Font& font, sf::RenderWindow &win)
 int main(int argc, char* argv[])
 {
 	sf::RenderWindow win(sf::VideoMode(1280, 720), "EXPECT FUNCTIONAL TESTS");
+	win.setVerticalSyncEnabled(true);
+	win.setFramerateLimit(30);
 	/* Really janky and makeshift testing suite */
 	int ipt = 0;
 	ipt = atoi(argv[1]);
