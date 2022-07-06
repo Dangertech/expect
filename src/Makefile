@@ -8,6 +8,12 @@ FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 CC = g++
 
 default: compile link
+debug: compiledbg link
+
+compiledbg: ${SRC}
+	mkdir -p ${BUILDDIR}
+	${CC} -c ${SRC} -ggdb
+	mv *.o ${BUILDDIR}
 
 compile: ${SRC}
 	mkdir -p ${BUILDDIR}

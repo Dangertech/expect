@@ -1,2 +1,3 @@
 #define ERR_OVERFLOW 999
+#define ERR_INVALID_IPT 36
 #define ERR 666
