@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include "frama.hpp"
 #include "const.h"
 
@@ -342,19 +343,57 @@ void even(sf::Font &font, sf::RenderWindow &win)
 void game(sf::Font& font, sf::RenderWindow &win)
 {
 	int sb_width = 350;
-	class Player
+	class Drawable
 	{
 		public:
-			unsigned int health = 100;
-			sf::Vector2i position();
+			fr::Frame* con_frame;
+			sf::Vector2i position;
+			fr::ObjRep app;
+			void enqueue()
+			{
+				con_frame->set_char(app, position.x, position.y);
+			}
 	};
-	/* The grid of all visible objects
-	 * In a "real" game, the actual, universal grid
-	 * of game objects would be stored somewhere else
-	 * TODO: Read up on how to arrange different classes
-	 * in that grid
-	 */
-	std::vector<std::vector<int>> visi_grid;
+	class Player : public Drawable
+	{
+		private:
+			unsigned int health; 
+		public:
+			Player(fr::Frame &con)
+			{
+				con_frame = &con;
+				health = 100;
+				app = fr::ObjRep(L"@");
+			}
+			void decrease_health(int dec)
+			{
+				if (health-dec > 0)
+					health -= dec;
+				else
+					health = 0;
+			}
+			unsigned int get_health(){return health;}
+	};
+	class Sludge : public Drawable
+	{
+		public:
+			Sludge(fr::Frame &con)
+			{
+				con_frame = &con;
+				app = fr::ObjRep(L"~", sf::Color::Green);
+			}
+			float damage = 5.f;
+	};
+	class Empty : public Drawable
+	{
+		public:
+			Empty(fr::Frame &con)
+			{
+				con_frame = &con;
+				app = fr::ObjRep(L"·");
+			}
+	};
+	 
 	/* Window Size (should actually be continually updated) */
 	sf::Vector2u win_size = win.getSize();
 	/* Game View window */
@@ -366,36 +405,105 @@ void game(sf::Font& font, sf::RenderWindow &win)
 	gv.set_frame_bg(sf::Color(54, 17, 7));
 	sb.set_frame_bg(sf::Color(255, 0, 0));
 	sb.set_standard_scale(0.8);
-	Player p;
+	 
+	/* Initialize entities */
+	Player p(gv);
+	p.position = sf::Vector2i(5, 5);
+	Sludge s(gv);
+	s.position = sf::Vector2i(8, 8);
+	 
+	std::chrono::high_resolution_clock::time_point turn_timer 
+		= std::chrono::high_resolution_clock::now();
 	while (win.isOpen())
 	{
-		auto circle_queue = pos_circles(sb);
+		/* Input logic */
 		sf::Event event;
 		while(win.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
 				win.close();
+			if(event.type == sf::Event::Resized)
+			{
+					sf::FloatRect view(0, 0, event.size.width, event.size.height);
+					win.setView(sf::View(view));
+					win_size = win.getSize();
+					gv.set_end(sf::Vector2f(win_size.x - sb_width, win_size.y));
+					sb.set_origin(sf::Vector2f(win_size.x - sb_width, 0));
+					sb.set_end(sf::Vector2f(win_size.x, win_size.y));
+			}
 		}
+		sf::Vector2i move;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+			move.x = -1;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+			move.x = 1;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+			move.y = -1;
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+			move.y = 1;
+		
+		if ((move.x != 0 || move.y != 0) && turn_timer < std::chrono::high_resolution_clock::now())
+		{
+			p.position += move;
+			 
+			if (p.position.x >= gv.get_grid_size().x || p.position.x < 0)
+				p.position.x -= move.x;
+			if (p.position.y >= gv.get_grid_size().y || p.position.y < 0)
+				p.position.y -= move.y;
+			
+			if (p.position == s.position)
+				p.decrease_health(s.damage);
+			
+			turn_timer += std::chrono::milliseconds(400);
+		}
+		
 		 
 		win.clear();
+		gv.clear();
+		sb.clear();
+		 
+		/* Print sidebar */
 		try
 		{
 			sb.print(L"Player Character:", 2, 1, wall);
-			sb.print(L"Health: " + std::to_wstring(p.health) + L"/100", 2, 2, excl);
+			sb.print(L"Health: " + std::to_wstring(p.get_health()) + L"/100", 2, 2, excl);
 		}
 		catch (int e)
 		{
-			std::cerr << "sidebar printing threw " << e << std::endl;
+			std::cerr << "Sidebar printing threw " << e << std::endl;
+		}
+		 
+		/* Update the player and sludge graphically */
+		try
+		{
+			/* In this very simple and unscalable demo,
+			 * the order is important
+			 */
+			s.enqueue();
+			p.enqueue();
+		}
+		catch (int e)
+		{
+			std::cout << "Warning, rendered out of bounds!" << std::endl;
+		}
+		/* Fill with Empty (Floor) Drawables */
+		for (int x = 0; x<gv.get_grid_size().x; x++)
+		{
+			for (int y = 0; y<gv.get_grid_size().y; y++)
+			{
+				if (gv.get_char(x, y).ch == L" ")
+				{
+					Empty e(gv);
+					e.position = sf::Vector2i(x, y);
+					e.enqueue();
+				}
+			}
 		}
 		gv.draw();
 		/* Draw sidebar OVER gameview to avoid overlapping at the
 		 * edges of the two frames
 		 */
 		sb.draw();
-		for (auto x : circle_queue)
-		{
-			win.draw(x);
-		}
 		win.display();
 	}
 }

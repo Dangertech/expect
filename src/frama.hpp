@@ -138,6 +138,7 @@ namespace fr
 			sf::Vector2<int> get_char_at(int win_x, int win_y);
 			
 			void draw();
+			void clear(); /* Empties the grid */
 		private:
 			struct GridObj
 			{

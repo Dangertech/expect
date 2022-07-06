@@ -181,6 +181,12 @@ void fr::Frame::draw()
 	}
 }
 
+void fr::Frame::clear()
+{
+	grid.clear();
+	fill_grid();
+}
+
 void fr::Frame::set_standard_scale(float scale)
 {
 	if (scale <= 0)
