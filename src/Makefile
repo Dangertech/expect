@@ -1,8 +1,10 @@
 BINNAME = expect
 BUILDDIR = build
 
-SRC = main.cpp frama.cpp
-OBJ = ${BUILDDIR}/main.o ${BUILDDIR}/frama.o
+MAIN = main.cpp
+SRC = frama.cpp
+FRAMATESTS = frama_tests.cpp frama.cpp
+FRAMABIN = expect-frama_tests
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 CC = g++
@@ -10,15 +12,24 @@ CC = g++
 default: compile link
 debug: compiledbg link
 
-compiledbg: ${SRC}
+frama_test: clean ${FRAMATESTS}
 	mkdir -p ${BUILDDIR}
-	${CC} -c ${SRC} -ggdb
+	g++ -c ${FRAMATESTS}
+	mv *.o ${BUILDDIR}
+	g++ -o ${FRAMABIN} ${BUILDDIR}/* ${FLAGS}
+
+compiledbg: clean ${SRC} ${MAIN}
+	mkdir -p ${BUILDDIR}
+	${CC} -c ${MAIN} ${SRC} -ggdb
 	mv *.o ${BUILDDIR}
 
-compile: ${SRC}
+compile: clean ${SRC} ${MAIN}
 	mkdir -p ${BUILDDIR}
-	${CC} -c ${SRC}
+	${CC} -c ${MAIN} ${SRC}
 	mv *.o ${BUILDDIR}
 
-link: ${OBJ}
-	${CC} -o ${BINNAME} ${OBJ} ${FLAGS}
+link: 
+	${CC} -o ${BINNAME} ${BUILDDIR}/* ${FLAGS}
+
+clean:
+	rm -rf ${BUILDDIR}
