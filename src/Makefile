@@ -2,7 +2,7 @@ BINNAME = expect
 BUILDDIR = build
 
 MAIN = main.cpp
-SRC = frama.cpp
+SRC = frama.cpp settings.cpp
 FRAMATESTS = frama_tests.cpp frama.cpp
 FRAMABIN = expect-frama_tests
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
@@ -32,4 +32,5 @@ link:
 	${CC} -o ${BINNAME} ${BUILDDIR}/* ${FLAGS}
 
 clean:
-	rm -rf ${BUILDDIR}
+	- rm -rf ${BUILDDIR}
+	- rm -f ${BINNAME} ${FRAMABIN}

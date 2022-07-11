@@ -211,7 +211,7 @@ void fr::Frame::set_standard_scale(float scale)
 	}
 }
 
-void fr::Frame::set_origin(sf::Vector2f my_ori)
+void fr::Frame::set_origin(sf::Vector2i my_ori)
 {
 	origin = my_ori;
 	fill_grid();
@@ -230,7 +230,7 @@ void fr::Frame::set_origin(sf::Vector2f my_ori)
 	}
 }
 
-void fr::Frame::set_end(sf::Vector2f my_end)
+void fr::Frame::set_end(sf::Vector2i my_end)
 {
 	end = my_end;
 	fill_grid();
@@ -255,6 +255,8 @@ sf::Vector2f fr::Frame::get_standard_char_size()
 sf::Vector2<int> fr::Frame::get_grid_size()
 {
 	sf::Vector2f char_size = get_char_size();
+	if (origin.x > end.x || origin.y > end.y)
+		return sf::Vector2<int>(0, 0);
 	if (end_before_end)
 	{
 		/* Truncate/Floor the result to int */

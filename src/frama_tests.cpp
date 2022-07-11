@@ -42,8 +42,8 @@ std::vector<sf::CircleShape> pos_circles(fr::Frame frame)
 
 void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 {
-	fr::Frame frame(win, font, 32, sf::Vector2f(0.f, 200.f), 
-		sf::Vector2f(200.f, 400.f));
+	fr::Frame frame(win, font, 32, sf::Vector2i(0, 200), 
+		sf::Vector2i(200, 400));
 	frame.set_frame_bg(sf::Color(255, 0, 0, 255));
 	frame.set_standard_scale(1);
 	frame.set_fit_to_text(true);
@@ -109,8 +109,8 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 		{
 			frame.set_standard_scale(1);
-			frame.set_origin(sf::Vector2f(0.f, 200.f));
-			frame.set_end(sf::Vector2f(200.f, 400.f));
+			frame.set_origin(sf::Vector2i(0, 200));
+			frame.set_end(sf::Vector2i(200, 400));
 		}
 		 
 		 
@@ -134,17 +134,17 @@ void big_move_and_size(sf::Font &font, sf::RenderWindow &win)
 		sf::Vector2f std = frame.get_standard_char_size();
 		std::cout << "Size of an unscaled character: " << std.x << " " << std.y << std::endl;
 		frame.set_standard_scale(frame.get_standard_scale()+0.002);
-		frame.set_origin(sf::Vector2f(frame.get_origin().x+0.1, 
+		frame.set_origin(sf::Vector2i(frame.get_origin().x+0.1, 
 			frame.get_origin().y));
-		frame.set_end(sf::Vector2f(frame.get_end().x+0.01,
+		frame.set_end(sf::Vector2i(frame.get_end().x+0.01,
 			frame.get_end().y));
 	}
 }
 
 void irregular_positions(sf::Font &font, sf::RenderWindow &win)
 {
-	fr::Frame frame(win, font, 32, sf::Vector2f(0.f, 200.f), 
-		sf::Vector2f(200.f, 400.f));
+	fr::Frame frame(win, font, 32, sf::Vector2i(0, 200), 
+		sf::Vector2i(200, 400));
 	frame.set_frame_bg(sf::Color(255, 0, 0, 255));
 	frame.set_char(wall, 0, 0);
 	frame.set_char(wall, 0, 1);
@@ -207,8 +207,8 @@ void irregular_positions(sf::Font &font, sf::RenderWindow &win)
 
 void move(sf::Font &font, sf::RenderWindow &win)
 {
-	fr::Frame frame(win, font, 32, sf::Vector2f(0.f, 200.f), 
-		sf::Vector2f(200.f, 400.f));
+	fr::Frame frame(win, font, 32, sf::Vector2i(0, 200), 
+		sf::Vector2i(200, 400));
 	frame.set_frame_bg(sf::Color(255, 0, 0, 255));
 	frame.set_standard_scale(1);
 	frame.set_fit_to_text(true);
@@ -249,8 +249,8 @@ void move(sf::Font &font, sf::RenderWindow &win)
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 		{
 			frame.set_standard_scale(1);
-			frame.set_origin(sf::Vector2f(0.f, 200.f));
-			frame.set_end(sf::Vector2f(200.f, 400.f));
+			frame.set_origin(sf::Vector2i(0.f, 200.f));
+			frame.set_end(sf::Vector2i(200.f, 400.f));
 		}
 		 
 		while(win.pollEvent(event))
@@ -274,9 +274,9 @@ void move(sf::Font &font, sf::RenderWindow &win)
 			win.draw(x);
 		}
 		win.display();
-		frame.set_origin(sf::Vector2f(frame.get_origin().x+0.1,
+		frame.set_origin(sf::Vector2i(frame.get_origin().x+0.1,
 			frame.get_origin().y));
-		frame.set_end(sf::Vector2f(frame.get_end().x+0.1,
+		frame.set_end(sf::Vector2i(frame.get_end().x+0.1,
 			frame.get_end().y));
 	}
 }
@@ -286,8 +286,8 @@ void move(sf::Font &font, sf::RenderWindow &win)
  */
 void even(sf::Font &font, sf::RenderWindow &win)
 {
-	fr::Frame frame(win, font, 32, sf::Vector2f(0.f, 0.f), 
-		sf::Vector2f(80.f, 160.f));
+	fr::Frame frame(win, font, 32, sf::Vector2i(0.f, 0.f), 
+		sf::Vector2i(80.f, 160.f));
 	frame.set_frame_bg(sf::Color(255, 0, 0, 255));
 	frame.set_standard_scale(1);
 	while (win.isOpen())
@@ -320,9 +320,9 @@ void even(sf::Font &font, sf::RenderWindow &win)
 			frame.set_end_before_end(false);
 		
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
-			frame.set_end(sf::Vector2f(80+10, 160+10));
+			frame.set_end(sf::Vector2i(80+10, 160+10));
 		else
-			frame.set_end(sf::Vector2f(80, 160));
+			frame.set_end(sf::Vector2i(80, 160));
 		 
 		while(win.pollEvent(event))
 		{
@@ -397,11 +397,11 @@ void game(sf::Font& font, sf::RenderWindow &win)
 	/* Window Size (should actually be continually updated) */
 	sf::Vector2u win_size = win.getSize();
 	/* Game View window */
-	fr::Frame gv(win, font, 32, sf::Vector2f(0.f, 0.f),
-			sf::Vector2f(win_size.x - sb_width, win_size.y));
+	fr::Frame gv(win, font, 32, sf::Vector2i(0.f, 0.f),
+			sf::Vector2i(win_size.x - sb_width, win_size.y));
 	/* Sidebar */
-	fr::Frame sb(win, font, 32, sf::Vector2f(win_size.x - sb_width, 0),
-			sf::Vector2f(win_size.x, win_size.y));
+	fr::Frame sb(win, font, 32, sf::Vector2i(win_size.x - sb_width, 0),
+			sf::Vector2i(win_size.x, win_size.y));
 	gv.set_frame_bg(sf::Color(54, 17, 7));
 	sb.set_frame_bg(sf::Color(255, 0, 0));
 	sb.set_standard_scale(0.8);
@@ -427,9 +427,9 @@ void game(sf::Font& font, sf::RenderWindow &win)
 					sf::FloatRect view(0, 0, event.size.width, event.size.height);
 					win.setView(sf::View(view));
 					win_size = win.getSize();
-					gv.set_end(sf::Vector2f(win_size.x - sb_width, win_size.y));
-					sb.set_origin(sf::Vector2f(win_size.x - sb_width, 0));
-					sb.set_end(sf::Vector2f(win_size.x, win_size.y));
+					gv.set_end(sf::Vector2i(win_size.x - sb_width, win_size.y));
+					sb.set_origin(sf::Vector2i(win_size.x - sb_width, 0));
+					sb.set_end(sf::Vector2i(win_size.x, win_size.y));
 			}
 		}
 		sf::Vector2i move;

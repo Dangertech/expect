@@ -56,8 +56,8 @@ namespace fr
 		public:
 			Frame(sf::RenderWindow& my_win, sf::Font& my_font, 
 				int my_font_size,
-				sf::Vector2f my_ori, 
-				sf::Vector2f my_end)
+				sf::Vector2i my_ori, 
+				sf::Vector2i my_end)
 			{
 				win = &my_win;
 				font = &my_font;
@@ -100,11 +100,11 @@ namespace fr
 			sf::Color get_frame_bg();
 			void set_frame_bg(sf::Color col) {frame_bg_col = col;}
 			
-			sf::Vector2f get_origin() { return origin; }
-			void set_origin(sf::Vector2f origin);
+			sf::Vector2i get_origin() { return origin; }
+			void set_origin(sf::Vector2i origin);
 			
-			sf::Vector2f get_end() { return end; }
-			void set_end(sf::Vector2f end);
+			sf::Vector2i get_end() { return end; }
+			void set_end(sf::Vector2i end);
 			
 			bool get_fit_to_text() { return fit_to_text; }
 			void set_fit_to_text(bool new_state) {fit_to_text = new_state;}
@@ -175,9 +175,9 @@ namespace fr
 			 */
 			bool end_before_end = false;
 			/* Top left beginning of text */
-			sf::Vector2f origin;
+			sf::Vector2i origin;
 			/* Bottom right end */
-			sf::Vector2f end;
+			sf::Vector2i end;
 			
 			/* Fills the grid up with default grid objects 
 			 * This is used to ensure that the grid always corresponds
