@@ -27,7 +27,27 @@ void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 		
 	}
 }
+class Drawable
+{
+	public:
+		fr::Frame* con_frame;
+		sf::Vector2i position;
+		fr::ObjRep app;
+		void enqueue()
+		{
+			con_frame->set_char(app, position.x, position.y);
+		}
+};
 
+class TestObject : public Drawable
+{
+	public:
+		TestObject(fr::Frame &con)
+		{
+			con_frame = &con;
+			app = fr::ObjRep(L"T");
+		}
+};
 /* Start of the main game loop */
 int main()
 {
@@ -43,6 +63,9 @@ int main()
 	gv.set_frame_bg(sf::Color::Red);
 	sb.set_frame_bg(sf::Color::Green);
 	sb.set_standard_scale(0.5f);
+	TestObject test_object(gv);
+	bool update = false;
+	test_object.position = sf::Vector2i(5,5);
 	while (win.isOpen())
 	{
 		sf::Event e;
@@ -54,11 +77,34 @@ int main()
 			{
 				win.setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 				update_sizes(gv, sb, win.getSize());
+				update = true;
 			}
 		}
-		win.clear();
-		gv.draw();
-		sb.draw();
+		/* Input handling */
+		if (win.hasFocus())
+		{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+			{
+				test_object.position.x++;
+				if (test_object.position.x >= gv.get_grid_size().x)
+					test_object.position.x = 0;
+				update = true;
+			}
+		}
+		if (update)
+		{
+			/* Clear Everything */
+			win.clear();
+			gv.clear();
+			sb.clear();
+			/* Pull in Objects */
+			test_object.enqueue();
+			/* Draw Frames */
+			gv.draw();
+			sb.draw();
+			std::cout << "Screen Refreshed" << std::endl;
+			update = false;
+		}
 		win.display();
 	}
 	return 0;
