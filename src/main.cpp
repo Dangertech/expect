@@ -27,6 +27,7 @@ void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 		
 	}
 }
+ 
 class Drawable
 {
 	public:
@@ -64,7 +65,6 @@ int main()
 	sb.set_frame_bg(sf::Color::Green);
 	sb.set_standard_scale(0.5f);
 	TestObject test_object(gv);
-	bool update = false;
 	test_object.position = sf::Vector2i(5,5);
 	while (win.isOpen())
 	{
@@ -77,7 +77,6 @@ int main()
 			{
 				win.setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 				update_sizes(gv, sb, win.getSize());
-				update = true;
 			}
 		}
 		/* Input handling */
@@ -86,25 +85,19 @@ int main()
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			{
 				test_object.position.x++;
+				gv.set_char(fr::EMPTY, test_object.position.x-1, 
+						test_object.position.y);
 				if (test_object.position.x >= gv.get_grid_size().x)
 					test_object.position.x = 0;
-				update = true;
 			}
 		}
-		if (update)
-		{
-			/* Clear Everything */
-			win.clear();
-			gv.clear();
-			sb.clear();
-			/* Pull in Objects */
-			test_object.enqueue();
-			/* Draw Frames */
-			gv.draw();
-			sb.draw();
-			std::cout << "Screen Refreshed" << std::endl;
-			update = false;
-		}
+		/* Pull in Objects */
+		test_object.enqueue();
+		/* Draw Frames */
+		if (gv.draw())
+			std::cout << "Updated game viewport!" << std::endl;;
+		if(sb.draw())
+			std::cout << "Updated Sidebar viewport!" << std::endl;
 		win.display();
 	}
 	return 0;

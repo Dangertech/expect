@@ -50,6 +50,7 @@ namespace fr
 				&& bg == r.bg && style == r.style;
 		}
 	};
+	const ObjRep EMPTY(L" ");
 	 
 	class Frame
 	{
@@ -137,9 +138,16 @@ namespace fr
 			 */
 			sf::Vector2<int> get_char_at(int win_x, int win_y);
 			
-			void draw();
+			/* Pushes the changes to the connected window
+			 * to draw them
+			 * Returns 1 if new changes have been pushed,
+			 * Returns 0 if no new changes were detected and nothing was changed
+			 * Throws ERR if the internal grid is empty (impossible by design)
+			 */
+			int draw();
 			void clear(); /* Empties the grid */
 		private:
+			bool to_update = false;
 			struct GridObj
 			{
 				sf::Text t;
@@ -149,6 +157,7 @@ namespace fr
 			std::vector<std::vector<GridObj>> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
+			sf::RectangleShape frame_bg;
 			/* Keeps track of the size of a character through
 			 * set_size_ref and can be referenced by all functions;
 			 * Returned to the user through get_standard_char_size

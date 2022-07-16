@@ -22,6 +22,8 @@ fr::ObjRep fr::Frame::get_char(int x, int y)
 
 void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
+	if (get_char(x, y) == rep)
+		return;
 	if (rep.ch.size() > 1)
 		throw ERR_INVALID_IPT;
 	
@@ -62,6 +64,7 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	bg.setPosition(x_top, y_top);
 	bg.setFillColor(rep.bg);
 	grid[y][x].r = bg;
+	to_update = true;
 	
 }
 
@@ -109,11 +112,14 @@ int fr::Frame::print(std::wstring input, int x, int y,
 		}
 	}
 	return my_x-x;
+	to_update = true;
 }
 
 
-void fr::Frame::draw()
+int fr::Frame::draw()
 {
+	if (to_update == false)
+		return 0;
 	if (grid.size() == 0)
 		throw ERR;
 	/* Queues to be filled with characters */
@@ -129,21 +135,28 @@ void fr::Frame::draw()
 		}
 	}
 	/* Set up frame background */
-	sf::RectangleShape frame_bg;
-	frame_bg.setPosition(origin.x, origin.y);
-	if (!fit_to_text)
+	sf::Vector2f bg_pos = frame_bg.getPosition();
+	sf::Vector2f bg_size = frame_bg.getSize();
+	if (bg_pos.x != origin.x || bg_pos.y != origin.y 
+			|| bg_size.x != end.x-origin.x || bg_size.y != end.y-origin.y
+			|| frame_bg.getFillColor() != frame_bg_col)
 	{
-		frame_bg.setSize(sf::Vector2f(end.x-origin.x, end.y-origin.y));
+		frame_bg.setPosition(origin.x, origin.y);
+		if (!fit_to_text)
+		{
+			frame_bg.setSize(sf::Vector2f(end.x-origin.x, end.y-origin.y));
+		}
+		else
+		{
+			sf::Vector2<int> grid_size = get_grid_size();
+			sf::Vector2f chr_size = get_char_size();
+			frame_bg.setSize(sf::Vector2f(grid_size.x*chr_size.x,
+				grid_size.y*chr_size.y));
+		}
+		frame_bg.setFillColor(frame_bg_col);
+		win->draw(frame_bg);
 	}
-	else
-	{
-		sf::Vector2<int> grid_size = get_grid_size();
-		sf::Vector2f chr_size = get_char_size();
-		frame_bg.setSize(sf::Vector2f(grid_size.x*chr_size.x,
-			grid_size.y*chr_size.y));
-	}
-	frame_bg.setFillColor(frame_bg_col);
-	win->draw(frame_bg);
+	
 	 
 	/* Draw queues */
 	if (end_before_end)
@@ -179,12 +192,15 @@ void fr::Frame::draw()
 			}
 		}
 	}
+	to_update = false;
+	return 1;
 }
 
 void fr::Frame::clear()
 {
 	grid.clear();
 	fill_grid();
+	to_update = true;
 }
 
 void fr::Frame::set_standard_scale(float scale)
@@ -209,6 +225,7 @@ void fr::Frame::set_standard_scale(float scale)
 					y_top + sref.height*standard_scale/2);
 		}
 	}
+	to_update = true;
 }
 
 void fr::Frame::set_origin(sf::Vector2i my_ori)
@@ -228,12 +245,14 @@ void fr::Frame::set_origin(sf::Vector2i my_ori)
 			grid[y][x].r.setPosition(x_top, y_top);
 		}
 	}
+	to_update = true;
 }
 
 void fr::Frame::set_end(sf::Vector2i my_end)
 {
 	end = my_end;
 	fill_grid();
+	to_update = true;
 }
 
 sf::Vector2f fr::Frame::get_char_size(int size_mod)
@@ -342,6 +361,7 @@ void fr::Frame::fill_grid()
 			grid[y].push_back(def);
 		}
 	}
+	to_update = true;
 }
 
 void fr::Frame::set_size_ref()
