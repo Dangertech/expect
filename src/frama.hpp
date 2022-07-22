@@ -146,6 +146,8 @@ namespace fr
 			 */
 			int draw();
 			void clear(); /* Empties the grid */
+			void force_update(); /* Force an update on the next draw() */
+			bool get_update(); /* Get if the frame will update on the next draw() */
 		private:
 			bool to_update = false;
 			struct GridObj

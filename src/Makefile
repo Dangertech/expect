@@ -2,7 +2,7 @@ BINNAME = expect
 BUILDDIR = build
 
 MAIN = main.cpp
-SRC = frama.cpp settings.cpp
+SRC = frama.cpp settings.cpp ecs.cpp
 FRAMATESTS = frama_tests.cpp frama.cpp
 FRAMABIN = expect-frama_tests
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system

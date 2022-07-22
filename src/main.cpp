@@ -2,6 +2,7 @@
 #include "const.h"
 #include "frama.hpp"
 #include "settings.hpp"
+#include "ecs.hpp"
 
 void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 {
@@ -27,28 +28,23 @@ void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 		
 	}
 }
- 
-class Drawable
-{
-	public:
-		fr::Frame* con_frame;
-		sf::Vector2i position;
-		fr::ObjRep app;
-		void enqueue()
-		{
-			con_frame->set_char(app, position.x, position.y);
-		}
-};
 
-class TestObject : public Drawable
+std::vector<ecs::entity_id> entts;
+struct Position
 {
+	/* Pretty useless, I know;
+	 * Has to be refined to actually make
+	 * sense
+	 */
 	public:
-		TestObject(fr::Frame &con)
-		{
-			con_frame = &con;
-			app = fr::ObjRep(L"T");
-		}
+		int get_x() { return x; }
+		void set_x(int my_x) { x = my_x; }
+		int get_y() { return y; }
+		void set_y(int my_y) { y = my_y;}
+	private:
+		int x = 5, y = 5;
 };
+ 
 /* Start of the main game loop */
 int main()
 {
@@ -64,8 +60,11 @@ int main()
 	gv.set_frame_bg(sf::Color::Red);
 	sb.set_frame_bg(sf::Color::Green);
 	sb.set_standard_scale(0.5f);
-	TestObject test_object(gv);
-	test_object.position = sf::Vector2i(5,5);
+	ecs::Aggregate agg;
+	entts.push_back(agg.new_entity());
+	agg.add_cmp<Position>(entts[0]);
+	
+	int iter = 0;
 	while (win.isOpen())
 	{
 		sf::Event e;
@@ -84,21 +83,35 @@ int main()
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			{
-				test_object.position.x++;
-				gv.set_char(fr::EMPTY, test_object.position.x-1, 
-						test_object.position.y);
-				if (test_object.position.x >= gv.get_grid_size().x)
-					test_object.position.x = 0;
+				Position* test_pos = agg.get_cmp<Position>(entts[0]);
+				test_pos->set_x(test_pos->get_x()+1);
+				gv.set_char(fr::EMPTY, test_pos->get_x()-1,
+						test_pos->get_y());
+				if (test_pos->get_x() >= gv.get_grid_size().x)
+					test_pos->set_x(0);
 			}
 		}
 		/* Pull in Objects */
-		test_object.enqueue();
+		for (ecs::entity_id ent : ecs::AggView<Position>(agg))
+		{
+			Position* pos = agg.get_cmp<Position>(ent);
+			gv.set_char(fr::ObjRep(L"W"), pos->get_x(), pos->get_y());
+		}
 		/* Draw Frames */
+		/* Why the FUCK is this required? Does
+		 * the issue lie in win.display()?
+		 */
+		if (iter <= 1)
+		{
+			gv.force_update();
+			sb.force_update();
+		}
 		if (gv.draw())
-			std::cout << "Updated game viewport!" << std::endl;;
+			std::cout << "Updated game viewport!" << std::endl;
 		if(sb.draw())
 			std::cout << "Updated Sidebar viewport!" << std::endl;
 		win.display();
+		iter++;
 	}
 	return 0;
 }

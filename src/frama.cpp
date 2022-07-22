@@ -203,6 +203,16 @@ void fr::Frame::clear()
 	to_update = true;
 }
 
+bool fr::Frame::get_update()
+{
+	return to_update;
+}
+
+void fr::Frame::force_update()
+{
+	to_update = true;
+}
+
 void fr::Frame::set_standard_scale(float scale)
 {
 	if (scale <= 0)
