@@ -84,6 +84,9 @@ int main()
 	int iter = 0;
 	while (win.isOpen())
 	{
+		bool turn_made = false;
+		if (iter == 0)
+			turn_made = true;
 		sf::Event e;
 		while (win.pollEvent(e))
 		{
@@ -94,59 +97,55 @@ int main()
 				win.setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 				update_sizes(gv, sb, win.getSize());
 			}
-		}
-		/* Input handling */
-		if (win.hasFocus())
-		{
-			Vec2 dir = {0, 0};
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L))
-				dir.x = 1;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::H))
-				dir.x = -1;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::J))
-				dir.y = 1;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::K))
-				dir.y = -1;
-			/* Act out input */
-			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-					fa::Playable>(agg))
+			/* Input handling */
+			if (win.hasFocus() && e.type == sf::Event::KeyPressed)
 			{
-				fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
-				Vec2 upd = {plr_pos->get_x()+dir.x, plr_pos->get_y()+dir.y};
-				if (get_at_pos(upd.x, upd.y, entts, &agg).size() == 0)
+				Vec2 dir = {0, 0};
+				if (e.key.code == sf::Keyboard::Key::L)
+					dir.x = 1;
+				if (e.key.code == sf::Keyboard::Key::H)
+					dir.x = -1;
+				if (e.key.code == sf::Keyboard::Key::J)
+					dir.y = 1;
+				if (e.key.code == sf::Keyboard::Key::K)
+					dir.y = -1;
+				/* Act out input */
+				for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+						fa::Playable>(agg))
 				{
-					plr_pos->set_x(upd.x);
-					plr_pos->set_y(upd.y);
-					gv.set_char(fr::EMPTY, plr_pos->get_x()-dir.x,
-							plr_pos->get_y()-dir.y);
+					fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
+					Vec2 upd = {plr_pos->get_x()+dir.x, plr_pos->get_y()+dir.y};
+					if (get_at_pos(upd.x, upd.y, entts, &agg).size() == 0)
+					{
+						turn_made = true;
+						plr_pos->set_x(upd.x);
+						plr_pos->set_y(upd.y);
+					}
+					/* Half-assed safeguards (temporary as everything ofc) */
+					if (plr_pos->get_x() >= gv.get_grid_size().x)
+						plr_pos->set_x(0);
+					if (plr_pos->get_x() < 0)
+						plr_pos->set_x(gv.get_grid_size().x-1);
+					if (plr_pos->get_y() >= gv.get_grid_size().y)
+						plr_pos->set_y(0);
+					if (plr_pos->get_y() < 0)
+						plr_pos->set_y(gv.get_grid_size().y-1);
 				}
-				/* Half-assed safeguards (temporary as everything ofc) */
-				if (plr_pos->get_x() >= gv.get_grid_size().x)
-					plr_pos->set_x(0);
-				if (plr_pos->get_x() < 0)
-					plr_pos->set_x(gv.get_grid_size().x-1);
-				if (plr_pos->get_y() >= gv.get_grid_size().y)
-					plr_pos->set_y(0);
-				if (plr_pos->get_y() < 0)
-					plr_pos->set_y(gv.get_grid_size().y-1);
 			}
 		}
+		
 		/* Pull in Objects */
-		for (ecs::entity_id ent : ecs::AggView<fa::Position>(agg))
+		if (turn_made)
 		{
-			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
-			fa::Drawable* rep = agg.get_cmp<fa::Drawable>(ent);
-			gv.set_char(fr::ObjRep(rep->ch), pos->get_x(), pos->get_y());
+			gv.clear();
+			for (ecs::entity_id ent : ecs::AggView<fa::Position>(agg))
+			{
+				fa::Position* pos = agg.get_cmp<fa::Position>(ent);
+				fa::Drawable* rep = agg.get_cmp<fa::Drawable>(ent);
+				gv.set_char(fr::ObjRep(rep->ch), pos->get_x(), pos->get_y());
+			}
 		}
 		/* Draw Frames */
-		/* Why the FUCK is this required? Does
-		 * the issue lie in win.display()?
-		 */
-		if (iter <= 1)
-		{
-			gv.force_update();
-			sb.force_update();
-		}
 		if (gv.draw())
 			std::cout << "Updated game viewport!" << std::endl;
 		if(sb.draw())
