@@ -5,6 +5,12 @@
 #include "ecs.hpp"
 #include "fabric.hpp"
 
+struct Vec2
+{
+	int x;
+	int y;
+};
+
 void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 {
 	SettingContainer s;
@@ -49,13 +55,37 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 	return ret;
 }
 
+/* Pull in Objects */
+void enqueue(fr::Frame* gv, ecs::Aggregate *agg)
+{
+	gv->clear();
+	/* Find out game view center point */
+	sf::Vector2i gvsize = gv->get_grid_size();
+	fa::Position* plr_pos = nullptr;
+	/* Accept the first playable object you find as the center of view */
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+			fa::Playable>(*agg))
+		plr_pos = agg->get_cmp<fa::Position>(ent); 
+	 
+	Vec2 vpoint; /* Center of the grid in world coordinates */
+	if (plr_pos != nullptr)
+		vpoint = {plr_pos->get_x()-gvsize.x/2, plr_pos->get_y()-gvsize.y/2};
+	else
+		vpoint = {0-gvsize.x/2, 0-gvsize.x/2};
+	 
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+		int x = pos->get_x() - vpoint.x, y = pos->get_y() - vpoint.y;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+			gv->set_char(fr::ObjRep(rep->ch), x, y);
+	}
+}
+
 std::vector<ecs::entity_id> entts;
 
-struct Vec2
-{
-	int x;
-	int y;
-};
+
  
 /* Start of the main game loop */
 int main()
@@ -68,13 +98,13 @@ int main()
 	fr::Frame gv(win, font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	fr::Frame sb(win, font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	update_sizes(gv, sb, win.getSize());
-	gv.set_frame_bg(sf::Color::Red);
+	gv.set_frame_bg(sf::Color::Black);
 	sb.set_frame_bg(sf::Color::Green);
 	sb.set_standard_scale(0.5f);
 	ecs::Aggregate agg;
 	fa::EntityDealer dlr(agg);
 	/* Construct a player Object and place its id in the entts vector */
-	entts.push_back(dlr.deal_player(3, 3));
+	entts.push_back(dlr.deal_player(0, 0));
 	/* Construct a wall */
 	for (int i = 2; i<8; i++)
 	{
@@ -96,6 +126,7 @@ int main()
 			{
 				win.setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 				update_sizes(gv, sb, win.getSize());
+				enqueue(&gv, &agg);
 			}
 			/* Input handling */
 			if (win.hasFocus() && e.type == sf::Event::KeyPressed)
@@ -109,6 +140,30 @@ int main()
 					dir.y = 1;
 				if (e.key.code == sf::Keyboard::Key::K)
 					dir.y = -1;
+				if (e.key.code == sf::Keyboard::Key::Y)
+				{
+					dir.y = -1;
+					dir.x = -1;
+				}
+				if (e.key.code == sf::Keyboard::Key::U)
+				{
+					dir.y = -1;
+					dir.x = 1;
+				}
+				if (e.key.code == sf::Keyboard::Key::N)
+				{
+					dir.y = 1;
+					dir.x = 1;
+				}
+				if (e.key.code == sf::Keyboard::Key::B)
+				{
+					dir.y = 1;
+					dir.x = -1;
+				}
+				if (e.key.code == sf::Keyboard::Key::Period)
+				{
+					turn_made = true;
+				}
 				/* Act out input */
 				for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
 						fa::Playable>(agg))
@@ -121,30 +176,12 @@ int main()
 						plr_pos->set_x(upd.x);
 						plr_pos->set_y(upd.y);
 					}
-					/* Half-assed safeguards (temporary as everything ofc) */
-					if (plr_pos->get_x() >= gv.get_grid_size().x)
-						plr_pos->set_x(0);
-					if (plr_pos->get_x() < 0)
-						plr_pos->set_x(gv.get_grid_size().x-1);
-					if (plr_pos->get_y() >= gv.get_grid_size().y)
-						plr_pos->set_y(0);
-					if (plr_pos->get_y() < 0)
-						plr_pos->set_y(gv.get_grid_size().y-1);
 				}
 			}
 		}
 		
-		/* Pull in Objects */
 		if (turn_made)
-		{
-			gv.clear();
-			for (ecs::entity_id ent : ecs::AggView<fa::Position>(agg))
-			{
-				fa::Position* pos = agg.get_cmp<fa::Position>(ent);
-				fa::Drawable* rep = agg.get_cmp<fa::Drawable>(ent);
-				gv.set_char(fr::ObjRep(rep->ch), pos->get_x(), pos->get_y());
-			}
-		}
+			enqueue(&gv, &agg);
 		/* Draw Frames */
 		if (gv.draw())
 			std::cout << "Updated game viewport!" << std::endl;
