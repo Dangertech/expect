@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <bitset>
 #include <vector>
-#include <SFML/Graphics.hpp>
 
 /* This module does not contain an
  * implementation .cpp file because
@@ -35,7 +34,7 @@ namespace ecs
 	 * after an entity is destroyed
 	 */
 	entity_id create_entity_id(entity_idx idx, entity_vers vers);
-	entity_id get_entity_idx(entity_id id);
+	entity_idx get_entity_idx(entity_id id);
 	entity_vers get_entity_vers(entity_id id);
 	bool is_entity_valid(entity_id id);
 	 
@@ -51,13 +50,15 @@ namespace ecs
 			void destroy_entity(entity_id e_id);
 			
 			template<typename T>
-			void add_cmp(entity_id e_id)
+			T* add_cmp(entity_id e_id)
 			{
 				/* Ensures the user can only access entities
 				 * that still exist
 				 */
 				if (entities[get_entity_idx(e_id)].id != e_id)
-					return;
+				{
+					return nullptr;
+				}
 				 
 				int cmp_id = get_cmp_id<T>();
 				/* Allocate an appropriate component pool */
@@ -70,8 +71,9 @@ namespace ecs
 					cmp_pools[cmp_id] = new CmpPool(sizeof(T));
 				}
 				/* Initialize entry in the component pool */
-				T* cmp = new (cmp_pools[cmp_id]->get(e_id)) T();
+				T* cmp = new (cmp_pools[cmp_id]->get(get_entity_idx(e_id))) T();
 				entities[get_entity_idx(e_id)].cmps.set(cmp_id);
+				return cmp;
 			}
 			 
 			template<typename T>
@@ -96,7 +98,7 @@ namespace ecs
 				 * I think I'm typecasting whatever I find
 				 * at this location in the pool to the requested type
 				 */
-				T* cmp = static_cast<T*>(cmp_pools[cmp_id]->get(e_id));
+				T* cmp = static_cast<T*>(cmp_pools[cmp_id]->get(get_entity_idx(e_id)));
 				return cmp;
 			}
 		private:

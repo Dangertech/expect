@@ -15,8 +15,12 @@ namespace ecs
 			entities[new_idx].id = new_id;
 			return entities[new_idx].id;
 		}
-		entities.push_back({entities.size(), std::bitset<MAX_CMPS>()});
-		return entities.back().id;
+		else
+		{
+			entities.push_back({create_entity_id(entity_idx(entities.size()), 0), 
+					std::bitset<MAX_CMPS>()});
+			return entities.back().id;
+		}
 	}
 
 	void Aggregate::destroy_entity(entity_id e_id)
@@ -39,9 +43,9 @@ namespace ecs
 
 	entity_id create_entity_id(entity_idx idx, entity_vers vers)
 	{
-		return ((entity_id)idx << 32 | (entity_id) vers);
+		return ((entity_id)idx << 32) | ((entity_id) vers);
 	}
-	entity_id get_entity_idx(entity_id id)
+	entity_idx get_entity_idx(entity_id id)
 	{
 		/* Shift by 32 bits so the version number is pushed out */
 		return id >> 32;

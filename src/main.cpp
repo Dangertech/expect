@@ -3,6 +3,7 @@
 #include "frama.hpp"
 #include "settings.hpp"
 #include "ecs.hpp"
+#include "fabric.hpp"
 
 void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 {
@@ -30,26 +31,16 @@ void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 }
 
 std::vector<ecs::entity_id> entts;
+
 struct Position
 {
-	/* Pretty useless, I know;
-	 * Has to be refined to actually make
-	 * sense
-	 */
-	public:
-		int get_x() { return x; }
-		void set_x(int my_x) { x = my_x; }
-		int get_y() { return y; }
-		void set_y(int my_y) { y = my_y;}
-	private:
-		int x = 5, y = 5;
+	int x; int y;
 };
  
 /* Start of the main game loop */
 int main()
 {
 	sf::RenderWindow win(sf::VideoMode(1920, 1080), "expect");
-	win.setVerticalSyncEnabled(true);
 	win.setFramerateLimit(30);
 	sf::Font font;
 	font.loadFromFile("font.otb");
@@ -61,8 +52,10 @@ int main()
 	sb.set_frame_bg(sf::Color::Green);
 	sb.set_standard_scale(0.5f);
 	ecs::Aggregate agg;
-	entts.push_back(agg.new_entity());
-	agg.add_cmp<Position>(entts[0]);
+	fa::EntityDealer dlr(agg);
+	/* Construct a player Object and place its id in the entts vector */
+	entts.push_back(dlr.deal_player(3, 3));
+	entts.push_back(dlr.deal_player(5, 8));
 	
 	int iter = 0;
 	while (win.isOpen())
@@ -83,19 +76,24 @@ int main()
 		{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
 			{
-				Position* test_pos = agg.get_cmp<Position>(entts[0]);
-				test_pos->set_x(test_pos->get_x()+1);
-				gv.set_char(fr::EMPTY, test_pos->get_x()-1,
-						test_pos->get_y());
-				if (test_pos->get_x() >= gv.get_grid_size().x)
-					test_pos->set_x(0);
+				for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+						fa::Playable>(agg))
+				{
+					fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
+					plr_pos->set_x(plr_pos->get_x()+1);
+					gv.set_char(fr::EMPTY, plr_pos->get_x()-1,
+							plr_pos->get_y());
+					if (plr_pos->get_x() >= gv.get_grid_size().x)
+						plr_pos->set_x(0);
+				}
 			}
 		}
 		/* Pull in Objects */
-		for (ecs::entity_id ent : ecs::AggView<Position>(agg))
+		for (ecs::entity_id ent : ecs::AggView<fa::Position>(agg))
 		{
-			Position* pos = agg.get_cmp<Position>(ent);
-			gv.set_char(fr::ObjRep(L"W"), pos->get_x(), pos->get_y());
+			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
+			fa::Drawable* rep = agg.get_cmp<fa::Drawable>(ent);
+			gv.set_char(rep->get_rep(), pos->get_x(), pos->get_y());
 		}
 		/* Draw Frames */
 		/* Why the FUCK is this required? Does
