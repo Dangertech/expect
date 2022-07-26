@@ -10,7 +10,7 @@ fr::ObjRep fr::Frame::get_char(int x, int y)
 		throw ERR_OVERFLOW;
 	GridObj th = grid[y][x];
 	ObjRep ret;
-	ret.ch = th.t.getString();
+	ret.ch = th.t.getString()[0];
 	ret.size_mod = th.size_mod;
 	ret.fill = th.t.getFillColor();
 	ret.ol = th.t.getOutlineColor();
@@ -24,8 +24,6 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
 	if (get_char(x, y) == rep)
 		return;
-	if (rep.ch.size() > 1)
-		throw ERR_INVALID_IPT;
 	
 	fill_grid();
 	

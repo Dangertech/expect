@@ -16,7 +16,7 @@ namespace fr
 	 
 	struct ObjRep
 	{
-		std::wstring ch;
+		wchar_t ch;
 		float size_mod;
 		sf::Color fill;
 		sf::Color ol; // outline
@@ -26,7 +26,7 @@ namespace fr
 		 
 		ObjRep
 		(
-			std::wstring my_ch,
+			wchar_t my_ch,
 			sf::Color my_fill = sf::Color(255, 255, 255, 255),
 			sf::Color my_bg = sf::Color(0, 0, 0, 0), 
 			float my_size_mod = 1, 
@@ -35,7 +35,7 @@ namespace fr
 			uint32_t my_style = 0
 		)
 		{
-			ch = my_ch[0];
+			ch = my_ch;
 			size_mod = my_size_mod; fill = my_fill;
 			ol = my_ol; ol_thickness = my_ol_thickness;
 			bg = my_bg; style = my_style;
@@ -50,7 +50,7 @@ namespace fr
 				&& bg == r.bg && style == r.style;
 		}
 	};
-	const ObjRep EMPTY(L" ");
+	const ObjRep EMPTY(L' ');
 	 
 	class Frame
 	{

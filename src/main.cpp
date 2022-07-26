@@ -93,7 +93,7 @@ int main()
 		{
 			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 			fa::Drawable* rep = agg.get_cmp<fa::Drawable>(ent);
-			gv.set_char(rep->get_rep(), pos->get_x(), pos->get_y());
+			gv.set_char(fr::ObjRep(rep->ch), pos->get_x(), pos->get_y());
 		}
 		/* Draw Frames */
 		/* Why the FUCK is this required? Does

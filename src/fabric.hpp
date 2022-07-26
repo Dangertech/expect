@@ -1,7 +1,6 @@
 /* The fabric framework contains all components
  * in the game
  */
-#include "frama.hpp"
 #include "ecs.hpp"
 #include <iostream>
  
@@ -24,11 +23,13 @@ namespace fa
 	};
 	struct Drawable
 	{
-		public:
-			fr::ObjRep get_rep() { return rep; }
-			void set_rep(fr::ObjRep my_rep) { rep = my_rep; }
-		private:
-			fr::ObjRep rep = fr::EMPTY;
+		/* One of the targets is to be independent of any
+		 * underlying rendering infrastructure. For this reason,
+		 * fr::ObjRep (or anything falling under the frama domain)
+		 * must not be used in the game implementation. I need a different system
+		 * for that 
+		 */
+		wchar_t ch;
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all
@@ -51,15 +52,13 @@ namespace fa
 			{
 				ecs::entity_id ret = agg->new_entity();
 				Position* pos = agg->add_cmp<Position>(ret);
-				if (pos == nullptr)
-					std::cout << "AH SHIT" << std::endl;
 				pos->set_x(x);
 				pos->set_y(y);
 				Drawable* drw = agg->add_cmp<Drawable>(ret);
 				/* TODO: Library containing the representations
 				 * of all possible objects
 				 */
-				drw->set_rep(fr::ObjRep(L"@"));
+				drw->ch = L'@';
 				agg->add_cmp<Playable>(ret);
 				return ret;
 			}
