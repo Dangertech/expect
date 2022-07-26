@@ -18,6 +18,11 @@ namespace fa
 			void set_x(int my_x) { x = my_x; }
 			int get_y() { return y; }
 			void set_y(int my_y) { y = my_y;}
+			void set(int my_x, int my_y)
+			{
+				set_x(my_x);
+				set_y(my_y);
+			}
 		private:
 			int x = 0, y = 0;
 	};
@@ -52,14 +57,22 @@ namespace fa
 			{
 				ecs::entity_id ret = agg->new_entity();
 				Position* pos = agg->add_cmp<Position>(ret);
-				pos->set_x(x);
-				pos->set_y(y);
+				pos->set(x, y);
 				Drawable* drw = agg->add_cmp<Drawable>(ret);
 				/* TODO: Library containing the representations
 				 * of all possible objects
 				 */
 				drw->ch = L'@';
 				agg->add_cmp<Playable>(ret);
+				return ret;
+			}
+			ecs::entity_id deal_wall(int x, int y)
+			{
+				ecs::entity_id ret = agg->new_entity();
+				Position*  pos = agg->add_cmp<Position>(ret);
+				pos->set(x, y);
+				Drawable* drw = agg->add_cmp<Drawable>(ret);
+				drw->ch = L'#';
 				return ret;
 			}
 		private:

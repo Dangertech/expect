@@ -30,11 +30,31 @@ void update_sizes(fr::Frame &gv, fr::Frame &sb, sf::Vector2u size)
 	}
 }
 
+/* NOTE: Having to do THIS for thousands of entities
+ * would be inefficient as fuck.
+ * Solution: Chonky Boi Chunks???
+ */
+std::vector<ecs::entity_id> get_at_pos(int x, int y, 
+		std::vector<ecs::entity_id> entts, ecs::Aggregate* agg)
+{
+	std::vector<ecs::entity_id> ret;
+	for (int i = 0; i<entts.size(); i++)
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(entts[i]);
+		if (pos == nullptr)
+			continue;
+		if (pos->get_x() == x && pos->get_y() == y)
+			ret.push_back(entts[i]); 
+	}
+	return ret;
+}
+
 std::vector<ecs::entity_id> entts;
 
-struct Position
+struct Vec2
 {
-	int x; int y;
+	int x;
+	int y;
 };
  
 /* Start of the main game loop */
@@ -55,7 +75,11 @@ int main()
 	fa::EntityDealer dlr(agg);
 	/* Construct a player Object and place its id in the entts vector */
 	entts.push_back(dlr.deal_player(3, 3));
-	entts.push_back(dlr.deal_player(5, 8));
+	/* Construct a wall */
+	for (int i = 2; i<8; i++)
+	{
+		entts.push_back(dlr.deal_wall(i, 2));
+	}
 	
 	int iter = 0;
 	while (win.isOpen())
@@ -74,18 +98,37 @@ int main()
 		/* Input handling */
 		if (win.hasFocus())
 		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+			Vec2 dir = {0, 0};
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L))
+				dir.x = 1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::H))
+				dir.x = -1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::J))
+				dir.y = 1;
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::K))
+				dir.y = -1;
+			/* Act out input */
+			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+					fa::Playable>(agg))
 			{
-				for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-						fa::Playable>(agg))
+				fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
+				Vec2 upd = {plr_pos->get_x()+dir.x, plr_pos->get_y()+dir.y};
+				if (get_at_pos(upd.x, upd.y, entts, &agg).size() == 0)
 				{
-					fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
-					plr_pos->set_x(plr_pos->get_x()+1);
-					gv.set_char(fr::EMPTY, plr_pos->get_x()-1,
-							plr_pos->get_y());
-					if (plr_pos->get_x() >= gv.get_grid_size().x)
-						plr_pos->set_x(0);
+					plr_pos->set_x(upd.x);
+					plr_pos->set_y(upd.y);
+					gv.set_char(fr::EMPTY, plr_pos->get_x()-dir.x,
+							plr_pos->get_y()-dir.y);
 				}
+				/* Half-assed safeguards (temporary as everything ofc) */
+				if (plr_pos->get_x() >= gv.get_grid_size().x)
+					plr_pos->set_x(0);
+				if (plr_pos->get_x() < 0)
+					plr_pos->set_x(gv.get_grid_size().x-1);
+				if (plr_pos->get_y() >= gv.get_grid_size().y)
+					plr_pos->set_y(0);
+				if (plr_pos->get_y() < 0)
+					plr_pos->set_y(gv.get_grid_size().y-1);
 			}
 		}
 		/* Pull in Objects */
