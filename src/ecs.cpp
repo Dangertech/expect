@@ -1,3 +1,4 @@
+#include "const.h"
 #include "ecs.hpp"
 
 /* Well, at least it clears like 60 lines... */
@@ -13,12 +14,16 @@ namespace ecs
 			entity_id new_id = 
 				create_entity_id(new_idx, get_entity_vers(entities[new_idx].id));
 			entities[new_idx].id = new_id;
+			if (entities.size() > MAX_ENTITIES)
+				throw ERR_OVERFLOW;
 			return entities[new_idx].id;
 		}
 		else
 		{
 			entities.push_back({create_entity_id(entity_idx(entities.size()), 0), 
 					std::bitset<MAX_CMPS>()});
+			if (entities.size() > MAX_ENTITIES)
+				throw ERR_OVERFLOW;
 			return entities.back().id;
 		}
 	}

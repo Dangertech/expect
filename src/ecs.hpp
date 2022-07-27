@@ -23,7 +23,7 @@ namespace ecs
 	using entity_vers = unsigned int;
 	using entity_id   = unsigned long long;
 	
-	const int MAX_ENTITIES = 5000; /* How many entities can exist */
+	const int MAX_ENTITIES = 90000000; /* How many entities can exist */
 	const int MAX_CMPS     = 50; /* How many component types can exist */
 	 
 	/* Infrastructure to manage entity ids;
