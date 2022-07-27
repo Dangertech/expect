@@ -50,9 +50,9 @@ namespace fa
 	class EntityDealer
 	{
 		public:
-			EntityDealer(ecs::Aggregate& my_agg)
+			EntityDealer(ecs::Aggregate* my_agg)
 			{
-				agg = &my_agg;
+				agg = my_agg;
 			}
 			ecs::entity_id deal_player(int x, int y)
 			{

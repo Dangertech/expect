@@ -5,12 +5,8 @@
 #include "ecs.hpp"
 #include "fabric.hpp"
 #include "infra.hpp"
+#include "util.h"
 
-struct Vec2
-{
-	int x;
-	int y;
-};
 
 /* NOTE: Having to do THIS for thousands of entities
  * would be inefficient as fuck.
@@ -41,9 +37,9 @@ int main()
 	/* Manages everything related to displaying graphics,
 	 * without cluttering and confusing behaviours
 	 */
-	in::GfxManager gfx;
 	ecs::Aggregate agg;
-	fa::EntityDealer dlr(agg);
+	in::GfxManager gfx(&agg);
+	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */
 	entts.push_back(dlr.deal_player(0, 0));
 	/* Construct some walls */
@@ -65,12 +61,13 @@ int main()
 			turn_made = true;
 		std::vector<sf::Event> ev = gfx.get_events();
 		/* Input handling */
-		for (sf::Event e : ev)
+		for (int i= 0; i<ev.size(); i++)
 		{
-			if (e.type == sf::Event::KeyPressed)
+			std::cout << ev[i].type << std::endl;
+			if (ev[i].type == sf::Event::KeyPressed)
 			{
 				Vec2 dir = {0, 0};
-				auto cd = e.key.code;
+				auto cd = ev[i].key.code;
 				if (cd == sf::Keyboard::Key::L)
 					dir.x = 1;
 				if (cd == sf::Keyboard::Key::H)
@@ -137,8 +134,16 @@ int main()
 					fa::Playable>(agg))
 				plr_pos = agg.get_cmp<fa::Position>(ent); 
 			 
-			gfx.render_gv(plr_pos->get_x(), plr_pos->get_y(), &agg);
+			gfx.set_cam_center({plr_pos->get_x(), plr_pos->get_y()});
+			gfx.render_gv(true);
 		}
+		else
+			/* Will only actually run if the
+			 * GfxManager has a reason to redraw
+			 * the gameview by itself (window resized event, etc.);
+			 * Otherwise exits immediately
+			 */
+			gfx.render_gv(false);
 		/* Draw Frames */
 		bool updated = gfx.display_frames();
 		high_resolution_clock::time_point end = high_resolution_clock::now();

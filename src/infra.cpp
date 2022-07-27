@@ -4,11 +4,12 @@
 #include "settings.hpp"
 #include <iostream>
 
-in::GfxManager::GfxManager()
+in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 {
 	/* I'm using pointers because I couldn't figure out
 	 * how to initialize objects directly in a constructor
 	 */
+	agg = my_agg;
 	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
 	font = new sf::Font;
 	font->loadFromFile("font.otb");
@@ -20,32 +21,18 @@ in::GfxManager::GfxManager()
 	sb->set_standard_scale(0.5f);
 	update_sizes();
 }
+in::GfxManager::~GfxManager()
+{
+	delete win;
+	delete font;
+	delete gv;
+	delete sb;
+}
 
 void in::GfxManager::adjust_zoom(float chg)
 {
 	gv->set_standard_scale(gv->get_standard_scale()+chg);
 	update_sizes();
-}
-
-void in::GfxManager::render_gv(int ctr_x, int ctr_y, ecs::Aggregate* agg)
-{
-	gv->clear();
-	sf::Vector2i gvsize = gv->get_grid_size();
-	/* This seems to be the most important performance bottleneck;
-	 * Chunks would make sense
-	 * TODO: What gets rendered first? So many questions, so little
-	 * answers...
-	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
-	{
-		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		int x = pos->get_x() - ctr_x + gvsize.x/2, y = pos->get_y() - ctr_y + gvsize.y/2;
-		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
-		{
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(fr::ObjRep(rep->ch), x, y);
-		}
-	}
 }
 
 std::vector<sf::Event> in::GfxManager::get_events()
@@ -60,6 +47,7 @@ std::vector<sf::Event> in::GfxManager::get_events()
 		{
 			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 			update_sizes();
+			queue_render = true;
 		}
 		/* Push back into a simulated queue to be batch
 		 * processed externally
@@ -68,6 +56,31 @@ std::vector<sf::Event> in::GfxManager::get_events()
 	}
 	
 	return ret;
+}
+
+void in::GfxManager::render_gv(bool force)
+{
+	if (!force && !queue_render)
+		return;
+	gv->clear();
+	sf::Vector2i gvsize = gv->get_grid_size();
+	/* This seems to be the most important performance bottleneck;
+	 * Chunks would make sense
+	 * TODO: What gets rendered first? So many questions, so little
+	 * answers...
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
+				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(fr::ObjRep(rep->ch), x, y);
+		}
+	}
+	queue_render = false;
 }
 
 bool in::GfxManager::display_frames()
