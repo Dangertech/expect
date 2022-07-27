@@ -1,0 +1,114 @@
+#include "infra.hpp"
+#include "frama.hpp"
+#include "const.h"
+#include "settings.hpp"
+#include <iostream>
+
+in::GfxManager::GfxManager()
+{
+	/* I'm using pointers because I couldn't figure out
+	 * how to initialize objects directly in a constructor
+	 */
+	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
+	font = new sf::Font;
+	font->loadFromFile("font.otb");
+	gv = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	sb = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	win->setFramerateLimit(30);
+	gv->set_frame_bg(sf::Color::Black);
+	sb->set_frame_bg(sf::Color::Green);
+	sb->set_standard_scale(0.5f);
+	update_sizes();
+}
+
+void in::GfxManager::adjust_zoom(float chg)
+{
+	gv->set_standard_scale(gv->get_standard_scale()+chg);
+	update_sizes();
+}
+
+void in::GfxManager::render_gv(int ctr_x, int ctr_y, ecs::Aggregate* agg)
+{
+	gv->clear();
+	sf::Vector2i gvsize = gv->get_grid_size();
+	/* This seems to be the most important performance bottleneck;
+	 * Chunks would make sense
+	 * TODO: What gets rendered first? So many questions, so little
+	 * answers...
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		int x = pos->get_x() - ctr_x + gvsize.x/2, y = pos->get_y() - ctr_y + gvsize.y/2;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(fr::ObjRep(rep->ch), x, y);
+		}
+	}
+}
+
+std::vector<sf::Event> in::GfxManager::get_events()
+{
+	std::vector<sf::Event> ret;
+	sf::Event e;
+	while(win->pollEvent(e))
+	{
+		if (e.type == sf::Event::Closed)
+			win->close();
+		if (e.type == sf::Event::Resized)
+		{
+			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
+			update_sizes();
+		}
+		/* Push back into a simulated queue to be batch
+		 * processed externally
+		 */
+		ret.push_back(e);
+	}
+	
+	return ret;
+}
+
+bool in::GfxManager::display_frames()
+{
+	bool updated = false;
+	if (gv->draw())
+	{
+		std::cout << "Updated game viewport!" << std::endl;
+		updated = true;
+	}
+	if (sb->draw())
+	{
+		std::cout << "Updated Sidebar Viewport!" << std::endl;
+		updated = true;
+	}
+	win->display();
+	return updated;
+}
+
+void in::GfxManager::update_sizes()
+{
+	sf::Vector2u size = win->getSize();
+	SettingContainer s;
+	int gv_w = size.x-s.get_sidebar_width(); /* gameview width */
+	if (gv_w < 0)
+		gv_w = 0;
+	 
+	try
+	{
+		gv->set_origin(sf::Vector2i(0,0));
+		gv->set_end(sf::Vector2i(gv_w, size.y));
+		sb->set_origin(sf::Vector2i(gv_w, 0));
+		sb->set_end(sf::Vector2i(size.x, size.y));
+	}
+	catch(int e)
+	{
+		if (e == ERR)
+		{
+			/* Coming soon: A logger */
+			std::cout << "Origin smaller than end" << std::endl;
+		}
+		
+	}
+}

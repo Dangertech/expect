@@ -1,6 +1,7 @@
 /* The fabric framework contains all components
  * in the game
  */
+#pragma once
 #include "ecs.hpp"
 #include <iostream>
  

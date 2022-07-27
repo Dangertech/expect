@@ -5,9 +5,11 @@
  */
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>
+#include "const.h"
 
 namespace fr
 {
@@ -65,6 +67,9 @@ namespace fr
 				font_size = my_font_size;
 				origin = my_ori;
 				end = my_end;
+				
+				if (get_char_size().x == 0 || get_char_size().y == 0)
+					throw ERR_INVALID_IPT;
 				 
 				/* Add a local bound rectangle that can be
 				 * referenced to get the size of any character
