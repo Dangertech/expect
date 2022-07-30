@@ -114,7 +114,7 @@ int fr::Frame::print(std::wstring input, int x, int y,
 }
 
 
-int fr::Frame::draw()
+int fr::Frame::draw(sf::Shader* shad)
 {
 	if (to_update == false)
 		return 0;
@@ -169,8 +169,8 @@ int fr::Frame::draw()
 			brpos.y = bg_queue[i]->getPosition().y + sref.height;
 			if (brpos.x <= end.x && brpos.y <= end.y)
 			{
-				win->draw(*text_queue[i]);
-				win->draw(*bg_queue[i]);
+				win->draw(*text_queue[i], shad);
+				win->draw(*bg_queue[i], shad);
 			}
 		}
 	}
@@ -185,8 +185,8 @@ int fr::Frame::draw()
 			if(bg_queue[i]->getPosition().x < end.x 
 					&& bg_queue[i]->getPosition().y < end.y)
 			{
-				win->draw(*text_queue[i]);
-				win->draw(*bg_queue[i]);
+				win->draw(*text_queue[i], shad);
+				win->draw(*bg_queue[i], shad);
 			}
 		}
 	}

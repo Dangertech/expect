@@ -149,7 +149,7 @@ namespace fr
 			 * Returns 0 if no new changes were detected and nothing was changed
 			 * Throws ERR if the internal grid is empty (impossible by design)
 			 */
-			int draw();
+			int draw(sf::Shader* shad = nullptr);
 			void clear(); /* Empties the grid */
 			void force_update(); /* Force an update on the next draw() */
 			bool get_update(); /* Get if the frame will update on the next draw() */

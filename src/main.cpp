@@ -63,7 +63,6 @@ int main()
 		/* Input handling */
 		for (int i= 0; i<ev.size(); i++)
 		{
-			std::cout << ev[i].type << std::endl;
 			if (ev[i].type == sf::Event::KeyPressed)
 			{
 				Vec2 dir = {0, 0};

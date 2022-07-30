@@ -4,6 +4,7 @@
 #include "settings.hpp"
 #include <iostream>
 
+
 in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 {
 	/* I'm using pointers because I couldn't figure out
@@ -12,6 +13,12 @@ in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 	agg = my_agg;
 	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
 	font = new sf::Font;
+	bloom = new sf::Shader;
+	if (!bloom->loadFromFile("bloom.frag", sf::Shader::Fragment))
+	{
+		std::cout << "Graphics Initialization Error: Bloom shader could "
+			<< "not be initialized!" << std::endl;
+	}
 	font->loadFromFile("font.otb");
 	gv = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	sb = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
@@ -86,12 +93,12 @@ void in::GfxManager::render_gv(bool force)
 bool in::GfxManager::display_frames()
 {
 	bool updated = false;
-	if (gv->draw())
+	if (gv->draw(bloom))
 	{
 		std::cout << "Updated game viewport!" << std::endl;
 		updated = true;
 	}
-	if (sb->draw())
+	if (sb->draw(bloom))
 	{
 		std::cout << "Updated Sidebar Viewport!" << std::endl;
 		updated = true;

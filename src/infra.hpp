@@ -36,6 +36,7 @@ namespace in
 		private:
 			sf::RenderWindow* win;
 			sf::Font* font;
+			sf::Shader* bloom;
 			fr::Frame* gv;
 			fr::Frame* sb;
 			
