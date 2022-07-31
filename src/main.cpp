@@ -5,7 +5,7 @@
 #include "ecs.hpp"
 #include "fabric.hpp"
 #include "infra.hpp"
-#include "util.h"
+#include "util.hpp"
 
 
 /* NOTE: Having to do THIS for thousands of entities
@@ -42,6 +42,7 @@ int main()
 	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */
 	entts.push_back(dlr.deal_player(0, 0));
+	entts.push_back(dlr.deal_item(0, 1));
 	/* Construct some walls */
 	for (int i = -30; i<30; i++)
 	{
@@ -56,9 +57,9 @@ int main()
 	{
 		using namespace std::chrono;
 		high_resolution_clock::time_point begin = high_resolution_clock::now();
-		bool turn_made = false;
+		enum action { NONE, TURN, PICKUP, ELSE } act = NONE;
 		if (iter == 0)
-			turn_made = true;
+			act = ELSE;
 		std::vector<sf::Event> ev = gfx.get_events();
 		/* Input handling */
 		for (int i= 0; i<ev.size(); i++)
@@ -97,35 +98,69 @@ int main()
 				}
 				if (cd == sf::Keyboard::Key::Period)
 				{
-					turn_made = true;
+					act = TURN;
+				}
+				if (cd == sf::Keyboard::Key::Comma)
+				{
+					act = PICKUP;
+					/*
+					std::vector<ecs::entity_id> here = 
+							get_at_pos(plr_pos->get_x(), plr_pos->get_y(),
+							entts, &agg);
+							*/
 				}
 				if (cd == sf::Keyboard::Key::Add)
 				{
 					gfx.adjust_zoom(set.get_zoom_step());
-					turn_made = true;
+					act = ELSE;
 				}
 				if (cd == sf::Keyboard::Key::Subtract)
 				{
 					gfx.adjust_zoom(-set.get_zoom_step());
-					turn_made = true;
+					act = ELSE;
 				}
+				 
+				if (dir.x != 0 || dir.y != 0)
+					act = TURN;
 				/* Act out input */
 				for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
 						fa::Playable>(agg))
 				{
 					fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
-					Vec2 upd = {plr_pos->get_x()+dir.x, plr_pos->get_y()+dir.y};
-					if (get_at_pos(upd.x, upd.y, entts, &agg).size() == 0)
+					switch (act)
 					{
-						turn_made = true;
-						plr_pos->set_x(upd.x);
-						plr_pos->set_y(upd.y);
+						case TURN:
+						{
+							Vec2 upd = {plr_pos->get_x()+dir.x, plr_pos->get_y()+dir.y};
+							std::vector<ecs::entity_id> blockers;
+							for (ecs::entity_id ent : ecs::AggView<fa::Blocking>(agg))
+								blockers.push_back(ent);
+							if (get_at_pos(upd.x, upd.y, blockers, &agg).size() == 0)
+							{
+								act = TURN;
+								plr_pos->set_x(upd.x);
+								plr_pos->set_y(upd.y);
+							}
+							break;
+						}
+						case PICKUP:
+						{
+							for (ecs::entity_id itm : ecs::AggView<fa::Position, 
+									fa::Pickable>(agg))
+							{
+								fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
+								if (itm_pos->get_x() == plr_pos->get_x()
+										&& itm_pos->get_y() == plr_pos->get_y())
+									agg.destroy_entity(itm);
+							}
+							break;
+						}
 					}
 				}
 			}
 		}
 		
-		if (turn_made)
+		if (act != NONE)
 		{
 			fa::Position* plr_pos = nullptr;
 			/* Accept the first playable object you find as the center of view */

@@ -3,6 +3,7 @@
  */
 #pragma once
 #include "ecs.hpp"
+#include "util.hpp"
 #include <iostream>
  
 namespace fa
@@ -36,6 +37,7 @@ namespace fa
 		 * for that 
 		 */
 		wchar_t ch;
+		Vec3 col = Vec3(255, 255, 255);
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all
@@ -44,6 +46,18 @@ namespace fa
 	 * playable (e.g. the player accesses it)
 	 */
 	struct Playable
+	{
+	};
+	struct Alive
+	{
+		int health;
+	};
+	/* Entity can be added to inventories */
+	struct Pickable
+	{
+	};
+	/* Can't be walked over (without going up a height level */
+	struct Blocking
 	{
 	};
 	 
@@ -65,6 +79,8 @@ namespace fa
 				 */
 				drw->ch = L'@';
 				agg->add_cmp<Playable>(ret);
+				agg->add_cmp<Alive>(ret)->health = 100;
+				agg->add_cmp<Blocking>(ret);
 				return ret;
 			}
 			ecs::entity_id deal_wall(int x, int y)
@@ -74,6 +90,18 @@ namespace fa
 				pos->set(x, y);
 				Drawable* drw = agg->add_cmp<Drawable>(ret);
 				drw->ch = L'#';
+				agg->add_cmp<Blocking>(ret);
+				return ret;
+			}
+			ecs::entity_id deal_item(int x, int y)
+			{
+				ecs::entity_id ret = agg->new_entity();
+				Position* pos = agg->add_cmp<Position>(ret);
+				pos->set(x, y);
+				Drawable* drw = agg->add_cmp<Drawable>(ret);
+				drw->ch = L'&'; /* A loaf of bread? */
+				drw->col.y = 0; drw->col.z = 0;
+				agg->add_cmp<Pickable>(ret);
 				return ret;
 			}
 		private:

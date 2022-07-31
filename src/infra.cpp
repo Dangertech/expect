@@ -73,8 +73,6 @@ void in::GfxManager::render_gv(bool force)
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This seems to be the most important performance bottleneck;
 	 * Chunks would make sense
-	 * TODO: What gets rendered first? So many questions, so little
-	 * answers...
 	 */
 	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
 	{
@@ -84,7 +82,24 @@ void in::GfxManager::render_gv(bool force)
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
 		{
 			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(fr::ObjRep(rep->ch), x, y);
+			gv->set_char(drw_to_objrep(*rep), x, y);
+		}
+	}
+	/* For now, the function just rerenders everything that should be
+	 * displayed above everything else (everything that is alive and
+	 * player characters)
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
+			fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		std::cout << pos->get_x() << " " << pos->get_y() << std::endl;
+		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
+				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(drw_to_objrep(*rep), x, y);
 		}
 	}
 	queue_render = false;
@@ -131,4 +146,11 @@ void in::GfxManager::update_sizes()
 		}
 		
 	}
+}
+
+fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
+{
+	fr::ObjRep ret(drw.ch);
+	ret.fill = sf::Color(drw.col.x, drw.col.y, drw.col.z, 255);
+	return ret;
 }

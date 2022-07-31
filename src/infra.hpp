@@ -3,7 +3,7 @@
 #include "frama.hpp"
 #include "ecs.hpp"
 #include "fabric.hpp"
-#include "util.h"
+#include "util.hpp"
 
 namespace in
 {
@@ -45,5 +45,10 @@ namespace in
 			bool queue_render = false;
 			
 			void update_sizes();
+			
+			/* Converts a high-level drawable struct
+			 * to the frama-specific ObjectRepresentations
+			 */
+			fr::ObjRep drw_to_objrep(fa::Drawable drw);
 	};
 }

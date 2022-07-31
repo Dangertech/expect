@@ -12,7 +12,7 @@ debug: compiledbg link
 
 compiledbg: clean ${SRC} ${MAIN}
 	mkdir -p ${BUILDDIR}
-	${CC} -c ${MAIN} ${SRC} -ggdb
+	${CC} -c ${MAIN} ${SRC} -ggdb -g
 	mv *.o ${BUILDDIR}
 
 compile: clean ${SRC} ${MAIN}
