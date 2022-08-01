@@ -100,7 +100,7 @@ namespace fa
 				pos->set(x, y);
 				Drawable* drw = agg->add_cmp<Drawable>(ret);
 				drw->ch = L'&'; /* A loaf of bread? */
-				drw->col.y = 0; drw->col.z = 0;
+				drw->col.x = 115; drw->col.y = 60; drw->col.z = 16;
 				agg->add_cmp<Pickable>(ret);
 				return ret;
 			}

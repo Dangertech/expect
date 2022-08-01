@@ -22,7 +22,14 @@ in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 	font->loadFromFile("font.otb");
 	gv = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	sb = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
-	win->setFramerateLimit(30);
+	/* Setting this doesn't matter:
+	 * When win.display() is called, sfml just waits for the time remaining
+	 * to fulfill the fps requirement; However, by main() design, win.display()
+	 * is skipped on almost every iteration of the main loop which makes the
+	 * fps setting useless. Instead, the fps are defined in settings.hpp
+	 * and executed in the main loop (or somewhere else in the future)
+	 */
+	//win->setFramerateLimit(30);
 	gv->set_frame_bg(sf::Color::Black);
 	sb->set_frame_bg(sf::Color::Green);
 	sb->set_standard_scale(0.5f);
@@ -65,10 +72,11 @@ std::vector<sf::Event> in::GfxManager::get_events()
 	return ret;
 }
 
-void in::GfxManager::render_gv(bool force)
+bool in::GfxManager::render_gv(bool force)
 {
 	if (!force && !queue_render)
-		return;
+		return false;
+	std::cout << "Drew something" << std::endl;
 	gv->clear();
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This seems to be the most important performance bottleneck;
@@ -103,10 +111,12 @@ void in::GfxManager::render_gv(bool force)
 		}
 	}
 	queue_render = false;
+	return true;
 }
 
 bool in::GfxManager::display_frames()
 {
+	std::cout << "Displayed something" << std::endl;
 	bool updated = false;
 	if (gv->draw(bloom))
 	{

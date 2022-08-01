@@ -22,9 +22,10 @@ namespace in
 			 * connected aggregate has updated its state, otherwise
 			 * the frame will only be updated if the GfxManager
 			 * has a reason by itself to do so (window resized,
-			 * redraw to avoid missing characters, etc.)
+			 * redraw to avoid missing characters, etc.);
+			 * Returns true if it actually updated;
 			 */
-			void render_gv(bool force = false);
+			bool render_gv(bool force = false);
 			/* Actually draws the objects to the 
 			 * RenderWindow which then displays them
 			 */
