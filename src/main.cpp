@@ -7,6 +7,7 @@
 #include "fabric.hpp"
 #include "infra.hpp"
 #include "util.hpp"
+#include "cli.hpp"
 
 
 /* NOTE: Having to do THIS for thousands of entities
@@ -117,11 +118,17 @@ std::vector<ecs::entity_id> entts;
 int main()
 {
 	SettingContainer set;
+	/* Manages in-game entities through an ECS */
+	ecs::Aggregate agg;
+	/* Manages the command-line-interface to the right of the screen */
+	cli::CliData cli;
 	/* Manages everything related to displaying graphics,
 	 * without cluttering and confusing behaviours
 	 */
-	ecs::Aggregate agg;
-	in::GfxManager gfx(&agg);
+	in::GfxManager gfx(agg, cli);
+	cli.log(cli::LogEntry(L"Initiated interface!", cli::DEBUG));
+	cli.input(L"Faked Test Input");
+	/* Frontend for creating entities through an aggregate */
 	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */
 	entts.push_back(dlr.deal_player(0, 0));
@@ -138,7 +145,7 @@ int main()
 	int iter = 0;
 	while (gfx.win_open())
 	{
-		/* Get time to process this loop for debug purposes */
+		/* Get time to process this loop for fps matching and debugging purposes */
 		using namespace std::chrono;
 		high_resolution_clock::time_point begin = high_resolution_clock::now();
 		 
@@ -152,7 +159,6 @@ int main()
 		bool upd_screen = false;
 		for (int i = 0; i < ipt.size(); i++)
 		{
-			std::cout << i << std::endl;
 			if (iter == 0)
 				ipt[i].act = ELSE;
 			 
@@ -187,7 +193,12 @@ int main()
 							fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
 							if (itm_pos->get_x() == plr_pos->get_x()
 									&& itm_pos->get_y() == plr_pos->get_y())
+							{
 								agg.destroy_entity(itm);
+								cli.log(cli::LogEntry(L"You picked up an item!", cli::MESSAGE));
+							}
+							else
+								cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
 						}
 						break;
 					}
@@ -198,6 +209,8 @@ int main()
 					case ZOOM_OUT:
 						upd_screen = true;
 						gfx.adjust_zoom(-set.get_zoom_step());
+						break;
+					default:
 						break;
 				}
 			}
@@ -231,8 +244,11 @@ int main()
 		}
 		high_resolution_clock::time_point end = high_resolution_clock::now();
 		double time_spent = duration_cast<duration<double>>(end-begin).count();
-		//if (updated)
-			std::cout << "Time spent processing: " << time_spent << std::endl;
+		if (updated)
+		{
+			cli::LogEntry e(L"Time spent processing: " + std::to_wstring(time_spent), cli::DEBUG);
+			cli.log(e);
+		}
 		/* Wait manually to meet the FPS requirement */
 		double goal_time = 1.0/set.get_fps()-time_spent;
 		if (goal_time > 0.0)

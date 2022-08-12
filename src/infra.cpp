@@ -5,12 +5,13 @@
 #include <iostream>
 
 
-in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
+in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 {
 	/* I'm using pointers because I couldn't figure out
 	 * how to initialize objects directly in a constructor
 	 */
-	agg = my_agg;
+	agg = &my_agg;
+	cli_dat = &my_cli_dat;
 	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
 	font = new sf::Font;
 	bloom = new sf::Shader;
@@ -21,7 +22,8 @@ in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 	}
 	font->loadFromFile("font.otb");
 	gv = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
-	sb = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	cli_frame = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	cli_graphics = new cli::CliGraphics(*cli_frame, *cli_dat);
 	/* Setting this doesn't matter:
 	 * When win.display() is called, sfml just waits for the time remaining
 	 * to fulfill the fps requirement; However, by main() design, win.display()
@@ -31,8 +33,8 @@ in::GfxManager::GfxManager(ecs::Aggregate* my_agg)
 	 */
 	//win->setFramerateLimit(30);
 	gv->set_frame_bg(sf::Color::Black);
-	sb->set_frame_bg(sf::Color::Green);
-	sb->set_standard_scale(0.5f);
+	cli_frame->set_frame_bg(sf::Color::Black);
+	cli_frame->set_standard_scale(0.6f);
 	update_sizes();
 }
 in::GfxManager::~GfxManager()
@@ -40,7 +42,7 @@ in::GfxManager::~GfxManager()
 	delete win;
 	delete font;
 	delete gv;
-	delete sb;
+	delete cli_frame;
 }
 
 void in::GfxManager::adjust_zoom(float chg)
@@ -76,7 +78,6 @@ bool in::GfxManager::render_gv(bool force)
 {
 	if (!force && !queue_render)
 		return false;
-	std::cout << "Drew something" << std::endl;
 	gv->clear();
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This seems to be the most important performance bottleneck;
@@ -101,7 +102,6 @@ bool in::GfxManager::render_gv(bool force)
 			fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		std::cout << pos->get_x() << " " << pos->get_y() << std::endl;
 		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
 				y = pos->get_y() - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
@@ -111,19 +111,19 @@ bool in::GfxManager::render_gv(bool force)
 		}
 	}
 	queue_render = false;
+	cli_graphics->draw();
 	return true;
 }
 
 bool in::GfxManager::display_frames()
 {
-	std::cout << "Displayed something" << std::endl;
 	bool updated = false;
 	if (gv->draw(bloom))
 	{
 		std::cout << "Updated game viewport!" << std::endl;
 		updated = true;
 	}
-	if (sb->draw(bloom))
+	if (cli_frame->draw(bloom))
 	{
 		std::cout << "Updated Sidebar Viewport!" << std::endl;
 		updated = true;
@@ -144,8 +144,8 @@ void in::GfxManager::update_sizes()
 	{
 		gv->set_origin(sf::Vector2i(0,0));
 		gv->set_end(sf::Vector2i(gv_w, size.y));
-		sb->set_origin(sf::Vector2i(gv_w, 0));
-		sb->set_end(sf::Vector2i(size.x, size.y));
+		cli_frame->set_origin(sf::Vector2i(gv_w, 0));
+		cli_frame->set_end(sf::Vector2i(size.x, size.y));
 	}
 	catch(int e)
 	{

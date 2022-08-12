@@ -4,6 +4,7 @@
 #include "ecs.hpp"
 #include "fabric.hpp"
 #include "util.hpp"
+#include "cli.hpp"
 
 namespace in
 {
@@ -11,7 +12,7 @@ namespace in
 	class GfxManager
 	{
 		public:
-			GfxManager(ecs::Aggregate*);
+			GfxManager(ecs::Aggregate&, cli::CliData&);
 			~GfxManager();
 			bool win_open() {return win->isOpen();}
 			std::vector<sf::Event> get_events();
@@ -39,9 +40,11 @@ namespace in
 			sf::Font* font;
 			sf::Shader* bloom;
 			fr::Frame* gv;
-			fr::Frame* sb;
+			fr::Frame* cli_frame;
+			cli::CliGraphics* cli_graphics;
 			
-			ecs::Aggregate *agg;
+			ecs::Aggregate* agg;
+			cli::CliData* cli_dat;
 			Vec2 cam_center;
 			bool queue_render = false;
 			
