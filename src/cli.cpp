@@ -57,12 +57,12 @@ void cli::CliGraphics::draw()
 			case INPUT:
 				msg += L"> "; 
 				x = 2;
-				rep.style = sf::Text::Italic;
+				rep.bold = true;
 				break;
 			case DEBUG:
 				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
 			case MESSAGE:
-				rep.style = sf::Text::Bold;
+				rep.bold = true;
 				break;
 		}
 		msg += this_entry.c;

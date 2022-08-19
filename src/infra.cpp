@@ -47,7 +47,15 @@ in::GfxManager::~GfxManager()
 
 void in::GfxManager::adjust_zoom(float chg)
 {
-	gv->set_standard_scale(gv->get_standard_scale()+chg);
+	try
+	{
+		gv->set_standard_scale(gv->get_standard_scale()+chg);
+	}
+	catch (int e)
+	{
+		if (e == ERR_OVERFLOW)
+			std::cout << "Maximum zoom level reached!" << std::endl;
+	}
 	update_sizes();
 }
 

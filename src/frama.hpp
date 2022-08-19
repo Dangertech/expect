@@ -21,10 +21,12 @@ namespace fr
 		wchar_t ch;
 		float size_mod;
 		sf::Color fill;
+		/*
 		sf::Color ol; // outline
 		unsigned int ol_thickness;
+		*/
 		sf::Color bg;
-		uint32_t style;
+		bool bold;
 		 
 		ObjRep
 		(
@@ -32,24 +34,28 @@ namespace fr
 			sf::Color my_fill = sf::Color(255, 255, 255, 255),
 			sf::Color my_bg = sf::Color(0, 0, 0, 0), 
 			float my_size_mod = 1, 
+			bool my_bold = false
+			/*
 			sf::Color my_ol = sf::Color(0, 0, 0, 0), 
 			unsigned my_ol_thickness = 0,
-			uint32_t my_style = 0
+			*/
 		)
 		{
 			ch = my_ch;
 			size_mod = my_size_mod; fill = my_fill;
+			/*
 			ol = my_ol; ol_thickness = my_ol_thickness;
-			bg = my_bg; style = my_style;
+			*/
+			bg = my_bg; bold = my_bold;
 		}
 		ObjRep(){}
 		 
 		bool operator==(const ObjRep& r) const
 		{
 			return ch == r.ch && size_mod == r.size_mod
-				&& fill == r.fill && ol == r.ol
-				&& ol_thickness == r.ol_thickness
-				&& bg == r.bg && style == r.style;
+				&& fill == r.fill /*&& ol == r.ol
+				&& ol_thickness == r.ol_thickness*/
+				&& bg == r.bg && bold == r.bold;
 		}
 	};
 	const ObjRep EMPTY(L' ');
@@ -68,6 +74,8 @@ namespace fr
 				origin = my_ori;
 				end = my_end;
 				
+				font_txt = &font->getTexture(font_size);
+				std::cout << font_txt->getSize().x << std::endl;
 				if (get_char_size().x == 0 || get_char_size().y == 0)
 					throw ERR_INVALID_IPT;
 				 
@@ -157,13 +165,15 @@ namespace fr
 			bool to_update = false;
 			struct GridObj
 			{
-				sf::Text t;
+				sf::Sprite s;
 				sf::RectangleShape r;
 				float size_mod = 1;
+				ObjRep refobj;
 			};
 			std::vector<std::vector<GridObj>> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
+			const sf::Texture* font_txt;
 			sf::RectangleShape frame_bg;
 			/* Keeps track of the size of a character through
 			 * set_size_ref and can be referenced by all functions;
