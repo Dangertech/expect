@@ -75,7 +75,7 @@ namespace fr
 				 * referenced to get the size of any character
 				 */
 				set_size_ref();
-				 
+				reserve_grid(); 
 				fill_grid();
 			}
 			 
@@ -200,6 +200,10 @@ namespace fr
 			 * to it's wanted size 
 			 */
 			void fill_grid();
+			/* Reserves new space on the grid (std::vector::reserve())
+			 * according to the get_grid_size() function
+			 */
+			void reserve_grid();
 		 /* Sets the sref sf::Rect to reference
 			* the size of a character; This is done on
 			* object initialization

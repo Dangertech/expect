@@ -34,7 +34,7 @@ namespace cli
 	};
 	 
 	/* Manages the whole rendering (drawing to a frame) aspect
-	 * of the Cli;
+	 * of the CLI;
 	 * Should only be used by the GfxManager
 	 */
 	class CliGraphics

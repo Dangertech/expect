@@ -65,6 +65,8 @@ std::vector<sf::Event> in::GfxManager::get_events()
 			update_sizes();
 			queue_render = true;
 		}
+		if (e.type == sf::Event::GainedFocus)
+			queue_render = true;
 		/* Push back into a simulated queue to be batch
 		 * processed externally
 		 */
@@ -111,6 +113,7 @@ bool in::GfxManager::render_gv(bool force)
 		}
 	}
 	queue_render = false;
+	/* Draw CLI */
 	cli_graphics->draw();
 	return true;
 }

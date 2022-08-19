@@ -187,9 +187,11 @@ int main()
 					case PICKUP:
 					{
 						upd_screen = true;
+						bool items = false;
 						for (ecs::entity_id itm : ecs::AggView<fa::Position, 
 								fa::Pickable>(agg))
 						{
+							items = true;
 							fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
 							if (itm_pos->get_x() == plr_pos->get_x()
 									&& itm_pos->get_y() == plr_pos->get_y())
@@ -200,6 +202,8 @@ int main()
 							else
 								cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
 						}
+						if (!items)
+							cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
 						break;
 					}
 					case ZOOM_IN:

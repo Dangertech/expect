@@ -17,10 +17,6 @@
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
 *.lai
 *.la
@@ -32,3 +28,7 @@
 *.out
 *.app
 expect*
+
+# Profiler Data
+perf.data
+perf.data.old

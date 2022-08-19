@@ -216,6 +216,7 @@ void fr::Frame::set_standard_scale(float scale)
 	if (scale <= 0)
 		throw ERR_OVERFLOW;
 	standard_scale = scale;
+	reserve_grid();
 	fill_grid();
 	for (int y = 0; y < grid.size(); y++)
 	{
@@ -239,6 +240,7 @@ void fr::Frame::set_standard_scale(float scale)
 void fr::Frame::set_origin(sf::Vector2i my_ori)
 {
 	origin = my_ori;
+	reserve_grid();
 	fill_grid();
 	for (int y = 0; y < grid.size(); y++)
 	{
@@ -259,6 +261,7 @@ void fr::Frame::set_origin(sf::Vector2i my_ori)
 void fr::Frame::set_end(sf::Vector2i my_end)
 {
 	end = my_end;
+	reserve_grid();
 	fill_grid();
 	to_update = true;
 }
@@ -370,6 +373,24 @@ void fr::Frame::fill_grid()
 		}
 	}
 	to_update = true;
+}
+
+void fr::Frame::reserve_grid()
+{
+	sf::Vector2i grid_size = get_grid_size();
+	/* Only so the function doesn't crash, doesn't
+	 * really make sense performance-wise
+	 */
+	if (grid.size() > 0)
+	{
+		if (grid.size() > grid_size.y || grid[0].size() > grid_size.x)
+			return;
+	}
+	grid.reserve(grid_size.y);
+	for (int i = 0; i<grid.size(); i++)
+	{
+		grid[i].reserve(grid_size.x);
+	}
 }
 
 void fr::Frame::set_size_ref()
