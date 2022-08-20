@@ -75,7 +75,6 @@ namespace fr
 				end = my_end;
 				
 				font_txt = &font->getTexture(font_size);
-				std::cout << font_txt->getSize().x << std::endl;
 				if (get_char_size().x == 0 || get_char_size().y == 0)
 					throw ERR_INVALID_IPT;
 				 

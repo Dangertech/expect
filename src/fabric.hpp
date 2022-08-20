@@ -38,6 +38,7 @@ namespace fa
 		 */
 		wchar_t ch;
 		Vec3 col = Vec3(255, 255, 255);
+		Vec3 bg = Vec3(0, 0, 0);
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all

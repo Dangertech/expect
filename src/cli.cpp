@@ -61,6 +61,7 @@ void cli::CliGraphics::draw()
 				break;
 			case DEBUG:
 				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
+				break;
 			case MESSAGE:
 				rep.bold = true;
 				break;

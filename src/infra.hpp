@@ -37,7 +37,10 @@ namespace in
 			void set_cam_center(Vec2 c) {cam_center = c;}
 		private:
 			sf::RenderWindow* win;
-			sf::Font* font;
+			/* Font used in the game view */
+			sf::Font* gv_font;
+			/* Font used for readable text */
+			sf::Font* tx_font;
 			sf::Shader* bloom;
 			fr::Frame* gv;
 			fr::Frame* cli_frame;

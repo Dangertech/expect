@@ -7,22 +7,27 @@
 
 in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 {
+	SettingContainer s;
 	/* I'm using pointers because I couldn't figure out
 	 * how to initialize objects directly in a constructor
 	 */
 	agg = &my_agg;
 	cli_dat = &my_cli_dat;
 	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
-	font = new sf::Font;
+	gv_font = new sf::Font;
+	tx_font = new sf::Font;
 	bloom = new sf::Shader;
 	if (!bloom->loadFromFile("bloom.frag", sf::Shader::Fragment))
 	{
 		std::cout << "Graphics Initialization Error: Bloom shader could "
 			<< "not be initialized!" << std::endl;
 	}
-	font->loadFromFile("font.otb");
-	gv = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
-	cli_frame = new fr::Frame(*win, *font, 32, sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	gv_font->loadFromFile(s.get_gv_font_name());
+	tx_font->loadFromFile(s.get_tx_font_name());
+	gv = new fr::Frame(*win, *gv_font, s.get_gv_font_size(), 
+			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	cli_frame = new fr::Frame(*win, *tx_font, s.get_tx_font_size(), 
+			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	cli_graphics = new cli::CliGraphics(*cli_frame, *cli_dat);
 	/* Setting this doesn't matter:
 	 * When win.display() is called, sfml just waits for the time remaining
@@ -40,7 +45,8 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 in::GfxManager::~GfxManager()
 {
 	delete win;
-	delete font;
+	delete gv_font;
+	delete tx_font;
 	delete gv;
 	delete cli_frame;
 }
@@ -173,5 +179,6 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 {
 	fr::ObjRep ret(drw.ch);
 	ret.fill = sf::Color(drw.col.x, drw.col.y, drw.col.z, 255);
+	ret.bg = sf::Color(drw.bg.x, drw.bg.y, drw.bg.z, 255);
 	return ret;
 }

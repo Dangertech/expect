@@ -153,8 +153,8 @@ int fr::Frame::draw(sf::Shader* shad)
 			brpos.y = bg_queue[i]->getPosition().y + sref.height;
 			if (brpos.x <= end.x && brpos.y <= end.y)
 			{
+				win->draw(*bg_queue[i]);
 				win->draw(*sprite_queue[i], shad);
-				win->draw(*bg_queue[i], shad);
 			}
 		}
 	}
@@ -169,8 +169,8 @@ int fr::Frame::draw(sf::Shader* shad)
 			if(bg_queue[i]->getPosition().x < end.x 
 					&& bg_queue[i]->getPosition().y < end.y)
 			{
+				win->draw(*bg_queue[i]);
 				win->draw(*sprite_queue[i], shad);
-				win->draw(*bg_queue[i], shad);
 			}
 		}
 	}
@@ -327,18 +327,24 @@ sf::Vector2<int> fr::Frame::get_char_at(int win_x, int win_y)
 
 void fr::Frame::fill_grid()
 {
+	sf::Vector2<int> goal_size = get_grid_size();
+	if (grid.size() > 0)
+	{
+		if (grid.size() >= goal_size.y && grid[0].size() >= goal_size.x)
+			return;
+	}
+	 
+	while (grid.size() < goal_size.y)
+	{
+		grid.push_back(std::vector<GridObj>());
+	}
+	 
 	/* Default object to shove into empty spaces */
 	GridObj def;
 	def.s.setTexture(*font_txt);
 	def.s.setTextureRect(font->getGlyph(L' ', font_size, false).textureRect);
 	def.r.setFillColor(sf::Color(0,0,0,0));
 	def.refobj = fr::EMPTY;
-	 
-	sf::Vector2<int> goal_size = get_grid_size();
-	while (grid.size() < goal_size.y)
-	{
-		grid.push_back(std::vector<GridObj>());
-	}
 	 
 	for (int y = 0; y < grid.size(); y++)
 	{
@@ -379,6 +385,6 @@ void fr::Frame::set_size_ref()
 {
 	sf::Sprite s;
 	s.setTexture(*font_txt);
-	s.setTextureRect(font->getGlyph(L'#', font_size, false).textureRect);
+	s.setTextureRect(font->getGlyph(L'M', font_size, false).textureRect);
 	sref = s.getLocalBounds();
 }
