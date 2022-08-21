@@ -23,24 +23,14 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	}
 	 
 	grid[y][x].refobj = rep;
-	grid[y][x].s.setTexture(*font_txt);
 	grid[y][x].s.setTextureRect(font->getGlyph(rep.ch, font_size, rep.bold).textureRect); 
 	grid[y][x].s.setColor(rep.fill);
-	/* To support even scaling of individual characters,
-	 * the origin is set to the center of the character;
-	 * To keep the correct position, however, this is 
-	 * evened out when calculating the character position
-	 */
-	grid[y][x].s.setOrigin(sref.width/2, sref.height/2);
-	
-	float x_top = x*(sref.width*standard_scale) + origin.x;
-	float y_top = y*(sref.height*standard_scale) + origin.y;
-	grid[y][x].s.setPosition(x_top + sref.width*standard_scale/2, 
-			y_top + sref.height*standard_scale/2);
 	grid[y][x].s.setScale(standard_scale * rep.size_mod, standard_scale * rep.size_mod);
 	grid[y][x].size_mod = rep.size_mod;
 	
 	/* Manage background */
+	float x_top = x*(sref.width*standard_scale) + origin.x + margin.x*x;
+	float y_top = y*(sref.height*standard_scale) + origin.y + margin.y*y;
 	sf::RectangleShape bg(sf::Vector2f(sref.width*standard_scale*rep.size_mod, 
 				sref.height*standard_scale*rep.size_mod));
 	bg.setPosition(x_top, y_top);
@@ -132,6 +122,7 @@ int fr::Frame::draw(sf::Shader* shad)
 		{
 			sf::Vector2<int> grid_size = get_grid_size();
 			sf::Vector2f chr_size = get_char_size();
+			chr_size.x += margin.x; chr_size.y += margin.y;
 			frame_bg.setSize(sf::Vector2f(grid_size.x*chr_size.x,
 				grid_size.y*chr_size.y));
 		}
@@ -268,8 +259,11 @@ sf::Vector2f fr::Frame::get_standard_char_size()
 sf::Vector2<int> fr::Frame::get_grid_size()
 {
 	sf::Vector2f char_size = get_char_size();
+	char_size.x += margin.x;
+	char_size.y += margin.y;
 	if (origin.x > end.x || origin.y > end.y)
 		return sf::Vector2<int>(0, 0);
+
 	if (end_before_end)
 	{
 		/* Truncate/Floor the result to int */
@@ -315,6 +309,7 @@ sf::Vector2f fr::Frame::get_char_pos(int x, int y, CharPoint point)
 sf::Vector2<int> fr::Frame::get_char_at(int win_x, int win_y)
 {
 	sf::Vector2f char_size = get_char_size();
+	char_size.x += margin.x; char_size.y += margin.y;
 	float x = (win_x-origin.x)/char_size.x, y = (win_y-origin.y)/char_size.y;
 	
 	/* Check if the grid is this large */
@@ -334,7 +329,7 @@ void fr::Frame::fill_grid()
 			return;
 	}
 	 
-	while (grid.size() < goal_size.y)
+	while (grid.size() <= goal_size.y)
 	{
 		grid.push_back(std::vector<GridObj>());
 	}
@@ -343,15 +338,22 @@ void fr::Frame::fill_grid()
 	GridObj def;
 	def.s.setTexture(*font_txt);
 	def.s.setTextureRect(font->getGlyph(L' ', font_size, false).textureRect);
+	/* To support even scaling of individual characters,
+	 * the origin is set to the center of the character;
+	 * To keep the correct position, however, this is 
+	 * evened out when calculating the character position
+	 */
+	def.s.setOrigin(sref.width/2, sref.height/2);
 	def.r.setFillColor(sf::Color(0,0,0,0));
 	def.refobj = fr::EMPTY;
 	 
 	for (int y = 0; y < grid.size(); y++)
 	{
-		while (grid[y].size() < goal_size.x)
+		while (grid[y].size() <= goal_size.x)
 		{
-			float x_top = grid[y].size() * (sref.width*standard_scale) + origin.x;
-			float y_top = y * (sref.height*standard_scale) + origin.y;
+			float x_top = grid[y].size() * (sref.width*standard_scale) 
+				+ origin.x + margin.x*grid[y].size();
+			float y_top = y * (sref.height*standard_scale) + origin.y + margin.y*y;
 			def.s.setPosition(x_top + sref.width*standard_scale/2, 
 					y_top + sref.height*standard_scale/2);
 			def.r.setPosition(x_top, y_top);

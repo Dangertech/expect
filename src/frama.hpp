@@ -119,6 +119,9 @@ namespace fr
 			sf::Vector2i get_end() { return end; }
 			void set_end(sf::Vector2i end);
 			
+			sf::Vector2i get_margin() { return margin; }
+			void set_margin(sf::Vector2i m) {margin = m;}
+			
 			bool get_fit_to_text() { return fit_to_text; }
 			void set_fit_to_text(bool new_state) {fit_to_text = new_state;}
 			
@@ -184,6 +187,8 @@ namespace fr
 			 * the size_mod value in their ObjectRepresentation
 			 */
 			float standard_scale = 1;
+			/* Additional margin between characters in the grid (in pixels) */
+			sf::Vector2i margin = sf::Vector2i(0,0);
 			/* Fill the background of the frame;
 			 * Useful for status bars and stuff
 			 * that should not be obstructed by other frames
@@ -195,7 +200,7 @@ namespace fr
 			 */
 			bool fit_to_text = true;
 			/* Determines if the final row/column of characters is
-			 * before or after the endpoint; By default, it's before
+			 * before or after the endpoint; By default, it's after
 			 * the set end point
 			 */
 			bool end_before_end = false;

@@ -38,6 +38,7 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	 */
 	//win->setFramerateLimit(30);
 	gv->set_frame_bg(sf::Color::Black);
+	gv->set_margin(sf::Vector2i(3,3));
 	cli_frame->set_frame_bg(sf::Color::Black);
 	cli_frame->set_standard_scale(0.6f);
 	update_sizes();
