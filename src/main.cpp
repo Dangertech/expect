@@ -29,11 +29,14 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 	return ret;
 }
 
-enum action { NONE, TURN, PICKUP, ZOOM_IN, ZOOM_OUT, ELSE };
+enum action { NONE, TURN, PICKUP, ZOOM_IN, ZOOM_OUT, ENTER_CLI, EXIT_CLI, ELSE };
 struct InputContainer
 {
 	action act;
 	Vec2 dir;
+	/* Text Entered in cli mode */
+	std::wstring txt;
+	static bool incli;
 	void print(std::ostream& os)
 	{
 		std::string act_name;
@@ -44,25 +47,48 @@ struct InputContainer
 			case PICKUP: act_name = "PICKUP"; break;
 			case ZOOM_IN: act_name = "ZOOM_IN"; break;
 			case ZOOM_OUT: act_name = "ZOOM_OUT:"; break;
+			case ENTER_CLI: act_name = "ENTER_CLI:"; break;
+			case EXIT_CLI: act_name = "EXIT_CLI:"; break;
 			case ELSE: act_name = "ELSE"; break;
 		}
+		/* To make a string out of the wstring */
+		std::string casted_txt(txt.begin(), txt.end());
 		os << "Action: " << act_name 
+			<< ", Incli: " << incli << ", TXT: " << casted_txt
 			<< ", Direction: x=" << dir.x << " y=" << dir.y << std::endl;
 	}
 };
+bool InputContainer::incli = false;
 
 std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
 {
 	std::vector<InputContainer> ret;
 	for (int i= 0; i<ev.size(); i++)
 	{
+		/* Local variables that get changed in this
+		 * iteration
+		 */
 		action act = NONE;
 		Vec2 dir = {0, 0};
+		std::wstring txt;
+		bool inc = InputContainer::incli;
 		if (ev[i].type == sf::Event::KeyPressed)
 		{
-			Vec2 dir = {0, 0};
 			auto cd = ev[i].key.code;
-			if (cd == sf::Keyboard::Key::L)
+			if (cd == sf::Keyboard::Key::A)
+			{
+				act = ENTER_CLI; 
+				inc = true;
+			}
+			else if (cd == sf::Keyboard::Key::Escape)
+			{
+				if (ret[i].incli)
+				{
+					act = EXIT_CLI;
+					inc = false;
+				}
+			}
+			else if (cd == sf::Keyboard::Key::L)
 				dir.x = 1;
 			else if (cd == sf::Keyboard::Key::H)
 				dir.x = -1;
@@ -100,13 +126,20 @@ std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
 				act = ZOOM_IN;
 			else if (cd == sf::Keyboard::Key::Subtract)
 				act = ZOOM_OUT;
-			 
-			if (dir.x != 0 || dir.y != 0)
-				act = TURN;
-			InputContainer ipt = {act, dir};
-			ipt.print(std::cout);
-			ret.push_back(ipt);
 		}
+		 
+		if (ev[i].type == sf::Event::TextEntered && inc)
+		{
+			txt = ev[i].text.unicode;
+		}
+		 
+		/* Push changed locals to actual containers */
+		if (dir.x != 0 || dir.y != 0)
+			act = TURN;
+		InputContainer ipt = {act, dir, txt};
+		InputContainer::incli = inc;
+		ipt.print(std::cout);
+		ret.push_back(ipt);
 	}
 	return ret;
 }
@@ -162,6 +195,14 @@ int main()
 			if (iter == 0)
 				ipt[i].act = ELSE;
 			 
+			/* Don't react with standard input if cli
+			 * mode is active
+			 */
+			if (InputContainer::incli)
+			{
+				upd_screen = true;
+				continue;
+			}
 			/* Act out input */
 			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
 					fa::Playable>(agg))

@@ -387,6 +387,6 @@ void fr::Frame::set_size_ref()
 {
 	sf::Sprite s;
 	s.setTexture(*font_txt);
-	s.setTextureRect(font->getGlyph(L'M', font_size, false).textureRect);
+	s.setTextureRect(font->getGlyph(L'#', font_size, false).textureRect);
 	sref = s.getLocalBounds();
 }
