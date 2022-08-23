@@ -40,8 +40,8 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	
 }
 
-int fr::Frame::print(std::wstring input, int x, int y, 
-		fr::ObjRep rep, bool autobreak)
+sf::Vector2i fr::Frame::print(std::wstring input, int x, int y, 
+		fr::ObjRep rep, bool autobreak, bool dry)
 {
 	auto g_size = get_grid_size();
 	if (x > g_size.x)
@@ -54,7 +54,7 @@ int fr::Frame::print(std::wstring input, int x, int y,
 	for (int i = 0; i<input.size(); i++)
 	{
 		if (my_y > g_size.y-1)
-			return -1;
+			return {my_x, my_y-1};
 		/* Manual newline detected */
 		if (input[i] == '\n')
 		{
@@ -65,25 +65,33 @@ int fr::Frame::print(std::wstring input, int x, int y,
 		ObjRep this_rep = rep;
 		this_rep.ch = input[i];
 		 
-		try
+		if (!dry)
 		{
-			set_char(this_rep, my_x, my_y);
-		}
-		catch (int e)
-		{
-			std::cerr << "fr::Frame::print: set_char threw error " << e
-				<< "; This should not be possible. Passing this error on." << std::endl;
-			throw e;
+			try
+			{
+				set_char(this_rep, my_x, my_y);
+			}
+			catch (int e)
+			{
+				std::cerr << "fr::Frame::print: set_char threw error " << e
+					<< "; This should not be possible. Passing this error on." << std::endl;
+				throw e;
+			}
 		}
 		
 		my_x++;
 		if (my_x > g_size.x-1)
 		{
-			my_x = x;
-			my_y++;
+			if (autobreak)
+			{
+				my_x = x;
+				my_y++;
+			}
+			else
+				return {my_x, my_y};
 		}
 	}
-	return my_x-x;
+	return {my_x, my_y};
 	to_update = true;
 }
 

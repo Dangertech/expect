@@ -8,6 +8,7 @@
 #include "infra.hpp"
 #include "util.hpp"
 #include "cli.hpp"
+#include "input.hpp"
 
 
 /* NOTE: Having to do THIS for thousands of entities
@@ -29,122 +30,6 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 	return ret;
 }
 
-enum action { NONE, TURN, PICKUP, ZOOM_IN, ZOOM_OUT, ENTER_CLI, EXIT_CLI, ELSE };
-struct InputContainer
-{
-	action act;
-	Vec2 dir;
-	/* Text Entered in cli mode */
-	wchar_t txt;
-	static bool incli;
-	void print(std::ostream& os)
-	{
-		std::string act_name;
-		switch (act)
-		{
-			case NONE: act_name = "NONE"; break;
-			case TURN: act_name = "TURN"; break;
-			case PICKUP: act_name = "PICKUP"; break;
-			case ZOOM_IN: act_name = "ZOOM_IN"; break;
-			case ZOOM_OUT: act_name = "ZOOM_OUT:"; break;
-			case ENTER_CLI: act_name = "ENTER_CLI:"; break;
-			case EXIT_CLI: act_name = "EXIT_CLI:"; break;
-			case ELSE: act_name = "ELSE"; break;
-		}
-		os << "Action: " << act_name 
-			<< ", Incli: " << incli << ", TXT: " << char(txt)
-			<< ", Direction: x=" << dir.x << " y=" << dir.y << std::endl;
-	}
-};
-bool InputContainer::incli = false;
-
-std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
-{
-	std::vector<InputContainer> ret;
-	bool skiptxt = false;
-	for (int i= 0; i<ev.size(); i++)
-	{
-		/* Local variables that get changed in this
-		 * iteration
-		 */
-		action act = NONE;
-		Vec2 dir = {0, 0};
-		wchar_t txt = 0;
-		bool inc = InputContainer::incli;
-		if (ev[i].type == sf::Event::TextEntered && inc && !skiptxt)
-		{
-			txt = ev[i].text.unicode;
-		}
-		if (ev[i].type == sf::Event::KeyPressed)
-		{
-			auto cd = ev[i].key.code;
-			if (cd == sf::Keyboard::Key::A)
-			{
-				if (!inc)
-				{
-					act = ENTER_CLI; 
-					inc = true;
-					skiptxt = true;
-				}
-			}
-			else if (cd == sf::Keyboard::Key::Escape)
-			{
-				if (inc)
-				{
-					act = EXIT_CLI;
-					inc = false;
-				}
-			}
-			else if (cd == sf::Keyboard::Key::L)
-				dir.x = 1;
-			else if (cd == sf::Keyboard::Key::H)
-				dir.x = -1;
-			else if (cd == sf::Keyboard::Key::J)
-				dir.y = 1;
-			else if (cd == sf::Keyboard::Key::K)
-				dir.y = -1;
-			else if (cd == sf::Keyboard::Key::Y)
-			{
-				dir.y = -1;
-				dir.x = -1;
-			}
-			else if (cd == sf::Keyboard::Key::U)
-			{
-				dir.y = -1;
-				dir.x = 1;
-			}
-			else if (cd == sf::Keyboard::Key::N)
-			{
-				dir.y = 1;
-				dir.x = 1;
-			}
-			else if (cd == sf::Keyboard::Key::B)
-			{
-				dir.y = 1;
-				dir.x = -1;
-			}
-			else if (cd == sf::Keyboard::Key::Period)
-			{
-				act = TURN;
-			}
-			else if (cd == sf::Keyboard::Key::Comma)
-				act = PICKUP;
-			else if (cd == sf::Keyboard::Key::Add)
-				act = ZOOM_IN;
-			else if (cd == sf::Keyboard::Key::Subtract)
-				act = ZOOM_OUT;
-		}
-		 
-		/* Push changed locals to actual containers */
-		if (dir.x != 0 || dir.y != 0)
-			act = TURN;
-		InputContainer ipt = {act, dir, txt};
-		InputContainer::incli = inc;
-		ipt.print(std::cout);
-		ret.push_back(ipt);
-	}
-	return ret;
-}
 
 std::vector<ecs::entity_id> entts;
 
@@ -189,20 +74,20 @@ int main()
 		 * externally (namely HIDs)
 		 */
 		std::vector<sf::Event> ev = gfx.get_events();
-		std::vector<InputContainer> ipt = process_input(ev);
+		std::vector<ipt::InputContainer> ipt = ipt::process_input(ev);
 		bool upd_screen = false;
 		for (int i = 0; i < ipt.size(); i++)
 		{
 			if (iter == 0)
-				ipt[i].act = ELSE;
+				ipt[i].act = ipt::ELSE;
 			 
-			if (InputContainer::incli)
+			if (ipt::InputContainer::incli)
 			{
 				upd_screen = true;
 				cli.set_active(true);
 				if (cli.add_to_bfr(ipt[i].txt))
 				{
-					InputContainer::incli = false;
+					ipt::InputContainer::incli = false;
 					cli.set_active(false);
 				}
 				/* Skip acting out input */
@@ -220,7 +105,7 @@ int main()
 				fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
 				switch (ipt[i].act)
 				{
-					case TURN:
+					case ipt::TURN:
 					{
 						upd_screen = true;
 						Vec2 upd = {plr_pos->get_x()+ipt[i].dir.x, plr_pos->get_y()+ipt[i].dir.y};
@@ -229,13 +114,13 @@ int main()
 							blockers.push_back(ent);
 						if (get_at_pos(upd.x, upd.y, blockers, &agg).size() == 0)
 						{
-							ipt[i].act = TURN;
+							ipt[i].act = ipt::TURN;
 							plr_pos->set_x(upd.x);
 							plr_pos->set_y(upd.y);
 						}
 						break;
 					}
-					case PICKUP:
+					case ipt::PICKUP:
 					{
 						upd_screen = true;
 						bool items = false;
@@ -257,11 +142,11 @@ int main()
 							cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
 						break;
 					}
-					case ZOOM_IN:
+					case ipt::ZOOM_IN:
 						upd_screen = true;
 						gfx.adjust_zoom(set.get_zoom_step());
 						break;
-					case ZOOM_OUT:
+					case ipt::ZOOM_OUT:
 						upd_screen = true;
 						gfx.adjust_zoom(-set.get_zoom_step());
 						break;

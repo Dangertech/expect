@@ -98,14 +98,14 @@ namespace fr
 			 * If autobreak is true, line breaks will be made automatically
 			 * if the function runs out of space in a line. If it is false,
 			 * the function will simply truncate until a manual \n is encountered
+			 * If 'dry' is set to true, the function will not print anything but
+			 * still return the theoretical line changes
 			 * Return:
-			 * 	 0 means stayed in the same line
-			 * 	 any positive number n means made n line breaks
-			 * 	-1 means could not make another line break 
-			 * 		because it reached the y grid end
+			 *  Returns the "cursor" position upon completion;
+			 *  If the function ran out of y space, it returns the latest y coordinate
 			 */
-			int print(std::wstring input, int x, int y, 
-					ObjRep rep, bool autobreak = true);
+			sf::Vector2i print(std::wstring input, int x, int y, 
+					ObjRep rep, bool autobreak = true, bool fake = false);
 			
 			float get_standard_scale() {return standard_scale; }
 			void set_standard_scale(float scale);

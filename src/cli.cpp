@@ -63,13 +63,35 @@ void cli::CliGraphics::draw()
 	frame->clear();
 	int num_entries = data->num_entries();
 	int size_y = frame->get_grid_size().y;
+	int size_x = frame->get_grid_size().x;
 	int bottom_margin = 3;
+	/* Dry test to determine how many lines are needed extra for
+	 * multiline entries
+	 */
+	int extra = 0;
+	for (int i = 0; i<size_y - bottom_margin; i++)
+	{
+			LogEntry this_entry(L"", DEBUG);
+			try
+			{
+				this_entry = data->get_entry(num_entries+i-size_y+bottom_margin);
+			}
+			catch (int e)
+			{
+			}
+			sf::Vector2i c = frame->print(this_entry.c, 4, i, fr::EMPTY, true, true);
+			if (c.y != i)
+				extra += c.y-i;
+	}
+	 
+	/* Location of the current entry in the vector */
+	int eloc = num_entries-size_y+bottom_margin+extra;
 	for (int i = 0; i<size_y-bottom_margin; i++)
 	{
-		LogEntry this_entry(L" ", DEBUG);
+		LogEntry this_entry(L"", DEBUG);
 		try
 		{
-			this_entry = data->get_entry(num_entries+i-size_y+bottom_margin);
+			this_entry = data->get_entry(eloc);
 		}
 		catch (int e)
 		{
@@ -92,12 +114,31 @@ void cli::CliGraphics::draw()
 				break;
 		}
 		msg += this_entry.c;
-		frame->print(msg, x, i, rep);
+		sf::Vector2i c(x,i);
+		if (msg.size())
+		{
+			/* Now print for real */
+			c = frame->print(msg, x, i, rep, true, false);
+		}
+		i = c.y;
+		eloc += 1;
 	}
+	 
 	/* Draw the "PS1" of the CLI input */
 	fr::ObjRep s(L':');
 	if (data->get_active())
+	{
 		s.fill = sf::Color::Green;
+		s.bg = sf::Color(0,255,0,80);
+		for (int y = size_y-bottom_margin; y<size_y-1; y++)
+		{
+			for(int x = 2; x<size_x-2; x++)
+			{
+				frame->set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(0,255,0,80)), 
+						x, y);
+			}
+		}
+	}
 	frame->set_char(s, 2, size_y-bottom_margin);
 	frame->print(data->get_bfr(), 4, size_y-bottom_margin, s);
 }
