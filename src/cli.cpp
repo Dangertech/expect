@@ -14,6 +14,31 @@ void cli::CliData::input(std::wstring ipt_string)
 	/* TODO: Actual input processing HERE */
 }
 
+bool cli::CliData::add_to_bfr(wchar_t ipt)
+{
+	if (ipt == 0)
+		return false;
+	if (ipt == 8) /* Backspace */
+	{
+		if (bfr.size() > 0)
+			bfr.pop_back();
+		return false;
+	}
+	if (ipt == 13) /* Enter */
+	{
+		push_bfr();
+		return true;
+	}
+	bfr += ipt;
+	return false;
+}
+
+void cli::CliData::push_bfr()
+{
+	input(bfr);
+	bfr.clear();
+}
+
 int cli::CliData::num_entries()
 {
 	return entries.size();
@@ -58,15 +83,21 @@ void cli::CliGraphics::draw()
 				msg += L"> "; 
 				x = 2;
 				rep.bold = true;
+				rep.fill = sf::Color::Green;
 				break;
 			case DEBUG:
 				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
 				break;
 			case MESSAGE:
-				rep.bold = true;
 				break;
 		}
 		msg += this_entry.c;
 		frame->print(msg, x, i, rep);
 	}
+	/* Draw the "PS1" of the CLI input */
+	fr::ObjRep s(L':');
+	if (data->get_active())
+		s.fill = sf::Color::Green;
+	frame->set_char(s, 2, size_y-bottom_margin);
+	frame->print(data->get_bfr(), 4, size_y-bottom_margin, s);
 }

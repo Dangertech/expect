@@ -35,7 +35,7 @@ struct InputContainer
 	action act;
 	Vec2 dir;
 	/* Text Entered in cli mode */
-	std::wstring txt;
+	wchar_t txt;
 	static bool incli;
 	void print(std::ostream& os)
 	{
@@ -51,10 +51,8 @@ struct InputContainer
 			case EXIT_CLI: act_name = "EXIT_CLI:"; break;
 			case ELSE: act_name = "ELSE"; break;
 		}
-		/* To make a string out of the wstring */
-		std::string casted_txt(txt.begin(), txt.end());
 		os << "Action: " << act_name 
-			<< ", Incli: " << incli << ", TXT: " << casted_txt
+			<< ", Incli: " << incli << ", TXT: " << char(txt)
 			<< ", Direction: x=" << dir.x << " y=" << dir.y << std::endl;
 	}
 };
@@ -63,6 +61,7 @@ bool InputContainer::incli = false;
 std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
 {
 	std::vector<InputContainer> ret;
+	bool skiptxt = false;
 	for (int i= 0; i<ev.size(); i++)
 	{
 		/* Local variables that get changed in this
@@ -70,19 +69,27 @@ std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
 		 */
 		action act = NONE;
 		Vec2 dir = {0, 0};
-		std::wstring txt;
+		wchar_t txt = 0;
 		bool inc = InputContainer::incli;
+		if (ev[i].type == sf::Event::TextEntered && inc && !skiptxt)
+		{
+			txt = ev[i].text.unicode;
+		}
 		if (ev[i].type == sf::Event::KeyPressed)
 		{
 			auto cd = ev[i].key.code;
 			if (cd == sf::Keyboard::Key::A)
 			{
-				act = ENTER_CLI; 
-				inc = true;
+				if (!inc)
+				{
+					act = ENTER_CLI; 
+					inc = true;
+					skiptxt = true;
+				}
 			}
 			else if (cd == sf::Keyboard::Key::Escape)
 			{
-				if (ret[i].incli)
+				if (inc)
 				{
 					act = EXIT_CLI;
 					inc = false;
@@ -128,11 +135,6 @@ std::vector<InputContainer> process_input(std::vector<sf::Event>& ev)
 				act = ZOOM_OUT;
 		}
 		 
-		if (ev[i].type == sf::Event::TextEntered && inc)
-		{
-			txt = ev[i].text.unicode;
-		}
-		 
 		/* Push changed locals to actual containers */
 		if (dir.x != 0 || dir.y != 0)
 			act = TURN;
@@ -159,8 +161,7 @@ int main()
 	 * without cluttering and confusing behaviours
 	 */
 	in::GfxManager gfx(agg, cli);
-	cli.log(cli::LogEntry(L"Initiated interface!", cli::DEBUG));
-	cli.input(L"Faked Test Input");
+	cli.log(cli::LogEntry(L"Welcome, Truthseeker...", cli::MESSAGE));
 	/* Frontend for creating entities through an aggregate */
 	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */
@@ -195,13 +196,22 @@ int main()
 			if (iter == 0)
 				ipt[i].act = ELSE;
 			 
-			/* Don't react with standard input if cli
-			 * mode is active
-			 */
 			if (InputContainer::incli)
 			{
 				upd_screen = true;
+				cli.set_active(true);
+				if (cli.add_to_bfr(ipt[i].txt))
+				{
+					InputContainer::incli = false;
+					cli.set_active(false);
+				}
+				/* Skip acting out input */
 				continue;
+			}
+			else
+			{
+				cli.set_active(false);
+				upd_screen = true;
 			}
 			/* Act out input */
 			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
@@ -291,8 +301,10 @@ int main()
 		double time_spent = duration_cast<duration<double>>(end-begin).count();
 		if (updated)
 		{
+			/*
 			cli::LogEntry e(L"Time spent processing: " + std::to_wstring(time_spent), cli::DEBUG);
 			cli.log(e);
+			*/
 		}
 		/* Wait manually to meet the FPS requirement */
 		double goal_time = 1.0/set.get_fps()-time_spent;
