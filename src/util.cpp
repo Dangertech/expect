@@ -14,6 +14,7 @@ std::vector<std::wstring> split(std::wstring str)
 		else
 			cur += str[i];
 	}
-	ret.push_back(cur);
+	if (cur != L"")
+		ret.push_back(cur);
 	return ret;
 }

@@ -44,7 +44,6 @@ namespace in
 			sf::Shader* bloom;
 			fr::Frame* gv;
 			fr::Frame* cli_frame;
-			cli::CliGraphics* cli_graphics;
 			
 			ecs::Aggregate* agg;
 			cli::CliData* cli_dat;
@@ -52,6 +51,8 @@ namespace in
 			bool queue_render = false;
 			
 			void update_sizes();
+			/* Draw CliData to a chosen frame */
+			void draw_cli(fr::Frame&, cli::CliData&);
 			
 			/* Converts a high-level drawable struct
 			 * to the frama-specific ObjectRepresentations

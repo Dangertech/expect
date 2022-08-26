@@ -58,18 +58,5 @@ namespace cli
 			bool active = false; /* Should be set to true if CLI mode is activated */
 	};
 	 
-	/* Manages the whole rendering (drawing to a frame) aspect
-	 * of the CLI;
-	 * Should only be used by the GfxManager
-	 */
-	class CliGraphics
-	{
-		public:
-			CliGraphics(fr::Frame& my_frame, CliData& my_data);
-			/* Draws the CliData to the assigned frame */
-			void draw();
-		private:
-			fr::Frame* frame;
-			CliData* data;
-	};
+	/* The ability to display the CLI is in the GfxManager class */
 }

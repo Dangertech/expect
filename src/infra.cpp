@@ -28,7 +28,6 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	cli_frame = new fr::Frame(*win, *tx_font, s.get_tx_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
-	cli_graphics = new cli::CliGraphics(*cli_frame, *cli_dat);
 	/* Setting this doesn't matter:
 	 * When win.display() is called, sfml just waits for the time remaining
 	 * to fulfill the fps requirement; However, by main() design, win.display()
@@ -129,7 +128,7 @@ bool in::GfxManager::render_gv(bool force)
 	}
 	queue_render = false;
 	/* Draw CLI */
-	cli_graphics->draw();
+	draw_cli(*cli_frame, *cli_dat);
 	return true;
 }
 
@@ -182,4 +181,89 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 	ret.fill = sf::Color(drw.col.x, drw.col.y, drw.col.z, 255);
 	ret.bg = sf::Color(drw.bg.x, drw.bg.y, drw.bg.z, 255);
 	return ret;
+}
+
+void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
+{
+	frame.clear();
+	int num_entries = data.num_entries();
+	int size_y = frame.get_grid_size().y;
+	int size_x = frame.get_grid_size().x;
+	int bottom_margin = 3;
+	/* Dry test to determine how many lines are needed extra for
+	 * multiline entries
+	 */
+	int extra = 0;
+	for (int i = 0; i<size_y - bottom_margin; i++)
+	{
+		cli::LogEntry this_entry(L"", cli::DEBUG);
+			try
+			{
+				this_entry = data.get_entry(num_entries+i-size_y+bottom_margin);
+			}
+			catch (int e)
+			{
+			}
+			sf::Vector2i c = frame.print(this_entry.c, 4, i, fr::EMPTY, true, true);
+			if (c.y != i)
+				extra += c.y-i;
+	}
+	 
+	/* Location of the current entry in the vector */
+	int eloc = num_entries-size_y+bottom_margin+extra;
+	for (int i = 0; i<size_y-bottom_margin; i++)
+	{
+		cli::LogEntry this_entry(L"", cli::DEBUG);
+		try
+		{
+			this_entry = data.get_entry(eloc);
+		}
+		catch (int e)
+		{
+		}
+		std::wstring msg;
+		int x = 4;
+		fr::ObjRep rep = fr::EMPTY;
+		switch (this_entry.l)
+		{
+			case cli::INPUT:
+				msg += L"> "; 
+				x = 2;
+				rep.bold = true;
+				rep.fill = sf::Color::Green;
+				break;
+			case cli::DEBUG:
+				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
+				break;
+			case cli::MESSAGE:
+				break;
+		}
+		msg += this_entry.c;
+		sf::Vector2i c(x,i);
+		if (msg.size())
+		{
+			/* Now print for real */
+			c = frame.print(msg, x, i, rep, true, false);
+		}
+		i = c.y;
+		eloc += 1;
+	}
+	 
+	/* Draw the "PS1" of the CLI input */
+	fr::ObjRep s(L':');
+	if (data.get_active())
+	{
+		s.fill = sf::Color::Green;
+		s.bg = sf::Color(0,255,0,80);
+		for (int y = size_y-bottom_margin; y<size_y-1; y++)
+		{
+			for(int x = 2; x<size_x-2; x++)
+			{
+				frame.set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(0,255,0,80)), 
+						x, y);
+			}
+		}
+	}
+	frame.set_char(s, 2, size_y-bottom_margin);
+	frame.print(data.get_bfr(), 4, size_y-bottom_margin, s);
 }

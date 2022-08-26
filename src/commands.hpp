@@ -2,6 +2,7 @@
 #include "ecs.hpp"
 #include "infra.hpp"
 #include "settings.hpp"
+#include <sstream>
 
 #define RET std::vector<cli::LogEntry>
  
@@ -15,6 +16,8 @@ namespace cmd
 	RET zoom(std::vector<std::wstring> args, 
 			in::GfxManager& gfx, SettingContainer& set)
 	{
+		/* This vector contains all arguments that couldn't be handled */
+		std::vector<std::wstring> unhandled_args = args;
 		RET ret;
 		if(args.size() == 0)
 		{
@@ -22,14 +25,28 @@ namespace cmd
 				cli::MESSAGE));
 			return ret;
 		}
+		int repeats = 1;
+		if (args.size() > 1)
+		{
+			std::wstringstream ss;
+			ss << args[1];
+			if (ss >> repeats) /* Operation successful*/
+				unhandled_args.erase(unhandled_args.begin()+1);
+			else
+				repeats = 1;
+		}
 		if (args[0] == L"in")
-			gfx.adjust_zoom(set.get_zoom_step());
+		{
+			gfx.adjust_zoom(set.get_zoom_step()*repeats);
+			unhandled_args.erase(unhandled_args.begin());
+		}
 		else if (args[0] == L"out")
-			gfx.adjust_zoom(-set.get_zoom_step());
-		else
-			ret.push_back(cli::LogEntry(L"Argument not recognized: " + args[0],
-					cli::MESSAGE));
-		for (int i = 1; i<args.size(); i++)
+		{
+			gfx.adjust_zoom(-set.get_zoom_step()*repeats);
+			unhandled_args.erase(unhandled_args.begin());
+		}
+		 
+		for (int i = 1; i<unhandled_args.size(); i++)
 		{
 			ret.push_back(
 				cli::LogEntry(L"Argument not recognized: " + args[i], cli::MESSAGE));
