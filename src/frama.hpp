@@ -105,7 +105,7 @@ namespace fr
 			 *  If the function ran out of y space, it returns the latest y coordinate
 			 */
 			sf::Vector2i print(std::wstring input, int x, int y, 
-					ObjRep rep, bool autobreak = true, bool fake = false);
+					ObjRep rep, bool autobreak = true, bool dry = false);
 			
 			float get_standard_scale() {return standard_scale; }
 			void set_standard_scale(float scale);

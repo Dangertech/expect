@@ -14,29 +14,29 @@ void cli::CliData::input(std::wstring ipt_string)
 	/* TODO: Actual input processing HERE */
 }
 
-bool cli::CliData::add_to_bfr(wchar_t ipt)
+
+void cli::CliData::add_to_bfr(wchar_t ipt)
 {
 	if (ipt == 0)
-		return false;
+		return;
 	if (ipt == 8) /* Backspace */
 	{
 		if (bfr.size() > 0)
 			bfr.pop_back();
-		return false;
+		return;
 	}
-	if (ipt == 13) /* Enter */
-	{
-		push_bfr();
-		return true;
-	}
+	if (ipt == 13) /* Enter MUST be filtered out beforehand */
+		throw ERR;
 	bfr += ipt;
-	return false;
 }
 
-void cli::CliData::push_bfr()
+std::wstring cli::CliData::push_bfr()
 {
+	std::wstring ret;
 	input(bfr);
+	ret = bfr;
 	bfr.clear();
+	return ret;
 }
 
 int cli::CliData::num_entries()
@@ -51,7 +51,7 @@ cli::LogEntry cli::CliData::get_entry(int num)
 	else
 		throw ERR_OVERFLOW;
 }
-
+ 
 cli::CliGraphics::CliGraphics(fr::Frame& my_frame, CliData& my_data)
 {
 	frame = &my_frame;

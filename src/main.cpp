@@ -9,6 +9,7 @@
 #include "util.hpp"
 #include "cli.hpp"
 #include "input.hpp"
+#include "commands.hpp"
 
 
 /* NOTE: Having to do THIS for thousands of entities
@@ -85,11 +86,32 @@ int main()
 			{
 				upd_screen = true;
 				cli.set_active(true);
-				if (cli.add_to_bfr(ipt[i].txt))
+				if (ipt[i].txt == 13) /* Enter Key */
 				{
+					/* At the Moment extremely cluttered must be outsourced somehow */
 					ipt::InputContainer::incli = false;
 					cli.set_active(false);
+					std::wstring final_string = cli.push_bfr();
+					std::vector<std::wstring> line = split(final_string);
+					if (line.size() > 0)
+					{
+						std::vector<cli::LogEntry> response;
+						std::vector<std::wstring> args = line;
+						args.erase(args.begin()); /* remove the leftover command */
+						if (line[0] == L"zoom")
+							response = cmd::zoom(args, gfx, set);
+						else (response.push_back(
+								cli::LogEntry(L"Command not recognized: " + line[0],
+								cli::MESSAGE))
+							);
+						 
+						/* Make the response graphically available to the user */
+						for (int i = 0; i<response.size(); i++)
+							cli.log(response[i]);
+					}
 				}
+				else
+					cli.add_to_bfr(ipt[i].txt);
 				/* Skip acting out input */
 				continue;
 			}
@@ -99,60 +121,61 @@ int main()
 				upd_screen = true;
 			}
 			/* Act out input */
+			fa::Position* plr_pos;
 			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
 					fa::Playable>(agg))
 			{
-				fa::Position* plr_pos = agg.get_cmp<fa::Position>(ent);
-				switch (ipt[i].act)
+				plr_pos = agg.get_cmp<fa::Position>(ent);
+			}
+			switch (ipt[i].act)
+			{
+				case ipt::TURN:
 				{
-					case ipt::TURN:
+					upd_screen = true;
+					Vec2 upd = {plr_pos->get_x()+ipt[i].dir.x, plr_pos->get_y()+ipt[i].dir.y};
+					std::vector<ecs::entity_id> blockers;
+					for (ecs::entity_id ent : ecs::AggView<fa::Blocking>(agg))
+						blockers.push_back(ent);
+					if (get_at_pos(upd.x, upd.y, blockers, &agg).size() == 0)
 					{
-						upd_screen = true;
-						Vec2 upd = {plr_pos->get_x()+ipt[i].dir.x, plr_pos->get_y()+ipt[i].dir.y};
-						std::vector<ecs::entity_id> blockers;
-						for (ecs::entity_id ent : ecs::AggView<fa::Blocking>(agg))
-							blockers.push_back(ent);
-						if (get_at_pos(upd.x, upd.y, blockers, &agg).size() == 0)
-						{
-							ipt[i].act = ipt::TURN;
-							plr_pos->set_x(upd.x);
-							plr_pos->set_y(upd.y);
-						}
-						break;
+						ipt[i].act = ipt::TURN;
+						plr_pos->set_x(upd.x);
+						plr_pos->set_y(upd.y);
 					}
-					case ipt::PICKUP:
-					{
-						upd_screen = true;
-						bool items = false;
-						for (ecs::entity_id itm : ecs::AggView<fa::Position, 
-								fa::Pickable>(agg))
-						{
-							items = true;
-							fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
-							if (itm_pos->get_x() == plr_pos->get_x()
-									&& itm_pos->get_y() == plr_pos->get_y())
-							{
-								agg.destroy_entity(itm);
-								cli.log(cli::LogEntry(L"You picked up an item!", cli::MESSAGE));
-							}
-							else
-								cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
-						}
-						if (!items)
-							cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
-						break;
-					}
-					case ipt::ZOOM_IN:
-						upd_screen = true;
-						gfx.adjust_zoom(set.get_zoom_step());
-						break;
-					case ipt::ZOOM_OUT:
-						upd_screen = true;
-						gfx.adjust_zoom(-set.get_zoom_step());
-						break;
-					default:
-						break;
+					break;
 				}
+				case ipt::PICKUP:
+				{
+					upd_screen = true;
+					bool items = false;
+					for (ecs::entity_id itm : ecs::AggView<fa::Position, 
+							fa::Pickable>(agg))
+					{
+						items = true;
+						fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
+						if (itm_pos->get_x() == plr_pos->get_x()
+								&& itm_pos->get_y() == plr_pos->get_y())
+						{
+							agg.destroy_entity(itm);
+							cli.log(cli::LogEntry(L"You picked up an item!", cli::MESSAGE));
+						}
+						else
+							cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
+					}
+					if (!items)
+						cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
+					break;
+				}
+				case ipt::ZOOM_IN:
+					upd_screen = true;
+					gfx.adjust_zoom(set.get_zoom_step());
+					break;
+				case ipt::ZOOM_OUT:
+					upd_screen = true;
+					gfx.adjust_zoom(-set.get_zoom_step());
+					break;
+				default:
+					break;
 			}
 		}
 		

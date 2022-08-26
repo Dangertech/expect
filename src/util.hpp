@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <string>
 
 struct Vec2
 {
@@ -18,3 +20,5 @@ struct Vec3
 	int y;
 	int z;
 };
+
+std::vector<std::wstring> split(std::wstring str);

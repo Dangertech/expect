@@ -3,6 +3,7 @@
  */
 #pragma once
 #include "frama.hpp"
+#include "ecs.hpp"
 
 namespace cli
 {
@@ -17,33 +18,41 @@ namespace cli
 			l = my_l;
 		}
 	};
+
 	/* Manages I/O capabilities of the CLI */
+	/*
+	 * Although it might seem like the CliData class
+	 * also manages command processing, this is not true,
+	 * it only contains data for display that has no real
+	 * effect; Command functions can instead be found in
+	 * commands.hpp
+	 */
 	class CliData
 	{
 		public:
-			/* Add an autonomous logging entry into the CLI */
+			/* Add an autonomous logging entry into the CLI; */
 			void log(LogEntry entry);
+			/* Feed a new line of player input into the CLI;
+			 * This just logs this line and has no real effect
+			 */
+			void input(std::wstring ipt_string);
 			/* Get how many entries there are */
 			int num_entries();
 			/* Add a character to the input buffer 
 			 * Returns true if the cli mode should be
 			 * exited because enter (code 13) was pressed
 			 */
-			bool add_to_bfr(wchar_t ipt);
+			void add_to_bfr(wchar_t ipt);
 			/* Pushes whatever is in the buffer to processing and
 			 * subsequently clears the buffer 
 			 */
-			void push_bfr();
+			std::wstring push_bfr();
 			std::wstring get_bfr() { return bfr; }
 			LogEntry get_entry(int num);
 			
 			bool get_active() { return active; }
 			void set_active(bool a) { active = a; }
 		private:
-			/* Feed a new line of player input into the CLI 
-			 * that will be logged and processed
-			 */
-			void input(std::wstring ipt_string);
 			std::vector<LogEntry> entries;
 			std::wstring bfr; /* Buffer containing currently typed input */
 			bool active = false; /* Should be set to true if CLI mode is activated */
