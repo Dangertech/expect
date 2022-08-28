@@ -63,6 +63,8 @@ int main()
 	}
 	
 	int iter = 0;
+	/* TODO: Find a better place for this variable */
+	bool incli = false;
 	while (gfx.win_open())
 	{
 		/* Get time to process this loop for fps matching and debugging purposes */
@@ -75,110 +77,68 @@ int main()
 		 * externally (namely HIDs)
 		 */
 		std::vector<sf::Event> ev = gfx.get_events();
-		std::vector<ipt::InputContainer> ipt = ipt::process_input(ev);
 		bool upd_screen = false;
-		for (int i = 0; i < ipt.size(); i++)
+		bool skiptxt = false;
+		for (int i = 0; i < ev.size(); i++)
 		{
-			if (iter == 0)
-				ipt[i].act = ipt::ELSE;
 			 
-			if (ipt::InputContainer::incli)
+			if (incli && !skiptxt)
 			{
+				/* Process as input for cli */
 				upd_screen = true;
 				cli.set_active(true);
-				if (ipt[i].txt == 13) /* Enter Key */
+				if (ev[i].type != sf::Event::TextEntered)
 				{
-					/* At the Moment extremely cluttered must be outsourced somehow */
-					ipt::InputContainer::incli = false;
+					/* Special rules for command to exit CLI */
+					if (ev[i].type == sf::Event::KeyPressed)
+					{
+						if (ipt::cmdmap.find(ev[i].key.code) != ipt::cmdmap.end())
+						{
+							std::cout << "uh huh" << std::endl;
+							if (ipt::cmdmap.at(ev[i].key.code) == L"cli exit")
+							{
+								cmd::cli({L"exit"}, incli, skiptxt, cli);
+							}
+						}
+					}
+					continue;
+				}
+				if (ev[i].text.unicode == 13) /* Enter Key */
+				{
+					/* At the Moment extremely cluttered, must be outsourced somehow */
+					incli = false;
 					cli.set_active(false);
 					std::wstring final_string = cli.push_bfr();
-					std::vector<std::wstring> line = split(final_string);
-					if (line.size() > 0)
-					{
-						std::vector<cli::LogEntry> response;
-						std::vector<std::wstring> args = line;
-						args.erase(args.begin()); /* remove the leftover command */
-						if (line[0] == L"zoom")
-							response = cmd::zoom(args, gfx, set);
-						else (response.push_back(
-								cli::LogEntry(L"Command not recognized: " + line[0],
-								cli::MESSAGE))
-							);
-						 
-						/* Make the response graphically available to the user */
-						for (int i = 0; i<response.size(); i++)
-							cli.log(response[i]);
-					}
+					std::vector<cli::LogEntry> response = 
+						ipt::process_input(final_string, agg, cli, gfx, set, incli, skiptxt);
+					/* Make the response graphically available to the user */
+					for (int i = 0; i<response.size(); i++)
+						cli.log(response[i]);
 				}
 				else
-					cli.add_to_bfr(ipt[i].txt);
-				/* Skip acting out input */
-				continue;
+					cli.add_to_bfr(ev[i].text.unicode);
 			}
 			else
 			{
+				/* Process as key input that might be mapped to a command */
+				if (ev[i].type != sf::Event::KeyPressed)
+					continue;
 				cli.set_active(false);
 				upd_screen = true;
-			}
-			/* Act out input */
-			fa::Position* plr_pos;
-			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-					fa::Playable>(agg))
-			{
-				plr_pos = agg.get_cmp<fa::Position>(ent);
-			}
-			switch (ipt[i].act)
-			{
-				case ipt::TURN:
+				/* TODO: NO CODE DUPLICATION! */
+				if (ipt::cmdmap.find(ev[i].key.code) == ipt::cmdmap.end())
 				{
-					upd_screen = true;
-					Vec2 upd = {plr_pos->get_x()+ipt[i].dir.x, plr_pos->get_y()+ipt[i].dir.y};
-					std::vector<ecs::entity_id> blockers;
-					for (ecs::entity_id ent : ecs::AggView<fa::Blocking>(agg))
-						blockers.push_back(ent);
-					if (get_at_pos(upd.x, upd.y, blockers, &agg).size() == 0)
-					{
-						ipt[i].act = ipt::TURN;
-						plr_pos->set_x(upd.x);
-						plr_pos->set_y(upd.y);
-					}
-					break;
+					cli.log({L"No command assigned to this key.", cli::DEBUG});
+					continue;
 				}
-				case ipt::PICKUP:
-				{
-					upd_screen = true;
-					bool items = false;
-					for (ecs::entity_id itm : ecs::AggView<fa::Position, 
-							fa::Pickable>(agg))
-					{
-						items = true;
-						fa::Position* itm_pos = agg.get_cmp<fa::Position>(itm);
-						if (itm_pos->get_x() == plr_pos->get_x()
-								&& itm_pos->get_y() == plr_pos->get_y())
-						{
-							agg.destroy_entity(itm);
-							cli.log(cli::LogEntry(L"You picked up an item!", cli::MESSAGE));
-						}
-						else
-							cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
-					}
-					if (!items)
-						cli.log(cli::LogEntry(L"Nothing to pick up here!", cli::MESSAGE));
-					break;
-				}
-				case ipt::ZOOM_IN:
-					upd_screen = true;
-					gfx.adjust_zoom(set.get_zoom_step());
-					break;
-				case ipt::ZOOM_OUT:
-					upd_screen = true;
-					gfx.adjust_zoom(-set.get_zoom_step());
-					break;
-				default:
-					break;
+				/* Execute command of entered text */
+				std::wstring string = ipt::cmdmap.at(ev[i].key.code);
+				std::vector<cli::LogEntry> response = 
+					ipt::process_input(string, agg, cli, gfx, set, incli, skiptxt);
 			}
 		}
 		
+		/* Rendering Execution */
 		bool updated = false;
 		if (upd_screen)
 		{

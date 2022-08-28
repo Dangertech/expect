@@ -1,24 +1,31 @@
 /* Contains everything related to raw key processing */
 #pragma once
+#include <unordered_map>
 #include "util.hpp"
 #include "iostream"
 #include "vector"
+#include "cli.hpp"
+#include "settings.hpp"
+#include "infra.hpp"
 #include "SFML/Graphics.hpp"
 
 namespace ipt
 {
-	enum action { NONE, TURN, PICKUP, ZOOM_IN, ZOOM_OUT, ENTER_CLI, EXIT_CLI, ELSE };
-	struct InputContainer
+	const std::unordered_map<sf::Keyboard::Key, std::wstring> cmdmap = 
 	{
-		action act;
-		Vec2 dir;
-		/* Text Entered in cli mode */
-		wchar_t txt;
-		static bool incli;
-		void print(std::ostream& os);
+		{sf::Keyboard::Key::Space, L"cli enter"},
+		{sf::Keyboard::Key::Escape, L"cli exit"},
+		{sf::Keyboard::Key::Add, L"zoom in"},
+		{sf::Keyboard::Key::Subtract, L"zoom out"}
 	};
-	/* This takes a bundle of events and spits out InputContainers that can
-	 * be logically processed further
-	 */
-	std::vector<ipt::InputContainer> process_input(std::vector<sf::Event>& ev);
+	std::vector<cli::LogEntry> process_input
+	(
+		std::wstring input,
+		ecs::Aggregate&,
+		cli::CliData&,
+		in::GfxManager&,
+		SettingContainer&,
+		bool& incli,
+		bool& skiptxt
+	);
 }
