@@ -64,7 +64,6 @@ int main()
 	
 	int iter = 0;
 	/* TODO: Find a better place for this variable */
-	bool incli = false;
 	while (gfx.win_open())
 	{
 		/* Get time to process this loop for fps matching and debugging purposes */
@@ -82,7 +81,7 @@ int main()
 		for (int i = 0; i < ev.size(); i++)
 		{
 			 
-			if (incli && !skiptxt)
+			if (cli.get_active() && !skiptxt)
 			{
 				/* Process as input for cli */
 				upd_screen = true;
@@ -97,7 +96,7 @@ int main()
 							std::cout << "uh huh" << std::endl;
 							if (ipt::cmdmap.at(ev[i].key.code) == L"cli exit")
 							{
-								cmd::cli({L"exit"}, incli, skiptxt, cli);
+								cmd::cli({L"exit"}, skiptxt, cli);
 							}
 						}
 					}
@@ -106,11 +105,10 @@ int main()
 				if (ev[i].text.unicode == 13) /* Enter Key */
 				{
 					/* At the Moment extremely cluttered, must be outsourced somehow */
-					incli = false;
 					cli.set_active(false);
 					std::wstring final_string = cli.push_bfr();
 					std::vector<cli::LogEntry> response = 
-						ipt::process_input(final_string, agg, cli, gfx, set, incli, skiptxt);
+						ipt::process_input(final_string, agg, cli, gfx, set, skiptxt);
 					/* Make the response graphically available to the user */
 					for (int i = 0; i<response.size(); i++)
 						cli.log(response[i]);
@@ -134,7 +132,7 @@ int main()
 				/* Execute command of entered text */
 				std::wstring string = ipt::cmdmap.at(ev[i].key.code);
 				std::vector<cli::LogEntry> response = 
-					ipt::process_input(string, agg, cli, gfx, set, incli, skiptxt);
+					ipt::process_input(string, agg, cli, gfx, set, skiptxt);
 			}
 		}
 		

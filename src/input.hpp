@@ -25,7 +25,6 @@ namespace ipt
 		cli::CliData&,
 		in::GfxManager&,
 		SettingContainer&,
-		bool& incli,
 		bool& skiptxt
 	);
 }

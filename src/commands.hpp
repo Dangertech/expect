@@ -19,5 +19,5 @@ namespace cmd
 			in::GfxManager& gfx, SettingContainer& set);
 	RET echo(std::vector<std::wstring> args);
 	RET quit(std::vector<std::wstring> args);
-	RET cli(std::vector<std::wstring> args, bool& incli, bool& skiptxt, cli::CliData& cli);
+	RET cli(std::vector<std::wstring> args, bool& skiptxt, cli::CliData& cli);
 }

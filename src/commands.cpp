@@ -61,23 +61,20 @@ namespace cmd
 		exit(0); 
 		return {{L"Quitting was not successful!", cli::DEBUG}};
 	}
-	RET cli(std::vector<std::wstring> args, bool& incli, bool& skiptxt, cli::CliData& cli)
+	RET cli(std::vector<std::wstring> args, bool& skiptxt, cli::CliData& cli)
 	{
 		if (!args.size())
 		{
-			incli = !incli;
-			cli.set_active(incli);
+			cli.set_active(!cli.get_active());
 			return RET(); /* returns empty std::vector<cli::LogEntry> */
 		}
 		if (args[0] == L"enter") 
 		{
-			incli = true;
 			skiptxt = true;
 			cli.set_active(true);
 		}
 		else if (args[0] == L"exit")
 		{
-			incli = false;
 			cli.set_active(false);
 		}
 		else

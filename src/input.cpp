@@ -8,7 +8,6 @@ std::vector<cli::LogEntry> ipt::process_input
 	cli::CliData& cli,
 	in::GfxManager& gfx,
 	SettingContainer& set,
-	bool& incli,
 	bool& skiptxt
 )
 {
@@ -21,7 +20,7 @@ std::vector<cli::LogEntry> ipt::process_input
 		if (line[0] == L"zoom")
 			response = cmd::zoom(args, gfx, set);
 		else if (line[0] == L"cli")
-			response = cmd::cli(args, incli, skiptxt, cli);
+			response = cmd::cli(args, skiptxt, cli);
 		else if (line[0] == L"echo")
 			response = cmd::echo(args);
 		else if (line[0] == L"quit")
