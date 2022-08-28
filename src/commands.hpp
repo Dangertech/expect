@@ -12,9 +12,7 @@
  */
 namespace cmd
 {
-	/*
-	std::wstring move(std::vector<std::wstring> args, ecs::Aggregate& agg);
-	*/
+	RET move(std::vector<std::wstring> args, std::vector<ecs::entity_id>, ecs::Aggregate& agg);
 	RET zoom(std::vector<std::wstring> args, 
 			in::GfxManager& gfx, SettingContainer& set);
 	RET echo(std::vector<std::wstring> args);

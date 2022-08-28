@@ -5,6 +5,7 @@ std::vector<cli::LogEntry> ipt::process_input
 (
 	std::wstring input,
 	ecs::Aggregate& agg,
+	std::vector<ecs::entity_id>& entts,
 	cli::CliData& cli,
 	in::GfxManager& gfx,
 	SettingContainer& set,
@@ -25,6 +26,8 @@ std::vector<cli::LogEntry> ipt::process_input
 			response = cmd::echo(args);
 		else if (line[0] == L"quit")
 			response = cmd::quit(args);
+		else if (line[0] == L"move")
+			response = cmd::move(args, entts, agg);
 		else (response.push_back(
 				cli::LogEntry(L"Command not recognized: " + line[0],
 				cli::MESSAGE))

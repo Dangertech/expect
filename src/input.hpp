@@ -13,6 +13,14 @@ namespace ipt
 {
 	const std::unordered_map<sf::Keyboard::Key, std::wstring> cmdmap = 
 	{
+		{sf::Keyboard::Key::K, L"move north"},
+		{sf::Keyboard::Key::U, L"move northeast"},
+		{sf::Keyboard::Key::L, L"move east"},
+		{sf::Keyboard::Key::N, L"move southeast"},
+		{sf::Keyboard::Key::J, L"move south"},
+		{sf::Keyboard::Key::B, L"move southwest"},
+		{sf::Keyboard::Key::H, L"move west"},
+		{sf::Keyboard::Key::Y, L"move northwest"},
 		{sf::Keyboard::Key::Space, L"cli enter"},
 		{sf::Keyboard::Key::Escape, L"cli exit"},
 		{sf::Keyboard::Key::Add, L"zoom in"},
@@ -22,6 +30,7 @@ namespace ipt
 	(
 		std::wstring input,
 		ecs::Aggregate&,
+		std::vector<ecs::entity_id>&,
 		cli::CliData&,
 		in::GfxManager&,
 		SettingContainer&,
