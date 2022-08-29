@@ -83,10 +83,17 @@ namespace fr
 				 */
 				set_size_ref();
 				reserve_grid(); 
-				fill_grid();
 			}
 			 
+			/* Get the object representation of a character back;
+			 * Please note that this lookup is very expensive as all
+			 * objects are stored in an unsorted vector to make performance
+			 * improvements in other areas, so it's best to use it sparingly
+			 */
 			ObjRep get_char(int x, int y);
+			/* Set a character on the grid by providing a specification
+			 * in form of an ObjRep
+			 */
 			void set_char(ObjRep rep, int x, int y);
 			
 			/* Allows to print a whole string in a line
@@ -170,9 +177,11 @@ namespace fr
 				sf::Sprite s;
 				sf::RectangleShape r;
 				float size_mod = 1;
+				int x;
+				int y;
 				ObjRep refobj;
 			};
-			std::vector<std::vector<GridObj>> grid;
+			std::vector<GridObj> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
 			const sf::Texture* font_txt;
@@ -209,11 +218,6 @@ namespace fr
 			/* Bottom right end */
 			sf::Vector2i end;
 			
-			/* Fills the grid up with default grid objects 
-			 * This is used to ensure that the grid always corresponds
-			 * to it's wanted size 
-			 */
-			void fill_grid();
 			/* Reserves new space on the grid (std::vector::reserve())
 			 * according to the get_grid_size() function
 			 */
