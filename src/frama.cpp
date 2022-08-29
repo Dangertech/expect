@@ -7,16 +7,14 @@ fr::ObjRep fr::Frame::get_char(int x, int y)
 {
 	if (y > get_grid_size().y -1 || x > get_grid_size().x -1)
 		throw ERR_OVERFLOW;
-	GridObj* selected = nullptr;
-	/* NOTE: This lookup is very expensive */
-	for (GridObj g : grid)
+	if (grid.find((unsigned long)x << 32 | (unsigned long) y) == grid.end())
 	{
-		if (g.x == x && g.y == y) 
-			selected = &g;
-	}
-	if (selected == nullptr)
 		return EMPTY;
-	return selected->refobj;
+	}
+	else
+	{
+		return grid.at((unsigned long)x << 32 | (unsigned long) y).refobj;
+	}
 }
 
 void fr::Frame::set_char(ObjRep rep, int x, int y)
@@ -33,8 +31,6 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	newobj.s.setColor(rep.fill);
 	newobj.s.setScale(standard_scale * rep.size_mod, standard_scale * rep.size_mod);
 	newobj.size_mod = rep.size_mod;
-	newobj.x = x;
-	newobj.y = y;
 	
 	float x_top = x*(sref.width*standard_scale) + origin.x + margin.x*x;
 	float y_top = y*(sref.height*standard_scale) + origin.y + margin.y*y;
@@ -46,7 +42,7 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	bg.setPosition(x_top, y_top);
 	bg.setFillColor(rep.bg);
 	newobj.r = bg;
-	grid.push_back(newobj);
+	grid[(unsigned long)x << 32 | (unsigned long) y] = newobj;
 	to_update = true;
 	
 }
@@ -144,15 +140,15 @@ int fr::Frame::draw(sf::Shader* shad)
 		/* Here, the bottom right is checked if 
 		 * it is beyond the end
 		 */
-		for (int i = 0; i<grid.size(); i++)
+		for (std::pair<unsigned long, GridObj> i : grid)
 		{
 			sf::Vector2f brpos;
-			brpos.x = grid[i].r.getPosition().x + sref.width;
-			brpos.y = grid[i].r.getPosition().y + sref.height;
+			brpos.x = i.second.r.getPosition().x + sref.width;
+			brpos.y = i.second.r.getPosition().y + sref.height;
 			if (brpos.x <= end.x && brpos.y <= end.y)
 			{
-				win->draw(grid[i].r);
-				win->draw(grid[i].s, shad);
+				win->draw(i.second.r);
+				win->draw(i.second.s, shad);
 			}
 		}
 	}
@@ -161,14 +157,14 @@ int fr::Frame::draw(sf::Shader* shad)
 		/* Here, the top left is checked if
 		 * it is beyond the end
 		 */
-		for (int i = 0; i<grid.size(); i++)
+		for (std::pair<unsigned long, GridObj> i : grid)
 		{
 			/* Use the backgrounds because their origin is still 0,0 */
-			if(grid[i].r.getPosition().x < end.x 
-					&& grid[i].r.getPosition().y < end.y)
+			if (i.second.r.getPosition().x < end.x 
+					&& i.second.r.getPosition().y < end.y)
 			{
-				win->draw(grid[i].r);
-				win->draw(grid[i].s, shad);
+				win->draw(i.second.r);
+				win->draw(i.second.s, shad);
 			}
 		}
 	}
@@ -198,17 +194,17 @@ void fr::Frame::set_standard_scale(float scale)
 		throw ERR_OVERFLOW;
 	standard_scale = scale;
 	reserve_grid();
-	for (int i = 0; i < grid.size(); i++)
+	for (std::pair<unsigned long, GridObj> i : grid)
 	{
-		float x_top = grid[i].x*(sref.width*standard_scale) + origin.x;
-		float y_top = grid[i].y*(sref.height*standard_scale) + origin.y;
-		grid[i].s.setScale(standard_scale * grid[i].size_mod, 
-				standard_scale * grid[i].size_mod);
-		grid[i].s.setPosition(x_top + sref.width*standard_scale/2,
+		float x_top = (i.first >> 32)*(sref.width*standard_scale) + origin.x;
+		float y_top = ((int) i.first)*(sref.height*standard_scale) + origin.y;
+		i.second.s.setScale(standard_scale * i.second.size_mod, 
+				standard_scale * i.second.size_mod);
+		i.second.s.setPosition(x_top + sref.width*standard_scale/2,
 				y_top + sref.height*standard_scale/2);
-		grid[i].r.setSize(sf::Vector2f(sref.width*standard_scale*grid[i].size_mod,
-				sref.height*standard_scale*grid[i].size_mod));
-		grid[i].r.setPosition(x_top + sref.width*standard_scale/2,
+		i.second.r.setSize(sf::Vector2f(sref.width*standard_scale*i.second.size_mod,
+				sref.height*standard_scale*i.second.size_mod));
+		i.second.r.setPosition(x_top + sref.width*standard_scale/2,
 				y_top + sref.height*standard_scale/2);
 	}
 	to_update = true;
@@ -218,15 +214,15 @@ void fr::Frame::set_origin(sf::Vector2i my_ori)
 {
 	origin = my_ori;
 	reserve_grid();
-	for (int i = 0; i < grid.size(); i++)
+	for (std::pair<unsigned long, GridObj> i : grid)
 	{
 			sf::Rect<float> lcl(0,0, get_standard_char_size().x, 
 					get_standard_char_size().y);
-			float x_top = grid[i].x*(lcl.width*standard_scale) + origin.x;
-			float y_top = grid[i].y*(lcl.height*standard_scale) + origin.y;
-			grid[i].s.setPosition(x_top + lcl.width*standard_scale/2, 
+			float x_top = (i.first >> 32)*(lcl.width*standard_scale) + origin.x;
+			float y_top = (int)i.first*(lcl.height*standard_scale) + origin.y;
+			i.second.s.setPosition(x_top + lcl.width*standard_scale/2, 
 					y_top + lcl.height*standard_scale/2);
-			grid[i].r.setPosition(x_top, y_top);
+			i.second.r.setPosition(x_top, y_top);
 	}
 	to_update = true;
 }

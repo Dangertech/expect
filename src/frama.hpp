@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <SFML/Graphics.hpp>
 #include "const.h"
 
@@ -83,6 +84,7 @@ namespace fr
 				 */
 				set_size_ref();
 				reserve_grid(); 
+				grid = {};
 			}
 			 
 			/* Get the object representation of a character back;
@@ -177,11 +179,9 @@ namespace fr
 				sf::Sprite s;
 				sf::RectangleShape r;
 				float size_mod = 1;
-				int x;
-				int y;
 				ObjRep refobj;
 			};
-			std::vector<GridObj> grid;
+			std::unordered_map<unsigned long, GridObj> grid;
 			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
 			const sf::Texture* font_txt;
