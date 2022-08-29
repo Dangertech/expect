@@ -21,6 +21,7 @@ namespace ipt
 		{sf::Keyboard::Key::B, L"move southwest"},
 		{sf::Keyboard::Key::H, L"move west"},
 		{sf::Keyboard::Key::Y, L"move northwest"},
+		{sf::Keyboard::Key::Comma, L"pickup"},
 		{sf::Keyboard::Key::Space, L"cli enter"},
 		{sf::Keyboard::Key::Escape, L"cli exit"},
 		{sf::Keyboard::Key::Add, L"zoom in"},

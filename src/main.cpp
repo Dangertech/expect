@@ -76,7 +76,6 @@ int main()
 					{
 						if (ipt::cmdmap.find(ev[i].key.code) != ipt::cmdmap.end())
 						{
-							std::cout << "uh huh" << std::endl;
 							if (ipt::cmdmap.at(ev[i].key.code) == L"cli exit")
 							{
 								cmd::cli({L"exit"}, skiptxt, cli);
@@ -87,7 +86,6 @@ int main()
 				}
 				if (ev[i].text.unicode == 13) /* Enter Key */
 				{
-					/* At the Moment extremely cluttered, must be outsourced somehow */
 					cli.set_active(false);
 					std::wstring final_string = cli.push_bfr();
 					std::vector<cli::LogEntry> response = 
@@ -106,7 +104,6 @@ int main()
 					continue;
 				cli.set_active(false);
 				upd_screen = true;
-				/* TODO: NO CODE DUPLICATION! */
 				if (ipt::cmdmap.find(ev[i].key.code) == ipt::cmdmap.end())
 				{
 					cli.log({L"No command assigned to this key.", cli::DEBUG});
@@ -116,6 +113,9 @@ int main()
 				std::wstring string = ipt::cmdmap.at(ev[i].key.code);
 				std::vector<cli::LogEntry> response = 
 					ipt::process_input(string, agg, entts, cli, gfx, set, skiptxt);
+				/* Make the response graphically available to the user */
+				for (int i = 0; i<response.size(); i++)
+					cli.log(response[i]);
 			}
 		}
 		

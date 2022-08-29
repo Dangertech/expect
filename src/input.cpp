@@ -28,6 +28,8 @@ std::vector<cli::LogEntry> ipt::process_input
 			response = cmd::quit(args);
 		else if (line[0] == L"move")
 			response = cmd::move(args, entts, agg);
+		else if (line[0] == L"pickup")
+			response = cmd::pickup(args, entts, agg);
 		else (response.push_back(
 				cli::LogEntry(L"Command not recognized: " + line[0],
 				cli::MESSAGE))

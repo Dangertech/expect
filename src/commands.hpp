@@ -13,6 +13,7 @@
 namespace cmd
 {
 	RET move(std::vector<std::wstring> args, std::vector<ecs::entity_id>, ecs::Aggregate& agg);
+	RET pickup(std::vector<std::wstring> args, std::vector<ecs::entity_id>, ecs::Aggregate& agg);
 	RET zoom(std::vector<std::wstring> args, 
 			in::GfxManager& gfx, SettingContainer& set);
 	RET echo(std::vector<std::wstring> args);

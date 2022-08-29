@@ -21,6 +21,52 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 	return ret;
 }
 
+/* Resolves a direction name (like up, southeast or 1) to a relative position */
+Vec2 nametopos(std::wstring name)
+{
+	Vec2 dir = {0, 0};
+	if (name == L"up" || name == L"north" || name == L"8")
+		dir.y = -1;
+	else if (name == L"northeast" || name == L"9")
+	{
+		dir.x = 1;
+		dir.y = -1;
+	}
+	else if (name == L"right" || name == L"east" || name == L"6")
+		dir.x = 1;
+	else if (name == L"southeast" || name == L"3")
+	{
+		dir.x = 1;
+		dir.y = 1;
+	}
+	else if (name == L"down" || name == L"south" || name == L"2")
+		dir.y = 1;
+	else if (name == L"southwest" || name == L"1")
+	{
+		dir.x = -1;
+		dir.y = 1;
+	}
+	else if (name == L"left" || name == L"west" || name == L"4")
+		dir.x = -1;
+	else if (name == L"northwest" || name == L"7")
+	{
+		dir.x = -1;
+		dir.y = -1;
+	}
+	else
+	{
+		throw ERR;
+	}
+	return dir;
+}
+
+std::wstring dirhelp()
+{
+	return std::wstring(L"Please provide either a direction ")
+			+ L"(e.g. 'left', 'northwest') or a number corresponding "
+			+ L"to the directions on the numpad.";
+}
+
 /* Helper function to easily print an error message if a command has no arguments */
 bool checkargs(std::vector<std::wstring> args, std::vector<cli::LogEntry>& ret, std::wstring errmsg)
 {
@@ -36,44 +82,20 @@ namespace cmd
 {
 	RET move(std::vector<std::wstring> args, std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
 	{
-		std::wstring helpmsg = std::wstring(L"Please provide either a direction ")
-			+ L"(e.g. 'left', 'northwest') or a number corresponding "
-			+ L"to the directions on the numpad.";
+		std::wstring helpmsg = dirhelp();
 		RET ret;
 		if (checkargs(args, ret, helpmsg))
 			return ret;
 		 
 		Vec2 dir = {0, 0};
-		if (args[0] == L"up" || args[0] == L"north" || args[0] == L"8")
-			dir.y = -1;
-		else if (args[0] == L"northeast" || args[0] == L"9")
+		try
 		{
-			dir.x = 1;
-			dir.y = -1;
+			dir = nametopos(args[0]);
 		}
-		else if (args[0] == L"right" || args[0] == L"east" || args[0] == L"6")
-			dir.x = 1;
-		else if (args[0] == L"southeast" || args[0] == L"3")
+		catch (int e)
 		{
-			dir.x = 1;
-			dir.y = 1;
-		}
-		else if (args[0] == L"down" || args[0] == L"south" || args[0] == L"2")
-			dir.y = 1;
-		else if (args[0] == L"southwest" || args[0] == L"1")
-		{
-			dir.x = -1;
-			dir.y = 1;
-		}
-		else if (args[0] == L"left" || args[0] == L"west" || args[0] == L"4")
-			dir.x = -1;
-		else if (args[0] == L"northwest" || args[0] == L"7")
-		{
-			dir.x = -1;
-			dir.y = -1;
-		}
-		else
 			ret.push_back(cli::LogEntry(helpmsg, cli::MESSAGE));
+		}
 		 
 		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
 				fa::Playable>(agg))
@@ -94,6 +116,57 @@ namespace cmd
 		}
 		return ret;
 	}
+	 
+	RET pickup(std::vector<std::wstring> args, std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
+	{
+		Vec2 dir = {0, 0};
+		/* Get direction */
+		if (!args.size())
+			dir = {0, 0}; /* Try to pick up below yourself */
+		else
+		{
+			try
+			{
+				dir = nametopos(args[0]);
+			}
+			catch (int e)
+			{
+				return {cli::LogEntry(dirhelp(), cli::MESSAGE)};
+			}
+		}
+		ecs::entity_id plr;
+		bool exists = false;
+		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+				fa::Playable>(agg))
+		{
+			plr = ent;
+			exists = true;
+		}
+		if (!exists)
+			return {cli::LogEntry(
+					L"You are dead and can not pick anything up.", cli::MESSAGE)};
+		fa::Position* pos = agg.get_cmp<fa::Position>(plr);
+		std::vector<ecs::entity_id> pot_targets = /* Potential Targets */
+			get_at_pos(pos->get_x()+dir.x, pos->get_y()+dir.y, entts, agg);
+		std::vector<ecs::entity_id> targets;
+		for (ecs::entity_id ent : pot_targets)
+		{
+			if(agg.get_cmp<fa::Pickable>(ent)) 
+				targets.push_back(ent);
+		}
+		 
+		if (!targets.size())
+			return {cli::LogEntry(
+					L"There is nothing to pick up.", cli::MESSAGE)};
+		else
+		{
+			/* TODO: Actual pickup code */
+			agg.destroy_entity(targets[0]);
+			return {cli::LogEntry(
+					L"You picked up an item!", cli::MESSAGE)};
+		}
+	}
+	 
 	RET zoom(std::vector<std::wstring> args, 
 			in::GfxManager& gfx, SettingContainer& set)
 	{
@@ -130,6 +203,7 @@ namespace cmd
 		}
 		return ret;
 	}
+	 
 	RET echo(std::vector<std::wstring> args)
 	{
 		RET ret;
