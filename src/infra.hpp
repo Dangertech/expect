@@ -54,6 +54,7 @@ namespace in
 			/* Draw CliData to a chosen frame */
 			void draw_cli(fr::Frame&, cli::CliData&);
 			
+			void border(fr::Frame&, sf::Color);
 			/* Converts a high-level drawable struct
 			 * to the frama-specific ObjectRepresentations
 			 */

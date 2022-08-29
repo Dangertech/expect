@@ -186,6 +186,8 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 {
 	frame.clear();
+	/* Draw a border */
+	border(frame, data.get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	int num_entries = data.num_entries();
 	int size_y = frame.get_grid_size().y;
 	int size_x = frame.get_grid_size().x;
@@ -230,7 +232,7 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 				msg += L"> "; 
 				x = 2;
 				rep.bold = true;
-				rep.fill = sf::Color::Green;
+				rep.fill = sf::Color(CLI_USER);
 				break;
 			case cli::DEBUG:
 				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
@@ -250,20 +252,53 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 	}
 	 
 	/* Draw the "PS1" of the CLI input */
-	fr::ObjRep s(L':');
+	fr::ObjRep s(CLI_PS1);
 	if (data.get_active())
 	{
-		s.fill = sf::Color::Green;
-		s.bg = sf::Color(0,255,0,80);
+		s.fill = sf::Color(CLI_ACTIVE);
+		s.bg = sf::Color(CLI_ACTIVE, CLI_ALPHA);
+		/* Box */
 		for (int y = size_y-bottom_margin; y<size_y-1; y++)
 		{
 			for(int x = 2; x<size_x-2; x++)
 			{
-				frame.set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(0,255,0,80)), 
+				frame.set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
 						x, y);
 			}
 		}
 	}
+	/* PS1 */
 	frame.set_char(s, 2, size_y-bottom_margin);
-	frame.print(data.get_bfr(), 4, size_y-bottom_margin, s);
+	/* Input Buffer */
+	sf::Vector2i endpos = frame.print(data.get_bfr(), 4, 
+			size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)});
+	if (data.get_active())
+	{
+		/* "Cursor" */
+		frame.set_char({L'|', sf::Color::White, sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
+	}
+}
+
+void in::GfxManager::border(fr::Frame& frame, sf::Color c)
+{
+	sf::Vector2i size = frame.get_grid_size();
+	for (int y = 0; y<size.y; y++)
+	{
+		for (int x = 0; x<size.x; x++)
+		{
+			if (y == 0 || y == size.y-1)
+				frame.set_char({0x2550, c}, x, y); /* BOX DRAWINGS DOUBLE HORIZONTAL */
+			else if (x == 0 || x == size.x-1)
+				frame.set_char({0x2551, c}, x, y); /* BOX DRAWINGS DOUBLE VERTICAL */
+			
+			if (y == 0 && x == 0)
+				frame.set_char({0x2554, c}, x, y);
+			if (y == 0 && x == size.x-1)
+				frame.set_char({0x2557, c}, x, y);
+			if (y == size.y-1 && x == 0)
+				frame.set_char({0x255a, c}, x, y);
+			if (y == size.y-1 && x == size.y-1)
+				frame.set_char({0x255d, c}, x, y);
+		}
+	}
 }

@@ -107,8 +107,6 @@ int fr::Frame::draw(sf::Shader* shad)
 {
 	if (to_update == false)
 		return 0;
-	if (grid.size() == 0)
-		throw ERR;
 	/* Set up frame background */
 	sf::Vector2f bg_pos = frame_bg.getPosition();
 	sf::Vector2f bg_size = frame_bg.getSize();
