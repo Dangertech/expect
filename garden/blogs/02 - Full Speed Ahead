@@ -1,0 +1,172 @@
+<h1 class="center hover">#02 - Full Speed Ahead</h1>
+<h2 class="center hover">2022-09-01</h2>
+<p class="center">
+	I know, there is a big gap between this blog entry and the last
+	and there's no real reason for that. I have a specific reason
+	for this blog entry though: The launch of the first significant version
+	of expect: <gl>v0.1-alpha</gl>, codename "Full Speed Ahead"!
+	So what is it all about?
+</p>
+<h2 class="center hover">Human Interfacing</h2>
+<p class="center">
+	One thing I have given a lot of thought is how the player interacts
+	with the game world. Most roguelikes take the obvious approach of
+	binding certain keys to specific action, for example the key "H" is
+	bound to the action "MOVE_LEFT". However, expect is a roguelike set
+	in a cyberpunk future with definite technological themes (Oh I didn't tell
+	you yet that I plan to unleash an autonomous pissed-off AI in the game
+	world, did I?). A roguelike traditionally has some sort of <gl>log</gl>
+	that tracks the actions of the player and possibly informs on game events
+	that can't be delivered through the ASCII grid alone, like the actions
+	of other characters or details about the surrounding area. Then it 
+	occurred to me to expand the capabilities of such a log to accept player
+	input, just like a <gl>terminal</gl>, or, how it is called in the code,
+	a CLI (command-line-interface). By pressing the spacebar, the player can
+	enter CLI mode and type commands into the text box on the bottom right
+	(see screenshot below). The command is then submitted with the enter key.
+	<br><br>
+	<img class="marginauto" src="https://i.imgur.com/k7cRHjO.png" 
+			alt="A screenshot of v0.1. On the right, a CLI window can be seen,
+			which contains the log and a window where the user can type commands.">
+	<br>
+	As you can see, the CLI graphics are definitely a work-in-progress kind of deal,
+	nicely demonstrated by the Version Entry that overlaps with the graphical border.
+	But you can see basic styling that is based on a type that is assigned to
+	every log entry. Right now, there are only three: MESSAGE, INPUT and DEBUG,
+	but there will be more in the future. A type defines the visual representation
+	of a log entry and later on, the user can toggle only specific types
+	(to hide that "No command assigned to this key.", for example.)
+</p>
+<p class="center">
+	In principle, commands work just like programs in any real shell: The first
+	word of a command can be thought of as a real program that accepts additional
+	arguments behind it (for example the "in" behind the command "zoom" is
+	an argument). These commands can query responses ("write to standard output")
+	that are shown upon command completion. From a technical perspective,
+	a command is just a function; Let's take the "zoom" command as an example:
+	If the function <code>process_input</code> detects the word "zoom" as the first
+	word of a line of input, it calls the function 
+	<code>std::vector<cli::LogEntry> cmd::zoom(std::vector<std::wstring> args, in::GfxManager& gfx)</code>.
+	Every cmd:: function takes different classes/variables to interact with
+	to ensure more safety but they all take a vector of wide strings as arguments
+	and all return a vector of log entries as their "standard output". But that's
+	not all: Instead of having standard keybinds like described above, a key
+	binds to a specific command that can be changed by the player in the future:
+	For example, the key "H" is mapped to the command "move left", which is
+	executed as if it was typed in the CLI. This allows for extremely powerful
+	customization, especially if the featureset of the CLI is expanded.
+	<br>
+	But I also realize that this is a very uncommon way to interact with
+	a game for many potential players and it is extremely important that
+	the CLI is easy to use and receives a proper introduction. 
+	There is one game in particular that has a similar approach to human
+	interfacing and handles it's introduction very well:
+	<a target="_new" href="https://store.steampowered.com/app/254320/Duskers/">Duskers</a>.
+	I'll probably borrow some of its ideas later on.
+</p>
+<h2>The game world</h2>
+<p>
+	I was very undecisive about the specific setting and general design
+	of the game for a long time, but I have some rough ideas and concepts by
+	now. The game interface hints that the player himself is a 
+	<gl>Truthseeker</gl> and utilizes the <gl>BECOME</gl> interface to 
+	control a <gl>Vessel</gl>, the actual player character represented by the
+	good ol' <code>@</code>. The Vessel
+	has very recently moved to a cyberpunk city in the far future which architecture
+	takes elements from the brutalist, contrast-rich designs from Blade Runner
+	at the bottom and the neon, floaty bridgework of the game
+	<a href="https://store.steampowered.com/app/746850/Cloudpunk/">Cloudpunk</a>
+	at the top in the clouds. 
+	<br><br>
+	<img class="marginauto" 
+	src="https://cdn.cloudflare.steamstatic.com/steam/apps/746850/ss_ef1c5c801b74a8881d4511ce5a74bc6f3ad0af87.1920x1080.jpg?t=1654681860" 
+	alt="A screenshot of the game Cloudpunk
+	where the player stands in front of a dark and rainy city scenery lit by
+	colorful neon lights">
+	<br>
+	The city therefore has a very vertical design that would be difficult to
+	navigate in a traditional roguelike interface like it's implemented in
+	the current version (the current version doesn't even have a third dimension
+	yet). That's why I plan to make a <gl>semi-3D gameview</gl> where the
+	player can see multiple "layers" of the world at once, a bit like in the
+	game
+	<a href="https://store.steampowered.com/app/1189230/Door_in_the_Woods/">
+		Door in the woods</a>, only that it's not just a meaningless effect.
+	<br><br>
+	<img class="marginauto"
+	src="https://cdn.cloudflare.steamstatic.com/steam/apps/1189230/ss_a4dbbd2a1063f5c0ca8d7079e43c96378995d349.1920x1080.jpg?t=1575892969"
+	alt="A screenshot of the game Door in the woods displaying
+	the semi-3D effect achieved on an ASCII grid by stacking multiple
+	characters on top of one another.">
+	<br>
+	The game begins with the Vessel waking up in its newly-acquired flat
+	where it is ambushed by a group of mindless humans after a short while.
+	These first minutes with the ambush at the end serve as a tutorial for the
+	game that can be skipped after the first time playing it. On subsequent
+	runs, the player can find multiple options to avoid the attack or get rid
+	of the humans in clever ways. Searching for answers, the vessel descends
+	the apartment complex to find out that most humans seem to be overtaken by
+	a <gl>hive-mind intelligence</gl>, a virus/AI. The Vessel was only not
+	overtaken because it didn't have any cyberware (IOT-implants) in its body.
+	This is also the excuse for why the Vessel has to start RPG-like at a
+	rock-bottom of skill. Through acquiring cyberware, the Vessel gains many
+	new abilities and improvements, roaming through the city and battling foes
+	sent by the AI that's plotting against it. The AI should really act like a
+	hivemind, that means all enemies are actually working together dynamically
+	to control the city, and could even rebuild it over time for the convenience
+	of the AI and the inconvenience of the player. But I'll ramble about that
+	when I actually get there. The player then has multiple options to win the game:
+	The player could find a way to defeat the AI or escape and leave the city in
+	its own hands. I also definitely want NPCs that can be talked to and that
+	have their own storylines and subplots that can be uncovered, to make the city
+	really feel alive and establish an "Us vs Them" feeling in the player,
+	similar to the absurdly good ending of Half-Life II that really sells
+	the feeling of friendship and the alliance of the rebellion against
+	the alien forces.
+	<br>
+	However, I really need to get a lot of work done before I get to the idea
+	of writing a plot, so this is just and early draft and things might change.
+</p>
+<h2>Performance improvements</h2>
+<p class="center">
+	I also want to mention the massive performance improvements that have been
+	made in the frama framework. Earlier, frama used a multidimensional vector
+	that was constantly filled with objects containing the data of all possible
+	characters of a frame. This wasted a large amount of resources for objects
+	that aren't even visible most of the time. Now, only objects that are
+	actually visible are stored in an unordered hashmap 
+	(<code>std::unordered_map</code>). The great thing about these is that
+	their access time to an element is always O(1). The key is a 64-bit unsigned
+	integer, where the first 32 bits represent the X position of the value object
+	and the last 32 bits represent the Y position. This means that retrieving
+	a specific element is just as performant as adding one. This gets a big
+	roadblock out of the way that I was worrying about: expect needs to be
+	really good-looking so people actually recognize it as something different
+	and that includes things like animations and shaders that can only be
+	performant if the baseline framework can handle displaying a grid
+	hundreds of times a second. Now that I don't have to worry about that,
+	I can put in the next big thing:
+</p>
+<h2>Next up - Animations!</h2>
+<p class="center">
+	To touch a tiny bit on the future: <gl>Animations</gl> are the thing I would like
+	to approach for the next release (v0.2-alpha), together with the <gl>semi-3D
+	view</gl> I talked about earlier and hopefully some <gl>shader effects</gl>. By animations
+	I mean in-grid animations, like characters changing color and shape without
+	making a turn and also out-of-grid effects like particle effects or screenshakes
+	or something. Why the former are a good idea can be nicely demonstrated
+	with the game
+	<a href="https://www.cavesofqud.com/">Caves Of Qud</a>. CoQ uses in-grid
+	animations to represent if a creature or thing has a certain effect.
+	For example, if something is sappy and sticky, it flickers yellow from
+	time to time, or if a creature is sleeping, it's character is sometimes
+	replaced with a "Z" for a short amount of time. This conveys lots of information
+	without the player having to utilize the "look" command. Such effects can
+	also be used to show bullets flying through the game or other things
+	that move very quickly. In the same vein, I want to enable the Log Entries
+	in the CLI to have more than one color. In Caves of Qud, items have different
+	"color schemes" according to their material and to <gl>emphasize</gl> specific
+	words in a wall of text like I am doing here. But give me some time, I
+	have an interesting part of my life coming up.
+</p>
+<h2 class="center hover">C ya!</h2>
