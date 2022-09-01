@@ -31,6 +31,9 @@ int main()
 	 */
 	in::GfxManager gfx(agg, cli);
 	cli.log(cli::LogEntry(L"Welcome, Truthseeker...", cli::MESSAGE));
+	cli.log(cli::LogEntry(std::wstring(L"This is the BECOME interface, ") + VERSION, cli::MESSAGE));
+	cli.log(cli::LogEntry(std::wstring(L"Codename: \"") + VERSION_NAME + L"\"", cli::MESSAGE));
+	cli.log(cli::LogEntry(std::wstring(L"Last updated on: ") + VERSION_DATE, cli::MESSAGE));
 	/* Frontend for creating entities through an aggregate */
 	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */

@@ -1,3 +1,7 @@
+#define VERSION L"v0.1-alpha"
+#define VERSION_DATE L"2022-09-01"
+#define VERSION_NAME L"Full Speed Ahead"
+
 #define ERR_OVERFLOW 999
 #define ERR_INVALID_IPT 36
 #define ERR 666
