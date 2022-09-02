@@ -54,5 +54,6 @@ namespace in
 			 * to the frama-specific ObjectRepresentations
 			 */
 			fr::ObjRep drw_to_objrep(fa::Drawable drw);
+			double seconds_since_startup = 0;
 	};
 }

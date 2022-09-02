@@ -228,4 +228,12 @@ namespace fr
 			*/
 			void set_size_ref();
 	};
+	/* Execute various animations on a frame;
+	 * Supply t as a number between 0 or 1 that determines how far the animation
+	 * has progressed
+	 */
+	namespace anim
+	{
+		void slide_down(float t, Frame& fr, int slices, sf::Color slice_color, bool reverse = false); 
+	}
 };

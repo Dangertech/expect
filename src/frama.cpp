@@ -19,10 +19,15 @@ fr::ObjRep fr::Frame::get_char(int x, int y)
 
 void fr::Frame::set_char(ObjRep rep, int x, int y)
 {
-	
+
 	if (y > get_grid_size().y || x > get_grid_size().x)
 	{
 		throw ERR_OVERFLOW;
+	}
+	if (rep == fr::EMPTY)
+	{
+		grid.erase((unsigned long)x << 32 | (unsigned long) y);
+		return;
 	}
 	GridObj newobj; 
 	newobj.refobj = rep;
@@ -325,3 +330,62 @@ void fr::Frame::set_size_ref()
 	s.setTextureRect(font->getGlyph(L'#', font_size, false).textureRect);
 	sref = s.getLocalBounds();
 }
+
+namespace fr{
+namespace anim
+{
+	void slide_down(float t, fr::Frame& fr, int slices, sf::Color slice_color, bool reverse)
+	{
+		if (t > 1 || t < 0)
+			return;
+		if (!reverse)
+		{
+			float lid_pos = fr.get_grid_size().y*(t*t);
+			for (int y = lid_pos-slices; y<lid_pos; y++)
+			{
+				if (y<0)
+					continue;
+				for (int x = 0; x<fr.get_grid_size().x; x++)
+				{
+					sf::Color col = slice_color;
+					col.a = ((y-lid_pos-slices+1)/slices)*255;
+					ObjRep th = fr.get_char(x, y);
+					th.bg = col; 
+					fr.set_char(th, x, y);
+				}
+			}
+			for (int y = lid_pos;y<fr.get_grid_size().y; y++)
+			{
+				for (int x = 0; x<fr.get_grid_size().x; x++)
+				{
+					fr.set_char(EMPTY, x, y);
+				}
+			}
+		}
+		else
+		{
+			float lid_pos = fr.get_grid_size().y*(1-(t*t))-1;
+			for (int y = lid_pos+slices; y>lid_pos; y--)
+			{
+				if (y>=fr.get_grid_size().y || y<0)
+					continue;
+				for (int x = 0; x<fr.get_grid_size().x; x++)
+				{
+					sf::Color col = slice_color;
+					col.a = 1-(((y-lid_pos)/slices)*255);
+					ObjRep th = fr.get_char(x, y);
+					th.bg = col; 
+					fr.set_char(th, x, y);
+				}
+			}
+			for (int y = 0;y<lid_pos; y++)
+			{
+				for (int x = 0; x<fr.get_grid_size().x; x++)
+				{
+					fr.set_char(EMPTY, x, y);
+				}
+			}
+		}
+		
+	}
+}}

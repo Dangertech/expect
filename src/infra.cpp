@@ -123,8 +123,10 @@ void in::GfxManager::render()
 			gv->set_char(drw_to_objrep(*rep), x, y);
 		}
 	}
+	fr::anim::slide_down(seconds_since_startup*0.8, *gv, 5, sf::Color::Green, true);
 	/* Draw CLI */
 	draw_cli(*cli_frame, *cli_dat);
+	fr::anim::slide_down(seconds_since_startup*0.8, *cli_frame, 5, sf::Color::Green, false);
 	 
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame
@@ -149,6 +151,7 @@ void in::GfxManager::delay(double time_spent)
 	*/
 	SettingContainer set;
 	double goal_time = 1.0/set.get_fps()-time_spent;
+	seconds_since_startup += time_spent + goal_time;
 	if (goal_time > 0.0)
 	{
 		/*
