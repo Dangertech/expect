@@ -36,9 +36,13 @@ namespace fa
 		 * must not be used in the game implementation. I need a different system
 		 * for that 
 		 */
-		wchar_t ch;
-		Vec3 col = Vec3(255, 255, 255);
-		Vec3 bg = Vec3(0, 0, 0);
+		struct ObjRep
+		{
+			wchar_t ch;
+			Vec3 col = Vec3(255, 255, 255);
+			Vec3 bg = Vec3(0, 0, 0);
+		} main;
+		std::vector<ObjRep> alts;
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all
@@ -62,50 +66,7 @@ namespace fa
 	{
 	};
 	 
-	class EntityDealer
-	{
-		public:
-			EntityDealer(ecs::Aggregate* my_agg)
-			{
-				agg = my_agg;
-			}
-			ecs::entity_id deal_player(int x, int y)
-			{
-				ecs::entity_id ret = agg->new_entity();
-				Position* pos = agg->add_cmp<Position>(ret);
-				pos->set(x, y);
-				Drawable* drw = agg->add_cmp<Drawable>(ret);
-				/* TODO: Library containing the representations
-				 * of all possible objects
-				 */
-				drw->ch = L'@';
-				agg->add_cmp<Playable>(ret);
-				agg->add_cmp<Alive>(ret)->health = 100;
-				agg->add_cmp<Blocking>(ret);
-				return ret;
-			}
-			ecs::entity_id deal_wall(int x, int y)
-			{
-				ecs::entity_id ret = agg->new_entity();
-				Position*  pos = agg->add_cmp<Position>(ret);
-				pos->set(x, y);
-				Drawable* drw = agg->add_cmp<Drawable>(ret);
-				drw->ch = L'#';
-				agg->add_cmp<Blocking>(ret);
-				return ret;
-			}
-			ecs::entity_id deal_item(int x, int y)
-			{
-				ecs::entity_id ret = agg->new_entity();
-				Position* pos = agg->add_cmp<Position>(ret);
-				pos->set(x, y);
-				Drawable* drw = agg->add_cmp<Drawable>(ret);
-				drw->ch = L'&'; /* A loaf of bread? */
-				drw->col.x = 115; drw->col.y = 60; drw->col.z = 16;
-				agg->add_cmp<Pickable>(ret);
-				return ret;
-			}
-		private:
-			ecs::Aggregate* agg; 
-	};
+	ecs::entity_id deal_player(int x, int y, ecs::Aggregate& agg);
+	ecs::entity_id deal_wall(int x, int y, ecs::Aggregate& agg);
+	ecs::entity_id deal_item(int x, int y, ecs::Aggregate& agg);
 }

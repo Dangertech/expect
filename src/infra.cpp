@@ -3,6 +3,8 @@
 #include "const.h"
 #include "settings.hpp"
 #include <iostream>
+#include <unistd.h>
+#include <chrono>
 
 
 in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
@@ -140,6 +142,24 @@ void in::GfxManager::render()
 	win->display();
 }
 
+void in::GfxManager::delay(double time_spent)
+{
+	/*
+	std::cout << 1.0/time_spent << " FPS (theoretical)" << std::endl; 
+	*/
+	SettingContainer set;
+	double goal_time = 1.0/set.get_fps()-time_spent;
+	if (goal_time > 0.0)
+	{
+		/*
+		std::cout << "Waiting for " << goal_time << " seconds!" << std::endl;
+		*/
+		usleep(goal_time*1000000);
+	}
+	else
+		std::cout << "Hanging behind!" << std::endl;
+}
+
 void in::GfxManager::update_sizes()
 {
 	sf::Vector2u size = win->getSize();
@@ -168,9 +188,32 @@ void in::GfxManager::update_sizes()
 
 fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 {
-	fr::ObjRep ret(drw.ch);
-	ret.fill = sf::Color(drw.col.x, drw.col.y, drw.col.z, 255);
-	ret.bg = sf::Color(drw.bg.x, drw.bg.y, drw.bg.z, 255);
+	fr::ObjRep ret(drw.main.ch);
+	if (drw.alts.size())
+	{
+		using namespace std::chrono;
+		high_resolution_clock::time_point now = high_resolution_clock::now();
+		int cur_alt = (duration_cast<seconds>(now.time_since_epoch()).count()
+			/2)%drw.alts.size();
+		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
+		{
+			ret.ch = drw.alts[cur_alt].ch;
+			ret.fill = sf::Color(drw.alts[cur_alt].col.x, 
+					drw.alts[cur_alt].col.y, drw.alts[cur_alt].col.z, 255);
+			ret.bg = sf::Color(drw.alts[cur_alt].bg.x, 
+					drw.alts[cur_alt].bg.y, drw.alts[cur_alt].bg.z, 255);
+		}
+		else
+		{
+			ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
+			ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
+		}
+	}
+	else
+	{
+		ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
+		ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
+	}
 	return ret;
 }
 

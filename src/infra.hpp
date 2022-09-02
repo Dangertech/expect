@@ -22,6 +22,11 @@ namespace in
 			 * display the window
 			 */
 			void render();
+			/* Wait some amount of time to meet the fps requirement;
+			 * To be supplied is the time taken between the beginning of
+			 * the game loop and it's end 
+			 */
+			void delay(double time_spent);
 			
 			void adjust_zoom(float chg);
 			Vec2 get_cam_center() {return cam_center;}

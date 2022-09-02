@@ -1,6 +1,5 @@
 #include <iostream>
 #include <chrono>
-#include <unistd.h>
 #include "const.h"
 #include "settings.hpp"
 #include "ecs.hpp"
@@ -34,17 +33,15 @@ int main()
 	cli.log(cli::LogEntry(std::wstring(L"This is the BECOME interface, ") + VERSION, cli::MESSAGE));
 	cli.log(cli::LogEntry(std::wstring(L"Codename: \"") + VERSION_NAME + L"\"", cli::MESSAGE));
 	cli.log(cli::LogEntry(std::wstring(L"Last updated on: ") + VERSION_DATE, cli::MESSAGE));
-	/* Frontend for creating entities through an aggregate */
-	fa::EntityDealer dlr(&agg);
 	/* Construct a player Object and place its id in the entts vector */
-	entts.push_back(dlr.deal_player(0, 0));
-	entts.push_back(dlr.deal_item(0, 1));
+	entts.push_back(fa::deal_player(0, 0, agg));
+	entts.push_back(fa::deal_item(0, 1, agg));
 	/* Construct some walls */
 	for (int i = -30; i<30; i++)
 	{
 		for (int j = -30; j<30; j++)
 		{
-			entts.push_back(dlr.deal_wall(i*4-4, j*5-5));
+			entts.push_back(fa::deal_wall(i*4-4, j*4-4, agg));
 		}
 	}
 	
@@ -130,26 +127,11 @@ int main()
 		gfx.set_cam_center({plr_pos->get_x(), plr_pos->get_y()});
 		 /* Draw the stuff in view to the gv frame */
 		gfx.render();
-		
-		
 		/* Wait some time to meet the fps requirement and not waste 
 		 * computing power for rendering some text at 500 fps
 		 */
 		high_resolution_clock::time_point end = high_resolution_clock::now();
-		double time_spent = duration_cast<duration<double>>(end-begin).count();
-		/*
-		std::cout << 1.0/time_spent << " FPS (theoretical)" << std::endl; 
-		*/
-		double goal_time = 1.0/set.get_fps()-time_spent;
-		if (goal_time > 0.0)
-		{
-			/*
-			std::cout << "Waiting for " << goal_time << " seconds!" << std::endl;
-			*/
-			usleep(goal_time*1000000);
-		}
-		else
-			std::cout << "Hanging behind!" << std::endl;
+		gfx.delay(duration_cast<duration<double>>(end-begin).count());
 		iter++;
 	}
 	return 0;

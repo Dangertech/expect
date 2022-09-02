@@ -2,7 +2,8 @@ BINNAME = expect
 BUILDDIR = build
 
 MAIN = main.cpp
-SRC = frama.cpp settings.cpp ecs.cpp infra.cpp cli.cpp input.cpp util.cpp commands.cpp
+SRC = frama.cpp settings.cpp ecs.cpp infra.cpp cli.cpp \
+			input.cpp util.cpp commands.cpp fabric.cpp
 FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 
 CC = g++
