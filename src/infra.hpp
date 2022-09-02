@@ -16,21 +16,12 @@ namespace in
 			~GfxManager();
 			bool win_open() {return win->isOpen();}
 			std::vector<sf::Event> get_events();
-			/*
-			 * clears the gameview grid and then draws
-			 * every visible object back into the gameview
-			 * frame; Setting force to true implies that the
-			 * connected aggregate has updated its state, otherwise
-			 * the frame will only be updated if the GfxManager
-			 * has a reason by itself to do so (window resized,
-			 * redraw to avoid missing characters, etc.);
-			 * Returns true if it actually updated;
+			/* Draw the stuff in view to the gameview frame,
+			 * Draw the stuff of the cli to the cli frame,
+			 * execute the frame::draw() functions,
+			 * display the window
 			 */
-			bool render_gv(bool force = false);
-			/* Actually draws the objects to the 
-			 * RenderWindow which then displays them
-			 */
-			bool display_frames();
+			void render();
 			
 			void adjust_zoom(float chg);
 			Vec2 get_cam_center() {return cam_center;}
@@ -48,7 +39,6 @@ namespace in
 			ecs::Aggregate* agg;
 			cli::CliData* cli_dat;
 			Vec2 cam_center;
-			bool queue_render = false;
 			
 			void update_sizes();
 			/* Draw CliData to a chosen frame */

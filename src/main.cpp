@@ -49,7 +49,6 @@ int main()
 	}
 	
 	int iter = 0;
-	/* TODO: Find a better place for this variable */
 	while (gfx.win_open())
 	{
 		/* Get time to process this loop for fps matching and debugging purposes */
@@ -62,15 +61,12 @@ int main()
 		 * externally (namely HIDs)
 		 */
 		std::vector<sf::Event> ev = gfx.get_events();
-		bool upd_screen = false;
 		bool skiptxt = false;
 		for (int i = 0; i < ev.size(); i++)
 		{
-			 
 			if (cli.get_active() && !skiptxt)
 			{
 				/* Process as input for cli */
-				upd_screen = true;
 				cli.set_active(true);
 				if (ev[i].type != sf::Event::TextEntered)
 				{
@@ -106,7 +102,6 @@ int main()
 				if (ev[i].type != sf::Event::KeyPressed)
 					continue;
 				cli.set_active(false);
-				upd_screen = true;
 				if (ipt::cmdmap.find(ev[i].key.code) == ipt::cmdmap.end())
 				{
 					cli.log({L"No command assigned to this key.", cli::DEBUG});
@@ -123,42 +118,28 @@ int main()
 		}
 		
 		/* Rendering Execution */
-		bool updated = false;
-		if (upd_screen)
+		fa::Position* plr_pos = nullptr;
+		/* Accept the first playable object you find as the center of view */
+		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
+				fa::Playable>(agg))
 		{
-			fa::Position* plr_pos = nullptr;
-			/* Accept the first playable object you find as the center of view */
-			for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-					fa::Playable>(agg))
-			{
-				plr_pos = agg.get_cmp<fa::Position>(ent); 
-				break;
-			}
-			 
-			gfx.set_cam_center({plr_pos->get_x(), plr_pos->get_y()});
-			if (gfx.render_gv(true))
-				updated = gfx.display_frames();
+			plr_pos = agg.get_cmp<fa::Position>(ent); 
+			break;
 		}
-		else
-		{
-			/* Will only actually run if the
-			 * GfxManager has a reason to redraw
-			 * the gameview by itself (window resized event, etc.);
-			 * Otherwise exits immediately
-			 */
-			if(gfx.render_gv(false))
-				updated = gfx.display_frames();
-		}
+		 
+		gfx.set_cam_center({plr_pos->get_x(), plr_pos->get_y()});
+		 /* Draw the stuff in view to the gv frame */
+		gfx.render();
+		
+		
+		/* Wait some time to meet the fps requirement and not waste 
+		 * computing power for rendering some text at 500 fps
+		 */
 		high_resolution_clock::time_point end = high_resolution_clock::now();
 		double time_spent = duration_cast<duration<double>>(end-begin).count();
-		if (updated)
-		{
-			/*
-			cli::LogEntry e(L"Time spent processing: " + std::to_wstring(time_spent), cli::DEBUG);
-			cli.log(e);
-			*/
-		}
-		/* Wait manually to meet the FPS requirement */
+		/*
+		std::cout << 1.0/time_spent << " FPS (theoretical)" << std::endl; 
+		*/
 		double goal_time = 1.0/set.get_fps()-time_spent;
 		if (goal_time > 0.0)
 		{
@@ -167,10 +148,8 @@ int main()
 			*/
 			usleep(goal_time*1000000);
 		}
-		/*
 		else
 			std::cout << "Hanging behind!" << std::endl;
-			*/
 		iter++;
 	}
 	return 0;

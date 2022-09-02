@@ -77,10 +77,7 @@ std::vector<sf::Event> in::GfxManager::get_events()
 		{
 			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 			update_sizes();
-			queue_render = true;
 		}
-		if (e.type == sf::Event::GainedFocus)
-			queue_render = true;
 		/* Push back into a simulated queue to be batch
 		 * processed externally
 		 */
@@ -90,10 +87,8 @@ std::vector<sf::Event> in::GfxManager::get_events()
 	return ret;
 }
 
-bool in::GfxManager::render_gv(bool force)
+void in::GfxManager::render()
 {
-	if (!force && !queue_render)
-		return false;
 	gv->clear();
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This seems to be the most important performance bottleneck;
@@ -126,27 +121,23 @@ bool in::GfxManager::render_gv(bool force)
 			gv->set_char(drw_to_objrep(*rep), x, y);
 		}
 	}
-	queue_render = false;
 	/* Draw CLI */
 	draw_cli(*cli_frame, *cli_dat);
-	return true;
-}
-
-bool in::GfxManager::display_frames()
-{
+	 
+	/* Execute the draw functions to inform the window of the
+	 * sprites in the frama frame
+	 */
 	bool updated = false;
 	if (gv->draw(bloom))
 	{
-		std::cout << "Updated game viewport!" << std::endl;
 		updated = true;
 	}
 	if (cli_frame->draw(bloom))
 	{
-		std::cout << "Updated Sidebar Viewport!" << std::endl;
 		updated = true;
 	}
+	/* Display the window */
 	win->display();
-	return updated;
 }
 
 void in::GfxManager::update_sizes()
