@@ -32,14 +32,13 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	/* Setting this doesn't matter:
 	 * When win.display() is called, sfml just waits for the time remaining
-	 * to fulfill the fps requirement; However, by main() design, win.display()
-	 * is skipped on almost every iteration of the main loop which makes the
-	 * fps setting useless. Instead, the fps are defined in settings.hpp
-	 * and executed in the main loop (or somewhere else in the future)
+	 * to fulfill the fps requirement;
+	 * Instead, the fps are defined in settings.hpp
+	 * and executed in the gfx::delay(), called in main()
 	 */
 	//win->setFramerateLimit(30);
 	gv->set_frame_bg(sf::Color::Black);
-	gv->set_margin(sf::Vector2i(3,3));
+	gv->set_margin(sf::Vector2i(2,2));
 	cli_frame->set_frame_bg(sf::Color::Black);
 	cli_frame->set_standard_scale(0.6f);
 	update_sizes();
@@ -91,6 +90,7 @@ std::vector<sf::Event> in::GfxManager::get_events()
 
 void in::GfxManager::render()
 {
+	win->clear();
 	gv->clear();
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This seems to be the most important performance bottleneck;
@@ -124,22 +124,20 @@ void in::GfxManager::render()
 		}
 	}
 	fr::anim::slide_down(seconds_since_startup*0.8, *gv, 5, sf::Color::Green, true);
-	/* Draw CLI */
+	border(*gv, sf::Color(128, 128, 128, 255), 0x2014, 0x2014, L'|', L'|', L'/', L'|', L' ', 0x2014);
+	
+	/* CLI drawing */
+	cli_frame->clear();
 	draw_cli(*cli_frame, *cli_dat);
 	fr::anim::slide_down(seconds_since_startup*0.8, *cli_frame, 5, sf::Color::Green, false);
+	border(*cli_frame, cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame
 	 */
-	bool updated = false;
-	if (gv->draw(bloom))
-	{
-		updated = true;
-	}
-	if (cli_frame->draw(bloom))
-	{
-		updated = true;
-	}
+	gv->draw(bloom);
+	cli_frame->draw(bloom);
+	
 	/* Display the window */
 	win->display();
 }
@@ -166,17 +164,19 @@ void in::GfxManager::delay(double time_spent)
 void in::GfxManager::update_sizes()
 {
 	sf::Vector2u size = win->getSize();
+	int margin = smaller(size.x, size.y)*0.02;
+	std::cout << margin << std::endl;
 	SettingContainer s;
-	int gv_w = size.x-s.get_sidebar_width(); /* gameview width */
+	int gv_w = size.x-s.get_sidebar_width()-margin*2; /* gameview width */
 	if (gv_w < 0)
 		gv_w = 0;
 	 
 	try
 	{
-		gv->set_origin(sf::Vector2i(0,0));
-		gv->set_end(sf::Vector2i(gv_w, size.y));
-		cli_frame->set_origin(sf::Vector2i(gv_w, 0));
-		cli_frame->set_end(sf::Vector2i(size.x, size.y));
+		gv->set_origin(sf::Vector2i(margin, margin));
+		gv->set_end(sf::Vector2i(gv_w, size.y-margin));
+		cli_frame->set_origin(sf::Vector2i(gv_w, margin));
+		cli_frame->set_end(sf::Vector2i(size.x-margin, size.y-margin));
 	}
 	catch(int e)
 	{
@@ -222,9 +222,7 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 
 void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 {
-	frame.clear();
-	/* Draw a border */
-	border(frame, data.get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
+
 	int num_entries = data.num_entries();
 	int size_y = frame.get_grid_size().y;
 	int size_x = frame.get_grid_size().x;
@@ -316,26 +314,32 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 	}
 }
 
-void in::GfxManager::border(fr::Frame& frame, sf::Color c)
+void in::GfxManager::border(fr::Frame& frame, sf::Color c, wchar_t top,
+		wchar_t bottom, wchar_t left, wchar_t right, wchar_t top_left, wchar_t top_right, wchar_t bottom_right,
+		wchar_t bottom_left)
 {
 	sf::Vector2i size = frame.get_grid_size();
 	for (int y = 0; y<size.y; y++)
 	{
 		for (int x = 0; x<size.x; x++)
 		{
-			if (y == 0 || y == size.y-1)
-				frame.set_char({0x2550, c}, x, y); /* BOX DRAWINGS DOUBLE HORIZONTAL */
-			else if (x == 0 || x == size.x-1)
-				frame.set_char({0x2551, c}, x, y); /* BOX DRAWINGS DOUBLE VERTICAL */
+			if (x == 0)
+				frame.set_char({left, c}, x, y); 
+			else if(x == size.x-1)
+				frame.set_char({right, c}, x, y); 
+			if (y == 0)
+				frame.set_char({top, c}, x, y); 
+			else if (y == size.y-1)
+				frame.set_char({bottom, c}, x, y);
 			
 			if (y == 0 && x == 0)
-				frame.set_char({0x2554, c}, x, y);
+				frame.set_char({top_left, c}, x, y);
 			if (y == 0 && x == size.x-1)
-				frame.set_char({0x2557, c}, x, y);
+				frame.set_char({top_right, c}, x, y);
+			if (y == size.y-1 && x == size.x-1)
+				frame.set_char({bottom_right, c}, x, y);
 			if (y == size.y-1 && x == 0)
-				frame.set_char({0x255a, c}, x, y);
-			if (y == size.y-1 && x == size.y-1)
-				frame.set_char({0x255d, c}, x, y);
+				frame.set_char({bottom_left, c}, x, y);
 		}
 	}
 }

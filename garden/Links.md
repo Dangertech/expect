@@ -8,3 +8,6 @@ Just some links I might find useful
 
 "Procedurally Generated 3D Dungeons"
 - https://www.youtube.com/watch?v=rBY2Dzej03A
+
+Good article about easing interpolation
+- https://www.febucci.com/2018/08/easing-functions/

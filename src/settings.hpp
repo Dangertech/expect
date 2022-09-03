@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 
+/* Contains the settings the user should be able to edit */
 class SettingContainer
 {
 	private:
