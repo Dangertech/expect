@@ -46,14 +46,10 @@ namespace in
 			Vec2 cam_center;
 			
 			void update_sizes();
-			/* Draw CliData to a chosen frame */
-			void draw_cli(fr::Frame&, cli::CliData&);
+			/* Logic to fill the gameview and cli frames with appropriate characters*/
+			void fill_gv();
+			void fill_cli();
 			
-			void border(fr::Frame&, sf::Color, wchar_t top = 0x2550,
-				wchar_t bottom = 0x2550, wchar_t left = 0x2551, wchar_t right = 0x2551, 
-				wchar_t top_left = 0x2554, 
-				wchar_t top_right = 0x2557, wchar_t bottom_right = 0x255d,
-				wchar_t bottom_left = 0x255a);
 			/* Converts a high-level drawable struct
 			 * to the frama-specific ObjectRepresentations
 			 */

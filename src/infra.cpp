@@ -90,47 +90,23 @@ std::vector<sf::Event> in::GfxManager::get_events()
 
 void in::GfxManager::render()
 {
+	
 	win->clear();
+	 
+	/* Gameview drawing */
 	gv->clear();
-	sf::Vector2i gvsize = gv->get_grid_size();
-	/* This seems to be the most important performance bottleneck;
-	 * Chunks would make sense
-	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
-	{
-		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
-				y = pos->get_y() - cam_center.y + gvsize.y/2;
-		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
-		{
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), x, y);
-		}
-	}
-	/* For now, the function just rerenders everything that should be
-	 * displayed above everything else (everything that is alive and
-	 * player characters)
-	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
-			fa::Position, fa::Drawable>(*agg))
-	{
-		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
-				y = pos->get_y() - cam_center.y + gvsize.y/2;
-		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
-		{
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), x, y);
-		}
-	}
+	fill_gv();
 	fr::anim::slide_down(seconds_since_startup*0.8, *gv, 5, sf::Color::Green, true);
-	border(*gv, sf::Color(128, 128, 128, 255), 0x2014, 0x2014, L'|', L'|', L'/', L'|', L' ', 0x2014);
+	fr::anim::border(*gv, 
+			cli_dat->get_active() ? sf::Color(128,128,128) : sf::Color(CLI_ACTIVE), 
+			0x2014, 0x2014, L'|', L'|', L'/', L'|', L' ', 0x2014);
 	
 	/* CLI drawing */
 	cli_frame->clear();
-	draw_cli(*cli_frame, *cli_dat);
+	fill_cli();
 	fr::anim::slide_down(seconds_since_startup*0.8, *cli_frame, 5, sf::Color::Green, false);
-	border(*cli_frame, cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
+	fr::anim::border(*cli_frame, 
+			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame
@@ -220,12 +196,46 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 	return ret;
 }
 
-void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
+void in::GfxManager::fill_gv()
 {
+	sf::Vector2i gvsize = gv->get_grid_size();
+	/* This seems to be the most important performance bottleneck;
+	 * Chunks would make sense
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
+				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(drw_to_objrep(*rep), x, y);
+		}
+	}
+	/* For now, the function just rerenders everything that should be
+	 * displayed above everything else (everything that is alive and
+	 * player characters)
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
+			fa::Position, fa::Drawable>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
+				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(drw_to_objrep(*rep), x, y);
+		}
+	}
+}
 
-	int num_entries = data.num_entries();
-	int size_y = frame.get_grid_size().y;
-	int size_x = frame.get_grid_size().x;
+void in::GfxManager::fill_cli()
+{
+	int num_entries = cli_dat->num_entries();
+	int size_y = cli_frame->get_grid_size().y;
+	int size_x = cli_frame->get_grid_size().x;
 	int bottom_margin = 3;
 	/* Dry test to determine how many lines are needed extra for
 	 * multiline entries
@@ -236,12 +246,12 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 		cli::LogEntry this_entry(L"", cli::DEBUG);
 			try
 			{
-				this_entry = data.get_entry(num_entries+i-size_y+bottom_margin);
+				this_entry = cli_dat->get_entry(num_entries+i-size_y+bottom_margin);
 			}
 			catch (int e)
 			{
 			}
-			sf::Vector2i c = frame.print(this_entry.c, 4, i, fr::EMPTY, true, 
+			sf::Vector2i c = cli_frame->print(this_entry.c, 4, i, fr::EMPTY, true, 
 					size_x-2, -1, true);
 			if (c.y != i)
 				extra += c.y-i;
@@ -254,7 +264,7 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 		cli::LogEntry this_entry(L"", cli::DEBUG);
 		try
 		{
-			this_entry = data.get_entry(eloc);
+			this_entry = cli_dat->get_entry(eloc);
 		}
 		catch (int e)
 		{
@@ -281,7 +291,7 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 		if (msg.size())
 		{
 			/* Now print for real */
-			c = frame.print(msg, x, i, rep, true, size_x-2, -1, false);
+			c = cli_frame->print(msg, x, i, rep, true, size_x-2, -1, false);
 		}
 		i = c.y;
 		eloc += 1;
@@ -289,7 +299,7 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 	 
 	/* Draw the "PS1" of the CLI input */
 	fr::ObjRep s(CLI_PS1);
-	if (data.get_active())
+	if (cli_dat->get_active())
 	{
 		s.fill = sf::Color(CLI_ACTIVE);
 		s.bg = sf::Color(CLI_ACTIVE, CLI_ALPHA);
@@ -298,50 +308,26 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 		{
 			for(int x = 2; x<size_x-2; x++)
 			{
-				frame.set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
+				cli_frame->set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
 						x, y);
 			}
 		}
 	}
 	/* PS1 */
-	frame.set_char(s, 2, size_y-bottom_margin);
+	cli_frame->set_char(s, 2, size_y-bottom_margin);
 	/* Input Buffer */
-	sf::Vector2i endpos = frame.print(data.get_bfr(), 4, 
+	sf::Vector2i endpos = cli_frame->print(cli_dat->get_bfr(), 4, 
 			size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)},
 			true, size_x-3);
-	if (data.get_active())
+	if (cli_dat->get_active())
 	{
 		/* "Cursor" */
-		frame.set_char({L'|', sf::Color::White, sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
-	}
-}
-
-void in::GfxManager::border(fr::Frame& frame, sf::Color c, wchar_t top,
-		wchar_t bottom, wchar_t left, wchar_t right, wchar_t top_left, wchar_t top_right, wchar_t bottom_right,
-		wchar_t bottom_left)
-{
-	sf::Vector2i size = frame.get_grid_size();
-	for (int y = 0; y<size.y; y++)
-	{
-		for (int x = 0; x<size.x; x++)
+		using namespace std::chrono;
+		high_resolution_clock::time_point now = high_resolution_clock::now();
+		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
 		{
-			if (x == 0)
-				frame.set_char({left, c}, x, y); 
-			else if(x == size.x-1)
-				frame.set_char({right, c}, x, y); 
-			if (y == 0)
-				frame.set_char({top, c}, x, y); 
-			else if (y == size.y-1)
-				frame.set_char({bottom, c}, x, y);
-			
-			if (y == 0 && x == 0)
-				frame.set_char({top_left, c}, x, y);
-			if (y == 0 && x == size.x-1)
-				frame.set_char({top_right, c}, x, y);
-			if (y == size.y-1 && x == size.x-1)
-				frame.set_char({bottom_right, c}, x, y);
-			if (y == size.y-1 && x == 0)
-				frame.set_char({bottom_left, c}, x, y);
+			cli_frame->set_char({L'|', sf::Color::White, 
+					sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
 		}
 	}
 }

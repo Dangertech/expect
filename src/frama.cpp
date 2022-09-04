@@ -390,4 +390,34 @@ namespace anim
 		}
 		
 	}
+	void border(fr::Frame& frame, sf::Color c, wchar_t top,
+		wchar_t bottom, wchar_t left, wchar_t right, wchar_t top_left, 
+		wchar_t top_right, wchar_t bottom_right,
+		wchar_t bottom_left)
+	{
+		sf::Vector2i size = frame.get_grid_size();
+		for (int y = 0; y<size.y; y++)
+		{
+			for (int x = 0; x<size.x; x++)
+			{
+				if (x == 0)
+					frame.set_char({left, c}, x, y); 
+				else if(x == size.x-1)
+					frame.set_char({right, c}, x, y); 
+				if (y == 0)
+					frame.set_char({top, c}, x, y); 
+				else if (y == size.y-1)
+					frame.set_char({bottom, c}, x, y);
+				
+				if (y == 0 && x == 0)
+					frame.set_char({top_left, c}, x, y);
+				if (y == 0 && x == size.x-1)
+					frame.set_char({top_right, c}, x, y);
+				if (y == size.y-1 && x == size.x-1)
+					frame.set_char({bottom_right, c}, x, y);
+				if (y == size.y-1 && x == 0)
+					frame.set_char({bottom_left, c}, x, y);
+			}
+		}
+	}
 }}

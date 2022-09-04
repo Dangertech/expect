@@ -232,12 +232,17 @@ namespace fr
 			*/
 			void set_size_ref();
 	};
-	/* Execute various animations on a frame;
+	/* Execute various animations (and other effects) on a frame;
 	 * Supply t as a number between 0 or 1 that determines how far the animation
 	 * has progressed
 	 */
 	namespace anim
 	{
 		void slide_down(float t, Frame& fr, int slices, sf::Color slice_color, bool reverse = false); 
+		void border(fr::Frame&, sf::Color, wchar_t top = 0x2550,
+			wchar_t bottom = 0x2550, wchar_t left = 0x2551, wchar_t right = 0x2551, 
+			wchar_t top_left = 0x2554, 
+			wchar_t top_right = 0x2557, wchar_t bottom_right = 0x255d,
+			wchar_t bottom_left = 0x255a);
 	}
 };
