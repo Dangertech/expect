@@ -104,17 +104,21 @@ namespace fr
 			 * all characters will obey to the specified styling;
 			 * Newlines are supported and will return to the
 			 * specified x position one row below.
-			 * If autobreak is true, line breaks will be made automatically
+			 * - If autobreak is true, line breaks will be made automatically
 			 * if the function runs out of space in a line. If it is false,
-			 * the function will simply truncate until a manual \n is encountered
-			 * If 'dry' is set to true, the function will not print anything but
+			 * the function will simply truncate until a manual \n is encountered;
+			 * - max_x and max_y determine the maximum location until which is
+			 * printed (in case of autobreak, a linebreak is made when max_x is
+			 * reached);
+			 * - If 'dry' is set to true, the function will not print anything but
 			 * still return the theoretical line changes
 			 * Return:
 			 *  Returns the "cursor" position upon completion;
 			 *  If the function ran out of y space, it returns the latest y coordinate
 			 */
 			sf::Vector2i print(std::wstring input, int x, int y, 
-					ObjRep rep, bool autobreak = true, bool dry = false);
+					ObjRep rep, bool autobreak = true, int max_x = -1, int max_y = -1, 
+					bool dry = false);
 			
 			float get_standard_scale() {return standard_scale; }
 			void set_standard_scale(float scale);

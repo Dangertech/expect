@@ -241,7 +241,8 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 			catch (int e)
 			{
 			}
-			sf::Vector2i c = frame.print(this_entry.c, 4, i, fr::EMPTY, true, true);
+			sf::Vector2i c = frame.print(this_entry.c, 4, i, fr::EMPTY, true, 
+					size_x-2, -1, true);
 			if (c.y != i)
 				extra += c.y-i;
 	}
@@ -280,7 +281,7 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 		if (msg.size())
 		{
 			/* Now print for real */
-			c = frame.print(msg, x, i, rep, true, false);
+			c = frame.print(msg, x, i, rep, true, size_x-2, -1, false);
 		}
 		i = c.y;
 		eloc += 1;
@@ -306,7 +307,8 @@ void in::GfxManager::draw_cli(fr::Frame& frame, cli::CliData& data)
 	frame.set_char(s, 2, size_y-bottom_margin);
 	/* Input Buffer */
 	sf::Vector2i endpos = frame.print(data.get_bfr(), 4, 
-			size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)});
+			size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)},
+			true, size_x-3);
 	if (data.get_active())
 	{
 		/* "Cursor" */

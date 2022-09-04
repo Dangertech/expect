@@ -53,7 +53,7 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 }
 
 sf::Vector2i fr::Frame::print(std::wstring input, int x, int y, 
-		fr::ObjRep rep, bool autobreak, bool dry)
+		fr::ObjRep rep, bool autobreak, int max_x, int max_y, bool dry)
 {
 	auto g_size = get_grid_size();
 	if (x > g_size.x)
@@ -92,7 +92,7 @@ sf::Vector2i fr::Frame::print(std::wstring input, int x, int y,
 		}
 		
 		my_x++;
-		if (my_x > g_size.x-1)
+		if (my_x > g_size.x-1 || (max_x != -1 && my_x > max_x))
 		{
 			if (autobreak)
 			{
@@ -102,6 +102,8 @@ sf::Vector2i fr::Frame::print(std::wstring input, int x, int y,
 			else
 				return {my_x, my_y};
 		}
+		if (max_y != -1 && my_y > max_y)
+			return {my_x, my_y};
 	}
 	return {my_x, my_y};
 	to_update = true;
