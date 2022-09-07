@@ -168,31 +168,49 @@ void in::GfxManager::update_sizes()
 fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 {
 	fr::ObjRep ret(drw.main.ch);
-	if (drw.alts.size())
+	if (drw.anims.any())
 	{
+		/* At least one animation is active */
 		using namespace std::chrono;
 		high_resolution_clock::time_point now = high_resolution_clock::now();
-		int cur_alt = (duration_cast<seconds>(now.time_since_epoch()).count()
-			/2)%drw.alts.size();
 		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
 		{
-			ret.ch = drw.alts[cur_alt].ch;
-			ret.fill = sf::Color(drw.alts[cur_alt].col.x, 
-					drw.alts[cur_alt].col.y, drw.alts[cur_alt].col.z, 255);
-			ret.bg = sf::Color(drw.alts[cur_alt].bg.x, 
-					drw.alts[cur_alt].bg.y, drw.alts[cur_alt].bg.z, 255);
-		}
-		else
-		{
-			ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
-			ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
+			/* An animation should play */
+			
+			/* A number between 0 and the number of active
+			 * animations that describes the animation that should
+			 * play now in the order of the bitset
+			 * cur_anim=2;
+			 *        |
+			 * 0100100100
+			 * 0123456789
+			 * 
+			 * => The third animation that is active but the actual
+			 * animation to be played is nr. 7
+			 */
+			int cur_anim = (duration_cast<seconds>(now.time_since_epoch()).count()
+				/2)%drw.anims.count();
+			
+			/* Find the cur_anim'th active animation in the bitset */
+			int real_bits = 0;
+			int anim_id = 0;
+			for (int i = 0; i<drw.anims.size(); i++)
+			{
+				if (real_bits == cur_anim)
+					anim_id = i;
+				if (drw.anims[i] == 1)
+					real_bits++; 
+			}
+			fa::Drawable::ObjRep animrep = drw.anim_types.at(anim_id);
+			if (animrep.ch != 0x0)
+				ret.ch = animrep.ch;
+			ret.fill = sf::Color(animrep.col.x, animrep.col.y, animrep.col.z, 255);
+			ret.bg = sf::Color(animrep.bg.x, animrep.bg.y, animrep.bg.z, 255);
+			return ret;
 		}
 	}
-	else
-	{
-		ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
-		ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
-	}
+	ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
+	ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
 	return ret;
 }
 

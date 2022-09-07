@@ -7,13 +7,12 @@
 #include <iostream>
 #include <unordered_map>
 
-/* TODO: Unify the animation system (except the drw_to_objrep function) */
- 
 /* Define no animations with an ID greater than ANIM_MAX */
 #define ANIM_MAX 20
 #define ANIM_BURNING 1
 #define ANIM_FROZEN 2
 #define ANIM_ASLEEP 3
+
  
 namespace fa
 {
@@ -47,17 +46,7 @@ namespace fa
 			Vec3 col = Vec3(255, 255, 255);
 			Vec3 bg = Vec3(0, 0, 0);
 		};
-		/* data structure the predefines all possible
-		 * animations a character can have
-		 * - If set to 0x0, the character displayed is to be the same
-		 *   as the main character
-		 */
-		const std::unordered_map<int, ObjRep> anim_types =
-		{
-			{ANIM_BURNING, {L'f', Vec3(235, 134, 25), Vec3(255,0,0)}},
-			{ANIM_FROZEN, {0x0, Vec3(30, 78, 97), Vec3(255,255,255)}},
-			{ANIM_ASLEEP, {L'Z', Vec3(128, 128, 128), Vec3(0,0,0)}}
-		};
+
 		/* The base ObjectRepresentation that should be active
 		 * most of the time */
 		ObjRep main;
