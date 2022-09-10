@@ -4,17 +4,9 @@
 #pragma once
 #include "ecs.hpp"
 #include "util.hpp"
-#include <iostream>
-#include <unordered_map>
+#include "anim.hpp"
+ 
 
-/* TODO: Unify the animation system (except the drw_to_objrep function) */
- 
-/* Define no animations with an ID greater than ANIM_MAX */
-#define ANIM_MAX 20
-#define ANIM_BURNING 1
-#define ANIM_FROZEN 2
-#define ANIM_ASLEEP 3
- 
 namespace fa
 {
 	struct Position
@@ -38,31 +30,13 @@ namespace fa
 	};
 	struct Drawable
 	{
-		/* data structure for the base representation of an object
-		 * and all possible animations
-		 */
-		struct ObjRep
-		{
-			wchar_t ch;
-			Vec3 col = Vec3(255, 255, 255);
-			Vec3 bg = Vec3(0, 0, 0);
-		};
-		/* data structure the predefines all possible
-		 * animations a character can have
-		 * - If set to 0x0, the character displayed is to be the same
-		 *   as the main character
-		 */
-		const std::unordered_map<int, ObjRep> anim_types =
-		{
-			{ANIM_BURNING, {L'f', Vec3(235, 134, 25), Vec3(255,0,0)}},
-			{ANIM_FROZEN, {0x0, Vec3(30, 78, 97), Vec3(255,255,255)}},
-			{ANIM_ASLEEP, {L'Z', Vec3(128, 128, 128), Vec3(0,0,0)}}
-		};
-		/* The base ObjectRepresentation that should be active
+		/* Implementation data can be looked up in anim.hpp */
+		 
+		/* The base "Animation" that should be active
 		 * most of the time */
-		ObjRep main;
+		an::g::Anim main;
 		/* All active animations for this Drawable */
-		std::bitset<ANIM_MAX> anims;
+		std::bitset<an::g::MAX_ANIMS> anims;
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all

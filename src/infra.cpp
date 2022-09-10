@@ -171,6 +171,11 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 	if (drw.anims.any())
 	{
 		/* At least one animation is active */
+		
+		/* TODO: Try to use anim_is_active() here as well; It isn't in
+		 * use right now because I'm currently too stupid to time it
+		 * right with the cur_anim calculation down below;
+		 */
 		using namespace std::chrono;
 		high_resolution_clock::time_point now = high_resolution_clock::now();
 		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
@@ -201,7 +206,7 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 				if (drw.anims[i] == 1)
 					real_bits++; 
 			}
-			fa::Drawable::ObjRep animrep = drw.anim_types.at(anim_id);
+			an::g::Anim animrep = an::g::anim_types.at(anim_id);
 			if (animrep.ch != 0x0)
 				ret.ch = animrep.ch;
 			ret.fill = sf::Color(animrep.col.x, animrep.col.y, animrep.col.z, 255);
@@ -340,12 +345,23 @@ void in::GfxManager::fill_cli()
 	if (cli_dat->get_active())
 	{
 		/* "Cursor" */
-		using namespace std::chrono;
-		high_resolution_clock::time_point now = high_resolution_clock::now();
-		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
+		if (anim_is_active(1.0, 0.5))
 		{
 			cli_frame->set_char({L'|', sf::Color::White, 
 					sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
 		}
 	}
+}
+
+bool in::GfxManager::anim_is_active(float seconds_on, float seconds_off)
+{
+	int ms_on = seconds_on*1000; int ms_off = seconds_off*1000;
+	using namespace std::chrono;
+	high_resolution_clock::time_point now = high_resolution_clock::now();
+	int ms_since_epoch = duration_cast<milliseconds>(now.time_since_epoch()).count();
+	if (ms_since_epoch%(ms_on+ms_off) < ms_on)
+	{
+		return true;
+	}
+	return false;
 }

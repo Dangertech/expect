@@ -55,5 +55,13 @@ namespace in
 			 */
 			fr::ObjRep drw_to_objrep(fa::Drawable drw);
 			double seconds_since_startup = 0;
+			
+			/* Returns true for seconds_on seconds and then
+			 * false for seconds_off seconds based on the system
+			 * time and how many milliseconds have passed since
+			 * the epoch timestamp; Primarily used for timing
+			 * animations
+			 */
+			bool anim_is_active(float seconds_on, float seconds_off);
 	};
 }

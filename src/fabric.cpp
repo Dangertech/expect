@@ -34,8 +34,8 @@ namespace fa
 		Drawable* drw = agg.add_cmp<Drawable>(ret);
 		drw->main.ch = L'&'; /* A loaf of bread? */
 		drw->main.col.x = 115; drw->main.col.y = 60; drw->main.col.z = 16;
-		drw->anims.set(ANIM_FROZEN, 1);
-		drw->anims.set(ANIM_BURNING, 1);
+		drw->anims.set(an::g::AId::FROZEN, 1);
+		drw->anims.set(an::g::AId::BURNING, 1);
 		agg.add_cmp<Pickable>(ret);
 		return ret;
 	}
