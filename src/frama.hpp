@@ -64,12 +64,11 @@ namespace fr
 	class Frame
 	{
 		public:
-			Frame(sf::RenderWindow& my_win, sf::Font& my_font, 
+			Frame(sf::Font& my_font, 
 				int my_font_size,
 				sf::Vector2i my_ori, 
 				sf::Vector2i my_end)
 			{
-				win = &my_win;
 				font = &my_font;
 				font_size = my_font_size;
 				origin = my_ori;
@@ -172,7 +171,7 @@ namespace fr
 			 * Returns 0 if no new changes were detected and nothing was changed
 			 * Throws ERR if the internal grid is empty (impossible by design)
 			 */
-			int draw(sf::Shader* shad = nullptr);
+			int draw(sf::RenderTarget* win, sf::Shader* shad = nullptr);
 			void clear(); /* Empties the grid */
 			void force_update(); /* Force an update on the next draw() */
 			bool get_update(); /* Get if the frame will update on the next draw() */
@@ -186,7 +185,6 @@ namespace fr
 				ObjRep refobj;
 			};
 			std::unordered_map<unsigned long, GridObj> grid;
-			sf::RenderWindow* win;
 			sf::Font* font; int font_size = 32;
 			const sf::Texture* font_txt;
 			sf::RectangleShape frame_bg;

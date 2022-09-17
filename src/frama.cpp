@@ -110,7 +110,7 @@ sf::Vector2i fr::Frame::print(std::wstring input, int x, int y,
 }
 
 
-int fr::Frame::draw(sf::Shader* shad)
+int fr::Frame::draw(sf::RenderTarget* win, sf::Shader* shad)
 {
 	if (to_update == false)
 		return 0;

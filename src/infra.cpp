@@ -26,9 +26,9 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	}
 	gv_font->loadFromFile(s.get_gv_font_name());
 	tx_font->loadFromFile(s.get_tx_font_name());
-	gv = new fr::Frame(*win, *gv_font, s.get_gv_font_size(), 
+	gv = new fr::Frame(*gv_font, s.get_gv_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
-	cli_frame = new fr::Frame(*win, *tx_font, s.get_tx_font_size(), 
+	cli_frame = new fr::Frame(*tx_font, s.get_tx_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	/* Setting this doesn't matter:
 	 * When win.display() is called, sfml just waits for the time remaining
@@ -88,10 +88,22 @@ std::vector<sf::Event> in::GfxManager::get_events()
 	return ret;
 }
 
+sf::RenderTexture* create_tex(sf::RenderWindow* win)
+{
+	sf::RenderTexture* tex = new sf::RenderTexture;
+	if (!tex->create(win->getSize().x, win->getSize().y))
+	{
+		std::cout 
+			<< "What the fuck is happening? RenderTexture creation failed!" << std::endl;
+		throw ERR;
+	}
+	tex->clear(sf::Color::Black);
+	return tex;
+}
+
 void in::GfxManager::render()
 {
 	
-	win->clear();
 	 
 	/* Gameview drawing */
 	gv->clear();
@@ -109,13 +121,26 @@ void in::GfxManager::render()
 			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
 	/* Execute the draw functions to inform the window of the
-	 * sprites in the frama frame
+	 * sprites in the frama frame; Run them
+	 * with a RenderTexture to do compositing
 	 */
-	gv->draw(bloom);
-	cli_frame->draw(bloom);
+
+	/* Set up render texture */
+	sf::RenderTexture* initex = create_tex(win);
+	/* Initial Drawing */
+	gv->draw(initex, bloom);
+	cli_frame->draw(initex, bloom);
+	initex->display();
+	/* Shader passes */
+	/* TODO */
 	
+	/* Draw the final RenderTexture to the window */
+	win->clear();
+	sf::Sprite intersprite(initex->getTexture());
+	win->draw(intersprite);
 	/* Display the window */
 	win->display();
+	delete initex;
 }
 
 void in::GfxManager::delay(double time_spent)
