@@ -375,18 +375,23 @@ void in::GfxManager::fill_cli()
 	}
 	/* PS1 */
 	cli_frame->set_char(s, 2, size_y-bottom_margin);
-	/* Input Buffer */
-	sf::Vector2i endpos = cli_frame->print(cli_dat->get_bfr(), 4, 
-			size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)},
-			true, size_x-3);
 	if (cli_dat->get_active())
 	{
+		/* Input Buffer (Active) */
+		sf::Vector2i endpos = cli_frame->print(cli_dat->get_bfr(), 4, 
+				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)},
+				true, size_x-3);
 		/* "Cursor" */
 		if (anim_is_active(1.0, 0.5))
 		{
 			cli_frame->set_char({L'|', sf::Color::White, 
 					sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
 		}
+	}
+	else
+	{
+		cli_frame->print(cli_dat->get_bfr(), 4, 
+				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(0,0,0, CLI_ALPHA)});
 	}
 }
 
