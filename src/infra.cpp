@@ -19,10 +19,13 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	gv_font = new sf::Font;
 	tx_font = new sf::Font;
 	blur = new sf::Shader;
+	if (!sf::Shader::isAvailable())
+		use_shaders = false;
 	if (!blur->loadFromFile("blur.frag", sf::Shader::Fragment))
 	{
 		std::cout << "Graphics Initialization Error: Blur shader could "
 			<< "not be initialized!" << std::endl;
+		use_shaders = false;
 	}
 	gv_font->loadFromFile(s.get_gv_font_name());
 	tx_font->loadFromFile(s.get_tx_font_name());
@@ -122,37 +125,45 @@ void in::GfxManager::render()
 			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
 
-	/* Pass shader parameters */
-	blur->setUniform("tex", sf::Shader::CurrentTexture);
-	blur->setUniform("strength", 5.f);
-	blur->setUniform("separation", 3.f);
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame; Run them
 	 * with a RenderTexture to do compositing
 	 */
-
-	/* Set up render texture */
-	sf::RenderTexture* initex = create_tex(win);
-	sf::RenderTexture* blurtex = create_tex(win);
-	/* Initial Drawing */
-	gv->draw(initex);
-	cli_frame->draw(initex);
-	initex->display();
-	/* Shader passes */
-	sf::RenderStates state;
-	state.blendMode = sf::BlendAdd;
-	blurtex->draw(sf::Sprite(initex->getTexture()), blur);
-	blurtex->draw(sf::Sprite(initex->getTexture()), state);
-	blurtex->display();
-	
-	/* Draw the final RenderTexture to the window */
-	win->clear();
-	sf::Sprite intersprite(blurtex->getTexture());
-	win->draw(intersprite);
+	if (use_shaders)
+	{
+		/* Pass shader parameters */
+		blur->setUniform("tex", sf::Shader::CurrentTexture);
+		blur->setUniform("strength", 5.f);
+		blur->setUniform("separation", 3.f);
+		/* Set up render texture */
+		sf::RenderTexture* initex = create_tex(win);
+		sf::RenderTexture* blurtex = create_tex(win);
+		/* Initial Drawing */
+		gv->draw(initex);
+		cli_frame->draw(initex);
+		initex->display();
+		/* Shader passes */
+		sf::RenderStates state;
+		state.blendMode = sf::BlendAdd;
+		blurtex->draw(sf::Sprite(initex->getTexture()), blur);
+		blurtex->draw(sf::Sprite(initex->getTexture()), state);
+		blurtex->display();
+		 
+		/* Draw the final RenderTexture to the window */
+		win->clear();
+		sf::Sprite intersprite(blurtex->getTexture());
+		win->draw(intersprite);
+		delete initex;
+		delete blurtex;
+	}
+	else
+	{
+		/* Use direct rendering to the window */
+		gv->draw(win);
+		cli_frame->draw(win);
+	}
 	/* Display the window */
 	win->display();
-	delete initex;
-	delete blurtex;
 }
 
 void in::GfxManager::delay(double time_spent)

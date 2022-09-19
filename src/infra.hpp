@@ -41,6 +41,8 @@ namespace in
 			fr::Frame* gv;
 			fr::Frame* cli_frame;
 			
+			bool use_shaders = true;
+			
 			ecs::Aggregate* agg;
 			cli::CliData* cli_dat;
 			Vec2 cam_center;
