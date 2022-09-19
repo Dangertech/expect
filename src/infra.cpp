@@ -18,10 +18,10 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	win = new sf::RenderWindow(sf::VideoMode(1920, 1080), "expect");
 	gv_font = new sf::Font;
 	tx_font = new sf::Font;
-	bloom = new sf::Shader;
-	if (!bloom->loadFromFile("bloom.frag", sf::Shader::Fragment))
+	blur = new sf::Shader;
+	if (!blur->loadFromFile("blur.frag", sf::Shader::Fragment))
 	{
-		std::cout << "Graphics Initialization Error: Bloom shader could "
+		std::cout << "Graphics Initialization Error: Blur shader could "
 			<< "not be initialized!" << std::endl;
 	}
 	gv_font->loadFromFile(s.get_gv_font_name());
@@ -46,6 +46,7 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 in::GfxManager::~GfxManager()
 {
 	delete win;
+	delete blur;
 	delete gv_font;
 	delete tx_font;
 	delete gv;
@@ -120,6 +121,11 @@ void in::GfxManager::render()
 	fr::anim::border(*cli_frame, 
 			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
+
+	/* Pass shader parameters */
+	blur->setUniform("tex", sf::Shader::CurrentTexture);
+	blur->setUniform("strength", 5.f);
+	blur->setUniform("separation", 3.f);
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame; Run them
 	 * with a RenderTexture to do compositing
@@ -127,20 +133,26 @@ void in::GfxManager::render()
 
 	/* Set up render texture */
 	sf::RenderTexture* initex = create_tex(win);
+	sf::RenderTexture* blurtex = create_tex(win);
 	/* Initial Drawing */
-	gv->draw(initex, bloom);
-	cli_frame->draw(initex, bloom);
+	gv->draw(initex);
+	cli_frame->draw(initex);
 	initex->display();
 	/* Shader passes */
-	/* TODO */
+	sf::RenderStates state;
+	state.blendMode = sf::BlendAdd;
+	blurtex->draw(sf::Sprite(initex->getTexture()), blur);
+	blurtex->draw(sf::Sprite(initex->getTexture()), state);
+	blurtex->display();
 	
 	/* Draw the final RenderTexture to the window */
 	win->clear();
-	sf::Sprite intersprite(initex->getTexture());
+	sf::Sprite intersprite(blurtex->getTexture());
 	win->draw(intersprite);
 	/* Display the window */
 	win->display();
 	delete initex;
+	delete blurtex;
 }
 
 void in::GfxManager::delay(double time_spent)

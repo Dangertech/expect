@@ -37,7 +37,7 @@ namespace in
 			sf::Font* gv_font;
 			/* Font used for readable text */
 			sf::Font* tx_font;
-			sf::Shader* bloom;
+			sf::Shader* blur;
 			fr::Frame* gv;
 			fr::Frame* cli_frame;
 			
