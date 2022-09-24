@@ -15,7 +15,7 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 		fa::Position* pos = agg.get_cmp<fa::Position>(entts[i]);
 		if (pos == nullptr)
 			continue;
-		if (pos->get_x() == x && pos->get_y() == y)
+		if (pos->x == x && pos->y == y)
 			ret.push_back(entts[i]); 
 	}
 	return ret;
@@ -103,15 +103,15 @@ namespace cmd
 			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 			bool blocking = false;
 			for (ecs::entity_id glent : 
-					get_at_pos(pos->get_x()+dir.x, pos->get_y()+dir.y, entts, agg))
+					get_at_pos(pos->x+dir.x, pos->y+dir.y, entts, agg))
 			{
 				if (agg.get_cmp<fa::Blocking>(glent) != nullptr)
 					blocking = true;
 			}
 			if (!blocking)
 			{
-				pos->set_x(pos->get_x()+dir.x);
-				pos->set_y(pos->get_y()+dir.y);
+				pos->x += dir.x;
+				pos->y += dir.y;
 			}
 		}
 		return ret;
@@ -147,7 +147,7 @@ namespace cmd
 					L"You are dead and can not pick anything up.", cli::MESSAGE)};
 		fa::Position* pos = agg.get_cmp<fa::Position>(plr);
 		std::vector<ecs::entity_id> pot_targets = /* Potential Targets */
-			get_at_pos(pos->get_x()+dir.x, pos->get_y()+dir.y, entts, agg);
+			get_at_pos(pos->x+dir.x, pos->y+dir.y, entts, agg);
 		std::vector<ecs::entity_id> targets;
 		for (ecs::entity_id ent : pot_targets)
 		{

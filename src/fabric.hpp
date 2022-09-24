@@ -11,22 +11,11 @@ namespace fa
 {
 	struct Position
 	{
-		/* Pretty useless, I know;
-		 * Has to be refined to actually make
-		 * sense
-		 */
-		public:
-			int get_x() { return x; }
-			void set_x(int my_x) { x = my_x; }
-			int get_y() { return y; }
-			void set_y(int my_y) { y = my_y;}
-			void set(int my_x, int my_y)
+			int x = 0, y = 0, z = 0;
+			void set(int mx, int my, int mz)
 			{
-				set_x(my_x);
-				set_y(my_y);
+				x = mx; y = my; z = mz;
 			}
-		private:
-			int x = 0, y = 0;
 	};
 	struct Drawable
 	{
@@ -60,7 +49,7 @@ namespace fa
 	{
 	};
 	 
-	ecs::entity_id deal_player(int x, int y, ecs::Aggregate& agg);
-	ecs::entity_id deal_wall(int x, int y, ecs::Aggregate& agg);
-	ecs::entity_id deal_item(int x, int y, ecs::Aggregate& agg);
+	ecs::entity_id deal_player(int x, int y, int z, ecs::Aggregate& agg);
+	ecs::entity_id deal_wall(int x, int y, int z, ecs::Aggregate& agg);
+	ecs::entity_id deal_item(int x, int y, int z, ecs::Aggregate& agg);
 }

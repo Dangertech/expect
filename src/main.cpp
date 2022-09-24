@@ -10,10 +10,6 @@
 #include "input.hpp"
 #include "commands.hpp"
 
-
-
-
-
 std::vector<ecs::entity_id> entts;
 
  
@@ -34,14 +30,14 @@ int main()
 	cli.log(cli::LogEntry(std::wstring(L"Codename: \"") + VERSION_NAME + L"\"", cli::MESSAGE));
 	cli.log(cli::LogEntry(std::wstring(L"Last updated on: ") + VERSION_DATE, cli::MESSAGE));
 	/* Construct a player Object and place its id in the entts vector */
-	entts.push_back(fa::deal_player(0, 0, agg));
-	entts.push_back(fa::deal_item(0, 1, agg));
+	entts.push_back(fa::deal_player(0, 0, 0, agg));
+	entts.push_back(fa::deal_item(0, 1, 0, agg));
 	/* Construct some walls */
 	for (int i = -30; i<30; i++)
 	{
 		for (int j = -30; j<30; j++)
 		{
-			entts.push_back(fa::deal_wall(i*4-4, j*4-4, agg));
+			entts.push_back(fa::deal_wall(i*4-4, j*4-4, 0, agg));
 		}
 	}
 	
@@ -124,7 +120,7 @@ int main()
 			break;
 		}
 		 
-		gfx.set_cam_center({plr_pos->get_x(), plr_pos->get_y()});
+		gfx.set_cam_center({plr_pos->x, plr_pos->y});
 		 /* Draw the stuff in view to the gv frame */
 		gfx.render();
 		/* Wait some time to meet the fps requirement and not waste 

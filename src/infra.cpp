@@ -276,8 +276,8 @@ void in::GfxManager::fill_gv()
 	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
-				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		int x = pos->x - cam_center.x + gvsize.x/2, 
+				y = pos->y - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
 		{
 			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
@@ -292,8 +292,8 @@ void in::GfxManager::fill_gv()
 			fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		int x = pos->get_x() - cam_center.x + gvsize.x/2, 
-				y = pos->get_y() - cam_center.y + gvsize.y/2;
+		int x = pos->x - cam_center.x + gvsize.x/2, 
+				y = pos->y - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
 		{
 			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
