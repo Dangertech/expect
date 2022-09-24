@@ -189,7 +189,6 @@ void in::GfxManager::update_sizes()
 {
 	sf::Vector2u size = win->getSize();
 	int margin = smaller(size.x, size.y)*0.02;
-	std::cout << margin << std::endl;
 	SettingContainer s;
 	int gv_w = size.x-s.get_sidebar_width()-margin*2; /* gameview width */
 	if (gv_w < 0)
@@ -276,6 +275,8 @@ void in::GfxManager::fill_gv()
 	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		if (pos->z != cam_center.z)
+			continue;
 		int x = pos->x - cam_center.x + gvsize.x/2, 
 				y = pos->y - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
@@ -292,6 +293,8 @@ void in::GfxManager::fill_gv()
 			fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		if (pos->z != cam_center.z)
+			continue;
 		int x = pos->x - cam_center.x + gvsize.x/2, 
 				y = pos->y - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)

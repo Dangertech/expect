@@ -41,7 +41,6 @@ int main()
 		}
 	}
 	
-	int iter = 0;
 	while (gfx.win_open())
 	{
 		/* Get time to process this loop for fps matching and debugging purposes */
@@ -120,7 +119,7 @@ int main()
 			break;
 		}
 		 
-		gfx.set_cam_center({plr_pos->x, plr_pos->y});
+		gfx.set_cam_center({plr_pos->x, plr_pos->y, plr_pos->z});
 		 /* Draw the stuff in view to the gv frame */
 		gfx.render();
 		/* Wait some time to meet the fps requirement and not waste 
@@ -128,7 +127,6 @@ int main()
 		 */
 		high_resolution_clock::time_point end = high_resolution_clock::now();
 		gfx.delay(duration_cast<duration<double>>(end-begin).count());
-		iter++;
 	}
 	return 0;
 }

@@ -19,8 +19,8 @@ namespace an
 		struct Anim
 		{
 			wchar_t ch;
-			Vec3 col = Vec3(255, 255, 255);
-			Vec3 bg = Vec3(0, 0, 0);
+			Vec3 col = {255, 255, 255};
+			Vec3 bg = {0, 0, 0};
 		};
 		/* Types that link specific integers to specific animations
 		 * defined in anim_types
@@ -35,9 +35,9 @@ namespace an
 		 */
 		const std::unordered_map<int, Anim> anim_types =
 		{
-			{BURNING, {L'f', Vec3(235, 134, 25), Vec3(255,0,0)}},
-			{FROZEN, {0x0, Vec3(30, 78, 97), Vec3(255,255,255)}},
-			{ASLEEP, {L'Z', Vec3(128, 128, 128), Vec3(0,0,0)}}
+			{BURNING, {L'f', {235, 134, 25}, {255,0,0}}},
+			{FROZEN, {0x0, {30, 78, 97}, {255,255,255}}},
+			{ASLEEP, {L'Z', {128, 128, 128}, {0,0,0}}}
 		};
 	}
 }

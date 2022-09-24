@@ -29,8 +29,8 @@ namespace in
 			void delay(double time_spent);
 			
 			void adjust_zoom(float chg);
-			Vec2 get_cam_center() {return cam_center;}
-			void set_cam_center(Vec2 c) {cam_center = c;}
+			Vec3 get_cam_center() {return cam_center;}
+			void set_cam_center(Vec3 c) {cam_center = c;}
 		private:
 			sf::RenderWindow* win;
 			/* Font used in the game view */
@@ -45,7 +45,7 @@ namespace in
 			
 			ecs::Aggregate* agg;
 			cli::CliData* cli_dat;
-			Vec2 cam_center;
+			Vec3 cam_center;
 			
 			void update_sizes();
 			/* Logic to fill the gameview and cli frames with appropriate characters*/
@@ -65,5 +65,6 @@ namespace in
 			 * animations
 			 */
 			bool anim_is_active(float seconds_on, float seconds_off);
+			
 	};
 }
