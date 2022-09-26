@@ -266,25 +266,51 @@ fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
 	return ret;
 }
 
+Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize)
+{
+	if (pos.z != cam_center.z)
+		return {-1, -1};
+	int x = pos.x - cam_center.x + gvsize.x/2, 
+			y = pos.y - cam_center.y + gvsize.y/2;
+	if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		return {x,y};
+	return {-1,-1};
+}
 void in::GfxManager::fill_gv()
 {
 	sf::Vector2i gvsize = gv->get_grid_size();
-	/* This seems to be the most important performance bottleneck;
-	 * Chunks would make sense
+	/* This loop draws everything one unit below the player (the floor)
 	 */
 	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		if (pos->z != cam_center.z)
+		if (pos->z != cam_center.z-1)
 			continue;
 		int x = pos->x - cam_center.x + gvsize.x/2, 
 				y = pos->y - cam_center.y + gvsize.y/2;
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
 		{
+			/* Draw it with less alpha */
 			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), x, y);
+			fr::ObjRep frrep = drw_to_objrep(*rep);
+			frrep.fill.a -= 220;
+			frrep.bg.a -= 220;
+			frrep.ch = L'.';
+			gv->set_char(frrep, x, y);
 		}
 	}
+	/* This loop draws everything on the same level as the player
+	 */
+	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	{
+		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
+		if (phpos.x != -1)
+		{
+			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
+			gv->set_char(drw_to_objrep(*rep), phpos.x, phpos.y);
+		}
+	}
+
 	/* For now, the function just rerenders everything that should be
 	 * displayed above everything else (everything that is alive and
 	 * player characters)
@@ -292,15 +318,11 @@ void in::GfxManager::fill_gv()
 	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
 			fa::Position, fa::Drawable>(*agg))
 	{
-		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		if (pos->z != cam_center.z)
-			continue;
-		int x = pos->x - cam_center.x + gvsize.x/2, 
-				y = pos->y - cam_center.y + gvsize.y/2;
-		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
+		if (phpos.x != -1)
 		{
 			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), x, y);
+			gv->set_char(drw_to_objrep(*rep), phpos.x, phpos.y);
 		}
 	}
 }

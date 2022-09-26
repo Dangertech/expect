@@ -40,6 +40,13 @@ int main()
 			entts.push_back(fa::deal_wall(i*4-4, j*4-4, 0, agg));
 		}
 	}
+	for (int i = -30*4-4; i<30*4-4; i++)
+	{
+		for (int j = -30*4-4; j<30*4-4; j++)
+		{
+			entts.push_back(fa::deal_wall(i, j, -1, agg));
+		}
+	}
 	
 	while (gfx.win_open())
 	{

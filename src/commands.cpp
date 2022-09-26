@@ -6,7 +6,7 @@
  * would be inefficient as fuck.
  * Solution: Chonky Boi Chunks???
  */
-std::vector<ecs::entity_id> get_at_pos(int x, int y, 
+std::vector<ecs::entity_id> get_at_pos(int x, int y, int z,
 		std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
 {
 	std::vector<ecs::entity_id> ret;
@@ -15,7 +15,7 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y,
 		fa::Position* pos = agg.get_cmp<fa::Position>(entts[i]);
 		if (pos == nullptr)
 			continue;
-		if (pos->x == x && pos->y == y)
+		if (pos->x == x && pos->y == y && pos->z == z)
 			ret.push_back(entts[i]); 
 	}
 	return ret;
@@ -103,7 +103,7 @@ namespace cmd
 			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 			bool blocking = false;
 			for (ecs::entity_id glent : 
-					get_at_pos(pos->x+dir.x, pos->y+dir.y, entts, agg))
+					get_at_pos(pos->x+dir.x, pos->y+dir.y, pos->z, entts, agg))
 			{
 				if (agg.get_cmp<fa::Blocking>(glent) != nullptr)
 					blocking = true;
@@ -147,7 +147,7 @@ namespace cmd
 					L"You are dead and can not pick anything up.", cli::MESSAGE)};
 		fa::Position* pos = agg.get_cmp<fa::Position>(plr);
 		std::vector<ecs::entity_id> pot_targets = /* Potential Targets */
-			get_at_pos(pos->x+dir.x, pos->y+dir.y, entts, agg);
+			get_at_pos(pos->x+dir.x, pos->y+dir.y, pos->z, entts, agg);
 		std::vector<ecs::entity_id> targets;
 		for (ecs::entity_id ent : pot_targets)
 		{

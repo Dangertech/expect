@@ -51,6 +51,7 @@ namespace in
 			/* Logic to fill the gameview and cli frames with appropriate characters*/
 			void fill_gv();
 			void fill_cli();
+			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize);
 			
 			/* Converts a high-level drawable struct
 			 * to the frama-specific ObjectRepresentations
