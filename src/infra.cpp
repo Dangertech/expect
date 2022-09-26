@@ -212,60 +212,6 @@ void in::GfxManager::update_sizes()
 	}
 }
 
-fr::ObjRep in::GfxManager::drw_to_objrep(fa::Drawable drw)
-{
-	fr::ObjRep ret(drw.main.ch);
-	if (drw.anims.any())
-	{
-		/* At least one animation is active */
-		
-		/* TODO: Try to use anim_is_active() here as well; It isn't in
-		 * use right now because I'm currently too stupid to time it
-		 * right with the cur_anim calculation down below;
-		 */
-		using namespace std::chrono;
-		high_resolution_clock::time_point now = high_resolution_clock::now();
-		if (duration_cast<seconds>(now.time_since_epoch()).count()%2 == 0)
-		{
-			/* An animation should play */
-			
-			/* A number between 0 and the number of active
-			 * animations that describes the animation that should
-			 * play now in the order of the bitset
-			 * cur_anim=2;
-			 *        |
-			 * 0100100100
-			 * 0123456789
-			 * 
-			 * => The third animation that is active but the actual
-			 * animation to be played is nr. 7
-			 */
-			int cur_anim = (duration_cast<seconds>(now.time_since_epoch()).count()
-				/2)%drw.anims.count();
-			
-			/* Find the cur_anim'th active animation in the bitset */
-			int real_bits = 0;
-			int anim_id = 0;
-			for (int i = 0; i<drw.anims.size(); i++)
-			{
-				if (real_bits == cur_anim)
-					anim_id = i;
-				if (drw.anims[i] == 1)
-					real_bits++; 
-			}
-			an::g::Anim animrep = an::g::anim_types.at(anim_id);
-			if (animrep.ch != 0x0)
-				ret.ch = animrep.ch;
-			ret.fill = sf::Color(animrep.col.x, animrep.col.y, animrep.col.z, 255);
-			ret.bg = sf::Color(animrep.bg.x, animrep.bg.y, animrep.bg.z, 255);
-			return ret;
-		}
-	}
-	ret.fill = sf::Color(drw.main.col.x, drw.main.col.y, drw.main.col.z, 255);
-	ret.bg = sf::Color(drw.main.bg.x, drw.main.bg.y, drw.main.bg.z, 255);
-	return ret;
-}
-
 Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize)
 {
 	if (pos.z != cam_center.z)
@@ -281,7 +227,7 @@ void in::GfxManager::fill_gv()
 	sf::Vector2i gvsize = gv->get_grid_size();
 	/* This loop draws everything one unit below the player (the floor)
 	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
 	{
 		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
 		if (pos->z != cam_center.z-1)
@@ -291,8 +237,7 @@ void in::GfxManager::fill_gv()
 		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
 		{
 			/* Draw it with less alpha */
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			fr::ObjRep frrep = drw_to_objrep(*rep);
+			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
 			frrep.fill.a -= 220;
 			frrep.bg.a -= 220;
 			frrep.ch = L'.';
@@ -301,28 +246,28 @@ void in::GfxManager::fill_gv()
 	}
 	/* This loop draws everything on the same level as the player
 	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable>(*agg))
+	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
 	{
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
 		if (phpos.x != -1)
 		{
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), phpos.x, phpos.y);
+			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			gv->set_char(frrep, phpos.x, phpos.y);
 		}
 	}
-
+	
 	/* For now, the function just rerenders everything that should be
 	 * displayed above everything else (everything that is alive and
 	 * player characters)
 	 */
 	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
-			fa::Position, fa::Drawable>(*agg))
+			fa::Position>(*agg))
 	{
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
 		if (phpos.x != -1)
 		{
-			fa::Drawable* rep = agg->get_cmp<fa::Drawable>(ent);
-			gv->set_char(drw_to_objrep(*rep), phpos.x, phpos.y);
+			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			gv->set_char(frrep, phpos.x, phpos.y);
 		}
 	}
 }
@@ -442,4 +387,56 @@ bool in::GfxManager::anim_is_active(float seconds_on, float seconds_off)
 		return true;
 	}
 	return false;
+}
+
+fr::ObjRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
+{
+	/* The task of this function might grow incredibly complex
+	 * and is already moderately complex; It looks a bit hacked together
+	 * right now, but that's OK.
+	 */
+	fr::ObjRep rep(L'?');
+	if(agg->get_cmp<fa::Playable>(id))
+	{
+		rep.ch = L'@';
+	}
+	else if (agg->get_cmp<fa::Wall>(id))
+	{
+		fa::Wall* w = agg->get_cmp<fa::Wall>(id);
+		rep.ch = L'#';
+		switch (w->type)
+		{
+			case fa::Wall::CONCRETE:
+				rep.fill = sf::Color(128,128,128);
+				break;
+			case fa::Wall::REDBRICK:
+				rep.fill = sf::Color(255, 80, 0);
+				break;
+		}
+		fa::Paintable* p = agg->get_cmp<fa::Paintable>(id);
+		if (p)
+		{
+			/* TODO: Merge the base color and the paintable color based on
+			 * the visibility
+			 */
+			rep.fill.r = p->color.x;
+			rep.fill.g = p->color.y;
+			rep.fill.b = p->color.z;
+		}
+	}
+	else if (agg->get_cmp<fa::Eatable>(id))
+	{
+		fa::Eatable* e = agg->get_cmp<fa::Eatable>(id);
+		switch (e->type)
+		{
+			case fa::Eatable::RATION:
+				rep.ch = L'&';
+				rep.fill = sf::Color(98,54,18);
+				break;
+			case fa::Eatable::SLIME_MOLD:
+				rep.ch = L'o';
+				rep.fill = sf::Color(15, 168, 142);
+		}
+	}
+	return rep;
 }

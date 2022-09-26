@@ -97,8 +97,7 @@ namespace cmd
 			ret.push_back(cli::LogEntry(helpmsg, cli::MESSAGE));
 		}
 		 
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-				fa::Playable>(agg))
+		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
 		{
 			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 			bool blocking = false;
@@ -136,8 +135,7 @@ namespace cmd
 		}
 		ecs::entity_id plr;
 		bool exists = false;
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-				fa::Playable>(agg))
+		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
 		{
 			plr = ent;
 			exists = true;

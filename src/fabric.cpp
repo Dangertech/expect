@@ -6,11 +6,6 @@ namespace fa
 		ecs::entity_id ret = agg.new_entity();
 		Position* pos = agg.add_cmp<Position>(ret);
 		pos->set(x, y, z);
-		Drawable* drw = agg.add_cmp<Drawable>(ret);
-		/* TODO: Library containing the representations
-		 * of all possible objects
-		 */
-		drw->main.ch = L'@';
 		agg.add_cmp<Playable>(ret);
 		agg.add_cmp<Alive>(ret)->health = 100;
 		agg.add_cmp<Blocking>(ret);
@@ -21,9 +16,10 @@ namespace fa
 		ecs::entity_id ret = agg.new_entity();
 		Position*  pos = agg.add_cmp<Position>(ret);
 		pos->set(x, y, z);
-		Drawable* drw = agg.add_cmp<Drawable>(ret);
-		drw->main.ch = L'#';
 		agg.add_cmp<Blocking>(ret);
+		fa::Wall* w = agg.add_cmp<Wall>(ret);
+		w->type = Wall::CONCRETE;
+		agg.add_cmp<Paintable>(ret);
 		return ret;
 	}
 	ecs::entity_id deal_item(int x, int y, int z, ecs::Aggregate& agg)
@@ -31,12 +27,9 @@ namespace fa
 		ecs::entity_id ret = agg.new_entity();
 		Position* pos = agg.add_cmp<Position>(ret);
 		pos->set(x, y, z);
-		Drawable* drw = agg.add_cmp<Drawable>(ret);
-		drw->main.ch = L'&'; /* A loaf of bread? */
-		drw->main.col.x = 115; drw->main.col.y = 60; drw->main.col.z = 16;
-		drw->anims.set(an::g::AId::FROZEN, 1);
-		drw->anims.set(an::g::AId::BURNING, 1);
 		agg.add_cmp<Pickable>(ret);
+		Eatable* e = agg.add_cmp<Eatable>(ret);
+		e->type = Eatable::SLIME_MOLD;
 		return ret;
 	}
 }

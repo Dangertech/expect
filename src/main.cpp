@@ -119,8 +119,7 @@ int main()
 		/* Rendering Execution */
 		fa::Position* plr_pos = nullptr;
 		/* Accept the first playable object you find as the center of view */
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Drawable,
-				fa::Playable>(agg))
+		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
 		{
 			plr_pos = agg.get_cmp<fa::Position>(ent); 
 			break;

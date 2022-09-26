@@ -53,10 +53,6 @@ namespace in
 			void fill_cli();
 			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize);
 			
-			/* Converts a high-level drawable struct
-			 * to the frama-specific ObjectRepresentations
-			 */
-			fr::ObjRep drw_to_objrep(fa::Drawable drw);
 			double seconds_since_startup = 0;
 			
 			/* Returns true for seconds_on seconds and then
@@ -68,4 +64,10 @@ namespace in
 			bool anim_is_active(float seconds_on, float seconds_off);
 			
 	};
+	
+	/* Contains static data and functions for showing things to the gameview */
+	namespace gv
+	{
+		fr::ObjRep evaluate_rep(ecs::Aggregate*, ecs::entity_id);
+	}
 }

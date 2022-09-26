@@ -17,16 +17,6 @@ namespace fa
 				x = mx; y = my; z = mz;
 			}
 	};
-	struct Drawable
-	{
-		/* Implementation data can be looked up in anim.hpp */
-		 
-		/* The base "Animation" that should be active
-		 * most of the time */
-		an::g::Anim main;
-		/* All active animations for this Drawable */
-		std::bitset<an::g::MAX_ANIMS> anims;
-	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all
 	 * have inventory and stats, this
@@ -47,6 +37,23 @@ namespace fa
 	/* Can't be walked over (without going up a height level */
 	struct Blocking
 	{
+	};
+	struct Wall
+	{
+		enum Type {CONCRETE, REDBRICK};
+		Type type;
+	};
+	struct Paintable
+	{
+		float visibility; /* Evaluated between 0 and 100 */
+		std::wstring msg;
+		Vec3 color;
+	};
+	struct Eatable
+	{
+		int nutrition;
+		enum Type {RATION, SLIME_MOLD};
+		Type type;
 	};
 	 
 	ecs::entity_id deal_player(int x, int y, int z, ecs::Aggregate& agg);
