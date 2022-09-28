@@ -18,8 +18,9 @@ namespace fa
 		pos->set(x, y, z);
 		agg.add_cmp<Blocking>(ret);
 		fa::Wall* w = agg.add_cmp<Wall>(ret);
-		w->type = Wall::CONCRETE;
+		w->type = Wall::REDBRICK;
 		agg.add_cmp<Paintable>(ret);
+		agg.add_cmp<Flammable>(ret);
 		return ret;
 	}
 	ecs::entity_id deal_item(int x, int y, int z, ecs::Aggregate& agg)

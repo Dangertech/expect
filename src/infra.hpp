@@ -54,16 +54,15 @@ namespace in
 			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize);
 			
 			double seconds_since_startup = 0;
-			
-			/* Returns true for seconds_on seconds and then
-			 * false for seconds_off seconds based on the system
-			 * time and how many milliseconds have passed since
-			 * the epoch timestamp; Primarily used for timing
-			 * animations
-			 */
-			bool anim_is_active(float seconds_on, float seconds_off);
-			
 	};
+	 
+	/* Returns true for seconds_on seconds and then
+	 * false for seconds_off seconds based on the system
+	 * time and how many milliseconds have passed since
+	 * the epoch timestamp; Primarily used for timing
+	 * animations
+	 */
+	bool anim_is_active(float seconds_on, float seconds_off);
 	
 	/* Contains static data and functions for showing things to the gameview */
 	namespace gv

@@ -33,18 +33,48 @@ int main()
 	entts.push_back(fa::deal_player(0, 0, 0, agg));
 	entts.push_back(fa::deal_item(0, 1, 0, agg));
 	/* Construct some walls */
-	for (int i = -30; i<30; i++)
+	for (int z = 0; z < 3; z++)
 	{
-		for (int j = -30; j<30; j++)
+		for (int i = -30; i<30; i++)
 		{
-			entts.push_back(fa::deal_wall(i*4-4, j*4-4, 0, agg));
+			for (int j = -30; j<30; j++)
+			{
+				ecs::entity_id e = fa::deal_wall(i*4-4, j*4-4, z, agg);
+				if (j == 5)
+				{
+					fa::Paintable* p = agg.get_cmp<fa::Paintable>(e);
+					if (p)
+					{
+						p->color = {0,255,0};
+						p->visibility = 100.f;
+					}
+				}
+				if (j == 2)
+				{
+					fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);
+					if (f)
+					{
+						f->burning = true;
+					}
+				}
+				entts.push_back(e);
+			}
 		}
 	}
 	for (int i = -30*4-4; i<30*4-4; i++)
 	{
 		for (int j = -30*4-4; j<30*4-4; j++)
 		{
-			entts.push_back(fa::deal_wall(i, j, -1, agg));
+			ecs::entity_id e = fa::deal_wall(i, j, -1, agg);
+			if (j == 2)
+			{
+				fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);
+				if (f)
+				{
+					f->burning = true;
+				}
+			}
+			entts.push_back(e);
 		}
 	}
 	

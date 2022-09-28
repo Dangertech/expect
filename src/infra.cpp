@@ -238,8 +238,8 @@ void in::GfxManager::fill_gv()
 		{
 			/* Draw it with less alpha */
 			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
-			frrep.fill.a -= 220;
-			frrep.bg.a -= 220;
+			frrep.fill.a -= 130;
+			frrep.bg.a -= 130;
 			frrep.ch = L'.';
 			gv->set_char(frrep, x, y);
 		}
@@ -349,7 +349,8 @@ void in::GfxManager::fill_cli()
 		{
 			for(int x = 2; x<size_x-2; x++)
 			{
-				cli_frame->set_char(fr::ObjRep(L' ', sf::Color::Black, sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
+				cli_frame->set_char(fr::ObjRep(L' ', sf::Color::Black, 
+							sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
 						x, y);
 			}
 		}
@@ -360,10 +361,11 @@ void in::GfxManager::fill_cli()
 	{
 		/* Input Buffer (Active) */
 		sf::Vector2i endpos = cli_frame->print(cli_dat->get_bfr(), 4, 
-				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(CLI_ACTIVE, CLI_ALPHA)},
+				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), 
+				sf::Color(CLI_ACTIVE, CLI_ALPHA)},
 				true, size_x-3);
 		/* "Cursor" */
-		if (anim_is_active(1.0, 0.5))
+		if (in::anim_is_active(1.0, 0.5))
 		{
 			cli_frame->set_char({L'|', sf::Color::White, 
 					sf::Color(CLI_ACTIVE, CLI_ALPHA)}, endpos.x, endpos.y);
@@ -372,16 +374,18 @@ void in::GfxManager::fill_cli()
 	else
 	{
 		cli_frame->print(cli_dat->get_bfr(), 4, 
-				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), sf::Color(0,0,0, CLI_ALPHA)});
+				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), 
+				sf::Color(0,0,0, CLI_ALPHA)});
 	}
 }
 
-bool in::GfxManager::anim_is_active(float seconds_on, float seconds_off)
+bool in::anim_is_active(float seconds_on, float seconds_off)
 {
 	int ms_on = seconds_on*1000; int ms_off = seconds_off*1000;
 	using namespace std::chrono;
 	high_resolution_clock::time_point now = high_resolution_clock::now();
-	int ms_since_epoch = duration_cast<milliseconds>(now.time_since_epoch()).count();
+	unsigned long long ms_since_epoch = 
+		duration_cast<milliseconds>(now.time_since_epoch()).count();
 	if (ms_since_epoch%(ms_on+ms_off) < ms_on)
 	{
 		return true;
@@ -419,9 +423,12 @@ fr::ObjRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
 			/* TODO: Merge the base color and the paintable color based on
 			 * the visibility
 			 */
-			rep.fill.r = p->color.x;
-			rep.fill.g = p->color.y;
-			rep.fill.b = p->color.z;
+			if (p->visibility > 0)
+			{
+				rep.fill.r = (rep.fill.r + p->color.x)/2;
+				rep.fill.g = (rep.fill.g + p->color.y)/2;
+				rep.fill.b = (rep.fill.b + p->color.z)/2;
+			}
 		}
 	}
 	else if (agg->get_cmp<fa::Eatable>(id))
@@ -436,6 +443,18 @@ fr::ObjRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
 			case fa::Eatable::SLIME_MOLD:
 				rep.ch = L'o';
 				rep.fill = sf::Color(15, 168, 142);
+		}
+	}
+	
+	
+	if (agg->get_cmp<fa::Flammable>(id))
+	{
+		if (agg->get_cmp<fa::Flammable>(id)->burning)
+		{
+			if (in::anim_is_active(0.5, 1.f))
+			{
+				rep.bg = sf::Color(255, 128, 0);
+			}
 		}
 	}
 	return rep;

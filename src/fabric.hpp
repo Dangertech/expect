@@ -28,7 +28,7 @@ namespace fa
 	};
 	struct Alive
 	{
-		int health;
+		int health = 100;
 	};
 	/* Entity can be added to inventories */
 	struct Pickable
@@ -41,19 +41,24 @@ namespace fa
 	struct Wall
 	{
 		enum Type {CONCRETE, REDBRICK};
-		Type type;
+		Type type = CONCRETE;;
 	};
 	struct Paintable
 	{
-		float visibility; /* Evaluated between 0 and 100 */
+		float visibility = 0.f; /* Evaluated between 0 and 100 */
 		std::wstring msg;
 		Vec3 color;
 	};
 	struct Eatable
 	{
-		int nutrition;
+		int nutrition = 10;
 		enum Type {RATION, SLIME_MOLD};
-		Type type;
+		Type type = RATION;
+	};
+	struct Flammable
+	{
+		/* A lot of nice stuff could go in here */
+		bool burning = false;
 	};
 	 
 	ecs::entity_id deal_player(int x, int y, int z, ecs::Aggregate& agg);
