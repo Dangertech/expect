@@ -33,7 +33,7 @@ int main()
 	entts.push_back(fa::deal_player(0, 0, 0, agg));
 	entts.push_back(fa::deal_item(0, 1, 0, agg));
 	/* Construct some walls */
-	for (int z = 0; z < 3; z++)
+	for (int z = 0; z < 5; z++)
 	{
 		for (int i = -30; i<30; i++)
 		{
@@ -65,7 +65,7 @@ int main()
 	{
 		for (int j = -30*4-4; j<30*4-4; j++)
 		{
-			ecs::entity_id e = fa::deal_wall(i, j, 1, agg);
+			ecs::entity_id e = fa::deal_wall(i, j, -1, agg);
 			if (j == 2)
 			{
 				fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);

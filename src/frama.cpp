@@ -336,7 +336,8 @@ void fr::Frame::set_size_ref()
 namespace fr{
 namespace anim
 {
-	void slide_down(float t, fr::Frame& fr, int slices, sf::Color slice_color, bool reverse)
+	void slide_down(float t, fr::Frame& fr, int slices, sf::Color slice_color, 
+			bool reverse, bool only_filled)
 	{
 		if (t > 1 || t < 0)
 			return;
@@ -352,6 +353,8 @@ namespace anim
 					sf::Color col = slice_color;
 					col.a = ((y-lid_pos-slices+1)/slices)*255;
 					ObjRep th = fr.get_char(x, y);
+					if (th.ch == L' ' && only_filled)
+						continue;
 					th.bg = col; 
 					fr.set_char(th, x, y);
 				}
@@ -376,6 +379,8 @@ namespace anim
 					sf::Color col = slice_color;
 					col.a = 1-(((y-lid_pos)/slices)*255);
 					ObjRep th = fr.get_char(x, y);
+					if (th.ch == L' ' && only_filled)
+						continue;
 					th.bg = col; 
 					fr.set_char(th, x, y);
 				}

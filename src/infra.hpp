@@ -43,7 +43,7 @@ namespace in
 			std::vector<fr::Frame*> gv;
 			fr::Frame* cli_frame;
 			
-			int extra_gv_layers = 2;
+			int extra_gv_layers = 5;
 			
 			bool use_shaders = true;
 			

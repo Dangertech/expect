@@ -33,6 +33,7 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	{
 		gv.push_back(new fr::Frame(*gv_font, s.get_gv_font_size(), 
 				sf::Vector2i(0, 0), sf::Vector2i(5, 5)));
+		gv[i]->set_standard_scale(1+0.1*i);
 	}
 	cli_frame = new fr::Frame(*tx_font, s.get_tx_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
@@ -114,14 +115,14 @@ sf::RenderTexture* create_tex(sf::RenderWindow* win)
 void in::GfxManager::render()
 {
 	
-	 
 	/* Gameview drawing */
 	for (int i = 0; i<gv.size(); i++)
 	{
 		gv[i]->clear();
 		fill_gv(*gv[i], cam_center.z+i, i > 0 ? false : true, i> 0 ? 128.f : 255.f );
+		fr::anim::slide_down(seconds_since_startup*0.8, 
+				*gv[i], 5, sf::Color::Green, true, i > 0 ? true : false);
 	}
-	fr::anim::slide_down(seconds_since_startup*0.8, *gv[0], 5, sf::Color::Green, true);
 	fr::anim::border(*gv[0], 
 			cli_dat->get_active() ? sf::Color(128,128,128) : sf::Color(CLI_ACTIVE), 
 			0x2014, 0x2014, L'|', L'|', L'/', L'|', L' ', 0x2014);
@@ -129,7 +130,8 @@ void in::GfxManager::render()
 	/* CLI drawing */
 	cli_frame->clear();
 	fill_cli();
-	fr::anim::slide_down(seconds_since_startup*0.8, *cli_frame, 5, sf::Color::Green, false);
+	fr::anim::slide_down(seconds_since_startup*0.8, 
+			*cli_frame, 5, sf::Color::Green, false);
 	fr::anim::border(*cli_frame, 
 			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
