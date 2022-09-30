@@ -40,8 +40,10 @@ namespace in
 			/* Font used for readable text */
 			sf::Font* tx_font;
 			sf::Shader* blur;
-			fr::Frame* gv;
+			std::vector<fr::Frame*> gv;
 			fr::Frame* cli_frame;
+			
+			int extra_gv_layers = 2;
 			
 			bool use_shaders = true;
 			
@@ -51,9 +53,9 @@ namespace in
 			
 			void update_sizes();
 			/* Logic to fill the gameview and cli frames with appropriate characters*/
-			void fill_gv();
+			void fill_gv(fr::Frame&, int z, bool below = false, float transparency = 255.f);
 			void fill_cli();
-			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize);
+			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize, int z);
 			
 			double seconds_since_startup = 0;
 	};

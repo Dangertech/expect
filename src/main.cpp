@@ -65,7 +65,7 @@ int main()
 	{
 		for (int j = -30*4-4; j<30*4-4; j++)
 		{
-			ecs::entity_id e = fa::deal_wall(i, j, -1, agg);
+			ecs::entity_id e = fa::deal_wall(i, j, 1, agg);
 			if (j == 2)
 			{
 				fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);

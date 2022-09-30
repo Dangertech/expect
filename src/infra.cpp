@@ -29,8 +29,11 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	}
 	gv_font->loadFromFile(s.get_gv_font_name());
 	tx_font->loadFromFile(s.get_tx_font_name());
-	gv = new fr::Frame(*gv_font, s.get_gv_font_size(), 
-			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
+	for (int i = 0; i<extra_gv_layers; i++)
+	{
+		gv.push_back(new fr::Frame(*gv_font, s.get_gv_font_size(), 
+				sf::Vector2i(0, 0), sf::Vector2i(5, 5)));
+	}
 	cli_frame = new fr::Frame(*tx_font, s.get_tx_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	/* Setting this doesn't matter:
@@ -40,8 +43,9 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	 * and executed in the gfx::delay(), called in main()
 	 */
 	//win->setFramerateLimit(30);
-	gv->set_frame_bg(sf::Color::Black);
-	gv->set_margin(sf::Vector2i(2,2));
+	gv[0]->set_frame_bg(sf::Color::Black);
+	for (auto x : gv)
+		x->set_margin(sf::Vector2i(2,2));
 	cli_frame->set_frame_bg(sf::Color::Black);
 	cli_frame->set_standard_scale(0.6f);
 	update_sizes();
@@ -52,7 +56,8 @@ in::GfxManager::~GfxManager()
 	delete blur;
 	delete gv_font;
 	delete tx_font;
-	delete gv;
+	for (auto x : gv)
+		delete x;
 	delete cli_frame;
 }
 
@@ -60,7 +65,8 @@ void in::GfxManager::adjust_zoom(float chg)
 {
 	try
 	{
-		gv->set_standard_scale(gv->get_standard_scale()+chg);
+		for (auto x : gv)
+			x->set_standard_scale(x->get_standard_scale()+chg);
 	}
 	catch (int e)
 	{
@@ -110,10 +116,13 @@ void in::GfxManager::render()
 	
 	 
 	/* Gameview drawing */
-	gv->clear();
-	fill_gv();
-	fr::anim::slide_down(seconds_since_startup*0.8, *gv, 5, sf::Color::Green, true);
-	fr::anim::border(*gv, 
+	for (int i = 0; i<gv.size(); i++)
+	{
+		gv[i]->clear();
+		fill_gv(*gv[i], cam_center.z+i, i > 0 ? false : true, i> 0 ? 128.f : 255.f );
+	}
+	fr::anim::slide_down(seconds_since_startup*0.8, *gv[0], 5, sf::Color::Green, true);
+	fr::anim::border(*gv[0], 
 			cli_dat->get_active() ? sf::Color(128,128,128) : sf::Color(CLI_ACTIVE), 
 			0x2014, 0x2014, L'|', L'|', L'/', L'|', L' ', 0x2014);
 	
@@ -139,7 +148,8 @@ void in::GfxManager::render()
 		sf::RenderTexture* initex = create_tex(win);
 		sf::RenderTexture* blurtex = create_tex(win);
 		/* Initial Drawing */
-		gv->draw(initex);
+		for (auto x : gv)
+			x->draw(initex);
 		cli_frame->draw(initex);
 		initex->display();
 		/* Shader passes */
@@ -159,7 +169,8 @@ void in::GfxManager::render()
 	else
 	{
 		/* Use direct rendering to the window */
-		gv->draw(win);
+		for (auto x : gv)
+			x->draw(win);
 		cli_frame->draw(win);
 	}
 	/* Display the window */
@@ -196,8 +207,11 @@ void in::GfxManager::update_sizes()
 	 
 	try
 	{
-		gv->set_origin(sf::Vector2i(margin, margin));
-		gv->set_end(sf::Vector2i(gv_w, size.y-margin));
+		for (auto x : gv)
+		{
+			x->set_origin(sf::Vector2i(margin, margin));
+			x->set_end(sf::Vector2i(gv_w, size.y-margin));
+		}
 		cli_frame->set_origin(sf::Vector2i(gv_w, margin));
 		cli_frame->set_end(sf::Vector2i(size.x-margin, size.y-margin));
 	}
@@ -212,9 +226,9 @@ void in::GfxManager::update_sizes()
 	}
 }
 
-Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize)
+Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize, int z)
 {
-	if (pos.z != cam_center.z)
+	if (pos.z != z)
 		return {-1, -1};
 	int x = pos.x - cam_center.x + gvsize.x/2, 
 			y = pos.y - cam_center.y + gvsize.y/2;
@@ -222,37 +236,42 @@ Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize)
 		return {x,y};
 	return {-1,-1};
 }
-void in::GfxManager::fill_gv()
+void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency)
 {
-	sf::Vector2i gvsize = gv->get_grid_size();
-	/* This loop draws everything one unit below the player (the floor)
-	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
+	sf::Vector2i gvsize = f.get_grid_size();
+	if (below)
 	{
-		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-		if (pos->z != cam_center.z-1)
-			continue;
-		int x = pos->x - cam_center.x + gvsize.x/2, 
-				y = pos->y - cam_center.y + gvsize.y/2;
-		if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+		/* This loop draws everything one unit below the player (the floor)
+		 */
+		for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
 		{
-			/* Draw it with less alpha */
-			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
-			frrep.fill.a -= 130;
-			frrep.bg.a -= 130;
-			frrep.ch = L'.';
-			gv->set_char(frrep, x, y);
+			fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+			if (pos->z != z-1)
+				continue;
+			int x = pos->x - cam_center.x + gvsize.x/2, 
+					y = pos->y - cam_center.y + gvsize.y/2;
+			if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
+			{
+				/* Draw it with less alpha */
+				fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+				frrep.fill.a -= 130;
+				frrep.bg.a -= 130;
+				frrep.ch = L'.';
+				f.set_char(frrep, x, y);
+			}
 		}
 	}
 	/* This loop draws everything on the same level as the player
 	 */
 	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
 	{
-		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
+		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
 			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
-			gv->set_char(frrep, phpos.x, phpos.y);
+			frrep.fill.a = transparency;
+			frrep.bg.a = transparency;
+			f.set_char(frrep, phpos.x, phpos.y);
 		}
 	}
 	
@@ -263,11 +282,11 @@ void in::GfxManager::fill_gv()
 	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
 			fa::Position>(*agg))
 	{
-		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize);
+		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
 			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
-			gv->set_char(frrep, phpos.x, phpos.y);
+			f.set_char(frrep, phpos.x, phpos.y);
 		}
 	}
 }
