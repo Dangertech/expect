@@ -31,6 +31,8 @@ namespace in
 			void adjust_zoom(float chg);
 			Vec3 get_cam_center() {return cam_center;}
 			void set_cam_center(Vec3 c) {cam_center = c;}
+			void set_shaders(bool s) {use_shaders = s;}
+			bool get_shaders() {return use_shaders;}
 		private:
 			sf::RenderWindow* win;
 			/* Font used in the game view */

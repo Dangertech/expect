@@ -19,4 +19,6 @@ namespace cmd
 	RET echo(std::vector<std::wstring> args);
 	RET quit(std::vector<std::wstring> args);
 	RET cli(std::vector<std::wstring> args, bool& skiptxt, cli::CliData& cli);
+	// General settings manager
+	RET become(std::vector<std::wstring> args, in::GfxManager& gfx);
 }

@@ -238,4 +238,23 @@ namespace cmd
 			return {{L"Argument not recognized: " + args[0], cli::MESSAGE}};
 		return RET();
 	}
+	RET become(std::vector<std::wstring> args, in::GfxManager& gfx)
+	{
+		if (!args.size())
+			return {{L"Please provide a setting you want to change!", cli::MESSAGE},
+				{L"Run 'help cmd become' for a list of settings!", cli::MESSAGE}};
+		if (args[0] == L"shaders")
+		{
+			gfx.set_shaders(!gfx.get_shaders());
+			if (gfx.get_shaders())
+				return {{L"Switched shaders on!", cli::MESSAGE}};
+			else
+				return {{L"Switched shaders off!", cli::MESSAGE}};
+		}
+		else
+		{
+			return {{std::wstring(L"Argument not understood; Run 'help cmd become' ")
+				+L"for help on this command!", cli::MESSAGE}};
+		}
+	}
 }
