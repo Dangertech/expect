@@ -132,7 +132,7 @@ void in::GfxManager::render()
 	fr::anim::border(*cli_frame, 
 			cli_dat->get_active() ? sf::Color(CLI_ACTIVE) : sf::Color(128, 128, 128));
 	 
-
+	
 	/* Execute the draw functions to inform the window of the
 	 * sprites in the frama frame; Run them
 	 * with a RenderTexture to do compositing
@@ -240,31 +240,32 @@ Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize, int z
 void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency)
 {
 	sf::Vector2i gvsize = f.get_grid_size();
+	Vec2 xbounds; xbounds.x = cam_center.x-gvsize.x/2; xbounds.y = cam_center.x+gvsize.x/2;
+	Vec2 ybounds; ybounds.x = cam_center.y-gvsize.y/2; ybounds.y = cam_center.y+gvsize.y/2;
+	/* View for the standard render */
+	CamView cstd(agg, xbounds, ybounds ,z);
+	/* View for the below render */
+	CamView cblw(agg, xbounds, ybounds, z-1);
 	if (below)
 	{
 		/* This loop draws everything one unit below the player (the floor)
 		 */
-		for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
+		for (ecs::entity_id ent : cblw.entts)
 		{
 			fa::Position* pos = agg->get_cmp<fa::Position>(ent);
-			if (pos->z != z-1)
-				continue;
 			int x = pos->x - cam_center.x + gvsize.x/2, 
 					y = pos->y - cam_center.y + gvsize.y/2;
-			if (x >= 0 && x < gvsize.x && y >= 0 && y < gvsize.y)
-			{
-				/* Draw it with less alpha */
-				fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
-				frrep.fill.a -= 130;
-				frrep.bg.a -= 130;
-				frrep.ch = L'.';
-				f.set_char(frrep, x, y);
-			}
+			/* Draw it with less alpha */
+			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			frrep.fill.a -= 130;
+			frrep.bg.a -= 130;
+			frrep.ch = L'.';
+			f.set_char(frrep, x, y);
 		}
 	}
 	/* This loop draws everything on the same level as the player
 	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
+	for (ecs::entity_id ent : cstd.entts)
 	{
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
@@ -280,9 +281,11 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 	 * displayed above everything else (everything that is alive and
 	 * player characters)
 	 */
-	for (ecs::entity_id ent : ecs::AggView<fa::Playable, fa::Alive, 
-			fa::Position>(*agg))
+	for (ecs::entity_id ent : cstd.entts) 
 	{
+		if (!agg->get_cmp<fa::Playable>(ent) || !agg->get_cmp<fa::Alive>(ent)
+				|| !agg->get_cmp<fa::Position>(ent))
+			continue;
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
@@ -421,6 +424,28 @@ void in::GfxManager::make_layers()
 	}
 	update_sizes();
 	std::wcout << gv.size() << std::endl;
+}
+
+in::GfxManager::CamView::CamView(ecs::Aggregate* agg, Vec2 mxb, Vec2 myb, int mz)
+{
+	if (mxb.x > mxb.y)
+		throw ERR;
+	if (myb.x > myb.y)
+		throw ERR;
+	xbounds = mxb;
+	ybounds = myb;
+	z = mz;
+	for (ecs::entity_id ent : ecs::AggView<fa::Position>(*agg))
+	{
+		fa::Position* pos = agg->get_cmp<fa::Position>(ent);
+		if (pos->z != z)
+			continue;
+		if (pos->x < xbounds.x || pos->x > xbounds.y)
+			continue;
+		if (pos->y < ybounds.x || pos->y > ybounds.y)
+			continue;
+		entts.push_back(ent);
+	}
 }
 
 bool in::anim_is_active(float seconds_on, float seconds_off)

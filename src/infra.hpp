@@ -60,6 +60,15 @@ namespace in
 			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize, int z);
 			
 			double seconds_since_startup = 0;
+			
+			struct CamView
+			{
+				Vec2 xbounds, ybounds;
+				int z;
+				std::vector<ecs::entity_id> entts;
+				 
+				CamView(ecs::Aggregate* agg, Vec2 mxb, Vec2 myb, int mz);
+			};
 	};
 	 
 	/* Returns true for seconds_on seconds and then

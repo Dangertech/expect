@@ -16,6 +16,7 @@ std::vector<ecs::entity_id> entts;
 /* Start of the main game loop */
 int main()
 {
+	std::cout << "Started execution." << std::endl;
 	SettingContainer set;
 	/* Manages in-game entities through an ECS */
 	ecs::Aggregate agg;
