@@ -61,6 +61,16 @@ int main()
 			}
 		}
 	}
+	for (int z = 1; z<3; z++)
+	{
+		for (int i = -10; i<10; i++)
+		{
+			for (int j = -10; j<10; j++)
+			{
+				entts.push_back(fa::deal_wall(i*4-2, j*4-2, z, agg));
+			}
+		}
+	}
 	for (int i = -30*4-4; i<30*4-4; i++)
 	{
 		for (int j = -30*4-4; j<30*4-4; j++)

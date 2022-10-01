@@ -33,6 +33,7 @@ namespace in
 			void set_cam_center(Vec3 c) {cam_center = c;}
 			void set_shaders(bool s) {use_shaders = s;}
 			bool get_shaders() {return use_shaders;}
+			void set_extra_layers(int l);
 		private:
 			sf::RenderWindow* win;
 			/* Font used in the game view */
@@ -43,7 +44,8 @@ namespace in
 			std::vector<fr::Frame*> gv;
 			fr::Frame* cli_frame;
 			
-			int extra_gv_layers = 5;
+			int extra_gv_layers = 2;
+			void make_layers();
 			
 			bool use_shaders = true;
 			

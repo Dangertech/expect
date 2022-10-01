@@ -251,6 +251,28 @@ namespace cmd
 			else
 				return {{L"Switched shaders off!", cli::MESSAGE}};
 		}
+		else if (args[0] == L"layers")
+		{
+			if (args.size() < 2)
+			{
+				return {{L"Specify how many gameview levels should be shown additionally",
+					cli::MESSAGE}};
+			}
+			std::wstringstream ss;
+			ss << args[1];
+			int layers;
+			if (!(ss >> layers))
+				return {{L"Specify a number between 0 and 7.", cli::MESSAGE}}; 
+			try
+			{
+				gfx.set_extra_layers(layers);
+			}
+			catch (int e)
+			{
+				return {{L"Specify a number between 0 and 7.", cli::MESSAGE}};
+			}
+			return RET();
+		}
 		else
 		{
 			return {{std::wstring(L"Argument not understood; Run 'help cmd become' ")

@@ -29,12 +29,8 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	}
 	gv_font->loadFromFile(s.get_gv_font_name());
 	tx_font->loadFromFile(s.get_tx_font_name());
-	for (int i = 0; i<extra_gv_layers; i++)
-	{
-		gv.push_back(new fr::Frame(*gv_font, s.get_gv_font_size(), 
-				sf::Vector2i(0, 0), sf::Vector2i(5, 5)));
-		gv[i]->set_standard_scale(1+0.1*i);
-	}
+	/* Create gv layers based on extra_gv_layers */
+	make_layers();
 	cli_frame = new fr::Frame(*tx_font, s.get_tx_font_size(), 
 			sf::Vector2i(0, 0), sf::Vector2i(5, 5));
 	/* Setting this doesn't matter:
@@ -114,12 +110,13 @@ sf::RenderTexture* create_tex(sf::RenderWindow* win)
 
 void in::GfxManager::render()
 {
-	
+	win->clear();
 	/* Gameview drawing */
 	for (int i = 0; i<gv.size(); i++)
 	{
 		gv[i]->clear();
-		fill_gv(*gv[i], cam_center.z+i, i > 0 ? false : true, i> 0 ? 128.f : 255.f );
+		float lalph = i>0 ? 128.f : 255.f;
+		fill_gv(*gv[i], cam_center.z+i, i > 0 ? false : true, lalph);
 		fr::anim::slide_down(seconds_since_startup*0.8, 
 				*gv[i], 5, sf::Color::Green, true, i > 0 ? true : false);
 	}
@@ -162,7 +159,6 @@ void in::GfxManager::render()
 		blurtex->display();
 		 
 		/* Draw the final RenderTexture to the window */
-		win->clear();
 		sf::Sprite intersprite(blurtex->getTexture());
 		win->draw(intersprite);
 		delete initex;
@@ -214,8 +210,11 @@ void in::GfxManager::update_sizes()
 			x->set_origin(sf::Vector2i(margin, margin));
 			x->set_end(sf::Vector2i(gv_w, size.y-margin));
 		}
-		cli_frame->set_origin(sf::Vector2i(gv_w, margin));
-		cli_frame->set_end(sf::Vector2i(size.x-margin, size.y-margin));
+		if (cli_frame)
+		{
+			cli_frame->set_origin(sf::Vector2i(gv_w, margin));
+			cli_frame->set_end(sf::Vector2i(size.x-margin, size.y-margin));
+		}
 	}
 	catch(int e)
 	{
@@ -398,6 +397,30 @@ void in::GfxManager::fill_cli()
 				size_y-bottom_margin, {L' ', sf::Color(CLI_USER), 
 				sf::Color(0,0,0, CLI_ALPHA)});
 	}
+}
+
+void in::GfxManager::set_extra_layers(int l)
+{
+	if (l < 0)
+		throw ERR;
+	if (l > 7)
+		throw ERR_OVERFLOW;
+	extra_gv_layers = l;
+	make_layers();
+}
+
+void in::GfxManager::make_layers()
+{
+	SettingContainer s;
+	gv.clear(); /* Wipe all layers to safely start afresh */
+	while (extra_gv_layers+1 > gv.size())
+	{
+		gv.push_back(new fr::Frame(*gv_font, s.get_gv_font_size(), 
+				sf::Vector2i(0, 0), sf::Vector2i(5, 5)));
+		gv[gv.size()-1]->set_standard_scale(1+(0.05*(gv.size()-1)));
+	}
+	update_sizes();
+	std::wcout << gv.size() << std::endl;
 }
 
 bool in::anim_is_active(float seconds_on, float seconds_off)
