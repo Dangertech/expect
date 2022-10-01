@@ -1,4 +1,20 @@
 #include "util.hpp"
+
+bool Vec3::operator==(Vec3 const &cmp)
+{
+	if (this->x == cmp.x && this->y == cmp.y && this->z == cmp.z)
+		return true;
+	else
+		return false;
+}
+ 
+bool Vec3::operator!=(Vec3 const &cmp)
+{
+	if (this->x != cmp.x || this->y != cmp.y || this->z != cmp.z)
+		return true;
+	else
+		return false;
+}
  
 std::vector<std::wstring> split(std::wstring str)
 {

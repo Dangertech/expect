@@ -13,7 +13,11 @@ struct Vec3
 	int x;
 	int y;
 	int z;
+	bool operator==(Vec3 const &cmp);
+	bool operator!=(Vec3 const &cmp);
 };
+
+
 
 std::vector<std::wstring> split(std::wstring str);
 template <typename T>

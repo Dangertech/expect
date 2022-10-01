@@ -44,7 +44,7 @@ namespace in
 			std::vector<fr::Frame*> gv;
 			fr::Frame* cli_frame;
 			
-			int extra_gv_layers = 2;
+			int extra_gv_layers = 1;
 			void make_layers();
 			
 			bool use_shaders = true;
@@ -69,6 +69,7 @@ namespace in
 				 
 				CamView(ecs::Aggregate* agg, Vec2 mxb, Vec2 myb, int mz);
 			};
+			std::unordered_map<int, CamView*> cvs;
 	};
 	 
 	/* Returns true for seconds_on seconds and then

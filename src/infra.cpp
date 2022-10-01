@@ -86,6 +86,11 @@ std::vector<sf::Event> in::GfxManager::get_events()
 			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 			update_sizes();
 		}
+		if (e.type == sf::Event::KeyPressed && !cli_dat->get_active())
+		{
+			cvs.clear(); /* Not the best solution, but quick */
+			std::cout << "Refreshed camviews!" << std::endl;
+		}
 		/* Push back into a simulated queue to be batch
 		 * processed externally
 		 */
@@ -243,18 +248,34 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 	Vec2 xbounds; xbounds.x = cam_center.x-gvsize.x/2; xbounds.y = cam_center.x+gvsize.x/2;
 	Vec2 ybounds; ybounds.x = cam_center.y-gvsize.y/2; ybounds.y = cam_center.y+gvsize.y/2;
 	/* View for the standard render */
-	CamView cstd(agg, xbounds, ybounds ,z);
+	CamView* cstd;
+	if (cvs.find(z) == cvs.end())
+	{
+		cvs[z] = new CamView(agg, xbounds, ybounds ,z);
+		cstd = cvs[z];
+	}
+	else 
+		cstd = cvs[z];
 	/* View for the below render */
-	CamView cblw(agg, xbounds, ybounds, z-1);
+	CamView* cblw;
+	if (cvs.find(z-1) == cvs.end())
+	{
+		cvs[z-1] = new CamView(agg, xbounds, ybounds, z-1);
+		cblw = cvs[z-1];
+	}
+	else
+		cblw = cvs[z-1];
 	if (below)
 	{
 		/* This loop draws everything one unit below the player (the floor)
 		 */
-		for (ecs::entity_id ent : cblw.entts)
+		for (ecs::entity_id ent : cblw->entts)
 		{
 			fa::Position* pos = agg->get_cmp<fa::Position>(ent);
 			int x = pos->x - cam_center.x + gvsize.x/2, 
 					y = pos->y - cam_center.y + gvsize.y/2;
+			if (x < 0 || y < 0 || x >gvsize.x || y > gvsize.y)
+				continue;
 			/* Draw it with less alpha */
 			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
 			frrep.fill.a -= 130;
@@ -265,7 +286,7 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 	}
 	/* This loop draws everything on the same level as the player
 	 */
-	for (ecs::entity_id ent : cstd.entts)
+	for (ecs::entity_id ent : cstd->entts)
 	{
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
@@ -281,7 +302,7 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 	 * displayed above everything else (everything that is alive and
 	 * player characters)
 	 */
-	for (ecs::entity_id ent : cstd.entts) 
+	for (ecs::entity_id ent : cstd->entts) 
 	{
 		if (!agg->get_cmp<fa::Playable>(ent) || !agg->get_cmp<fa::Alive>(ent)
 				|| !agg->get_cmp<fa::Position>(ent))
