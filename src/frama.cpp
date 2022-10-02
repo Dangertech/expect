@@ -3,7 +3,7 @@
 #include "frama.hpp"
 #include "const.h"
 
-fr::ObjRep fr::Frame::get_char(int x, int y)
+fr::ChrRep fr::Frame::get_char(int x, int y)
 {
 	if (y > get_grid_size().y -1 || x > get_grid_size().x -1)
 		throw ERR_OVERFLOW;
@@ -13,13 +13,12 @@ fr::ObjRep fr::Frame::get_char(int x, int y)
 	}
 	else
 	{
-		return grid.at((unsigned long)x << 32 | (unsigned long) y).refobj;
+		return grid.at((unsigned long)x << 32 | (unsigned long) y).refchr;
 	}
 }
 
-void fr::Frame::set_char(ObjRep rep, int x, int y)
+void fr::Frame::set_char(ChrRep rep, int x, int y)
 {
-
 	if (y > get_grid_size().y || x > get_grid_size().x)
 	{
 		throw ERR_OVERFLOW;
@@ -29,8 +28,8 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 		grid.erase((unsigned long)x << 32 | (unsigned long) y);
 		return;
 	}
-	GridObj newobj; 
-	newobj.refobj = rep;
+	GridObj newobj;
+	newobj.refchr = rep;
 	newobj.s.setTexture(*font_txt);
 	newobj.s.setTextureRect(font->getGlyph(rep.ch, font_size, rep.bold).textureRect); 
 	newobj.s.setColor(rep.fill);
@@ -52,8 +51,46 @@ void fr::Frame::set_char(ObjRep rep, int x, int y)
 	
 }
 
+void fr::Frame::set_char(ImgRep rep, int x, int y)
+{
+	if (y > get_grid_size().y || x > get_grid_size().x)
+	{
+		throw ERR_OVERFLOW;
+	}
+	if (rep.txt == nullptr)
+	{
+		grid.erase((unsigned long)x << 32 | (unsigned long) y);
+		return;
+	}
+	GridObj newobj;
+	newobj.refimg = rep;
+	newobj.uses_img = true;
+	newobj.s.setTexture(*rep.txt);
+	if (rep.area != sf::IntRect(0,0,0,0))
+		newobj.s.setTextureRect(rep.area);
+	newobj.s.setColor(rep.col);
+	newobj.s.setScale(standard_scale, standard_scale);
+	newobj.size_mod = 1; 
+	
+	/* Position */
+	float x_top = x*(sref.width*standard_scale) + origin.x + margin.x*x;
+	float y_top = y*(sref.height*standard_scale) + origin.y + margin.y*y;
+	newobj.s.setPosition(sf::Vector2f(x_top, y_top));
+	
+	/* Manage background */
+	sf::RectangleShape bg(sf::Vector2f(sref.width*standard_scale*rep.size_mod, 
+				sref.height*standard_scale*rep.size_mod));
+	bg.setPosition(x_top, y_top);
+	bg.setFillColor(rep.bg);
+	newobj.r = bg;
+	 
+	/* Put into grid */
+	grid[(unsigned long)x << 32 | (unsigned long) y] = newobj;
+	to_update = true;
+}
+
 sf::Vector2i fr::Frame::print(std::wstring input, int x, int y, 
-		fr::ObjRep rep, bool autobreak, int max_x, int max_y, bool dry)
+		fr::ChrRep rep, bool autobreak, int max_x, int max_y, bool dry)
 {
 	auto g_size = get_grid_size();
 	if (x > g_size.x)
@@ -74,7 +111,7 @@ sf::Vector2i fr::Frame::print(std::wstring input, int x, int y,
 			my_y++;
 			continue;
 		}
-		ObjRep this_rep = rep;
+		ChrRep this_rep = rep;
 		this_rep.ch = input[i];
 		 
 		if (!dry)
@@ -352,7 +389,7 @@ namespace anim
 				{
 					sf::Color col = slice_color;
 					col.a = ((y-lid_pos-slices+1)/slices)*255;
-					ObjRep th = fr.get_char(x, y);
+					ChrRep th = fr.get_char(x, y);
 					if (th.ch == L' ' && only_filled)
 						continue;
 					th.bg = col; 
@@ -378,7 +415,7 @@ namespace anim
 				{
 					sf::Color col = slice_color;
 					col.a = 1-(((y-lid_pos)/slices)*255);
-					ObjRep th = fr.get_char(x, y);
+					ChrRep th = fr.get_char(x, y);
 					if (th.ch == L' ' && only_filled)
 						continue;
 					th.bg = col; 

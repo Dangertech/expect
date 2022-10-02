@@ -45,6 +45,7 @@ namespace in
 			fr::Frame* cli_frame;
 			
 			int extra_gv_layers = 1;
+			/* Sets up the frames in the gv vector according to extra_gv_layers */
 			void make_layers();
 			
 			bool use_shaders = true;
@@ -83,6 +84,6 @@ namespace in
 	/* Contains static data and functions for showing things to the gameview */
 	namespace gv
 	{
-		fr::ObjRep evaluate_rep(ecs::Aggregate*, ecs::entity_id);
+		fr::ChrRep evaluate_rep(ecs::Aggregate*, ecs::entity_id);
 	}
 }

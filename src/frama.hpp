@@ -17,7 +17,7 @@ namespace fr
 	enum CharPoint {TOP, LEFT, RIGHT, DOWN, TOP_LEFT, TOP_RIGHT, 
 		BOTTOM_LEFT, BOTTOM_RIGHT, CENTER};
 	 
-	struct ObjRep
+	struct ChrRep
 	{
 		wchar_t ch;
 		float size_mod;
@@ -29,7 +29,7 @@ namespace fr
 		sf::Color bg;
 		bool bold;
 		 
-		ObjRep
+		ChrRep
 		(
 			wchar_t my_ch,
 			sf::Color my_fill = sf::Color(255, 255, 255, 255),
@@ -49,9 +49,9 @@ namespace fr
 			*/
 			bg = my_bg; bold = my_bold;
 		}
-		ObjRep(){}
+		ChrRep(){}
 		 
-		bool operator==(const ObjRep& r) const
+		bool operator==(const ChrRep& r) const
 		{
 			return ch == r.ch && size_mod == r.size_mod
 				&& fill == r.fill /*&& ol == r.ol
@@ -59,7 +59,28 @@ namespace fr
 				&& bg == r.bg && bold == r.bold;
 		}
 	};
-	const ObjRep EMPTY(L' ');
+	const ChrRep EMPTY(L' ');
+
+	struct ImgRep
+	{
+		sf::Texture* txt;
+		sf::IntRect area;
+		sf::Color col;
+		sf::Color bg;
+		int size_mod = 1;
+		ImgRep
+		(
+			sf::Texture* mtxt,
+			sf::IntRect marea = sf::IntRect(0,0,0,0), /* Whole texture used */
+			sf::Color mcol = sf::Color(0,0,0,0),
+			sf::Color mbg = sf::Color(0,0,0,0),
+			int msize_mod = 1
+		)
+		{
+			txt = mtxt; area = marea; col = mcol; bg = mbg; size_mod = msize_mod;
+		}
+		ImgRep(){}
+	};
 	 
 	class Frame
 	{
@@ -91,15 +112,16 @@ namespace fr
 			 * objects are stored in an unsorted vector to make performance
 			 * improvements in other areas, so it's best to use it sparingly
 			 */
-			ObjRep get_char(int x, int y);
+			ChrRep get_char(int x, int y);
 			/* Set a character on the grid by providing a specification
-			 * in form of an ObjRep
+			 * in form of a ChrRep or ImgRep
 			 */
-			void set_char(ObjRep rep, int x, int y);
+			void set_char(ChrRep rep, int x, int y);
+			void set_char(ImgRep rep, int x, int y);
 			
 			/* Allows to print a whole string in a line
 			 * at a specified position. 
-			 * In the given ObjRep, the character is ignored but
+			 * In the given ChrRep, the character is ignored but
 			 * all characters will obey to the specified styling;
 			 * Newlines are supported and will return to the
 			 * specified x position one row below.
@@ -116,7 +138,7 @@ namespace fr
 			 *  If the function ran out of y space, it returns the latest y coordinate
 			 */
 			sf::Vector2i print(std::wstring input, int x, int y, 
-					ObjRep rep, bool autobreak = true, int max_x = -1, int max_y = -1, 
+					ChrRep rep, bool autobreak = true, int max_x = -1, int max_y = -1, 
 					bool dry = false);
 			
 			float get_standard_scale() {return standard_scale; }
@@ -182,7 +204,9 @@ namespace fr
 				sf::Sprite s;
 				sf::RectangleShape r;
 				float size_mod = 1;
-				ObjRep refobj;
+				ChrRep refchr;
+				ImgRep refimg;
+				bool uses_img = false;
 			};
 			std::unordered_map<unsigned long, GridObj> grid;
 			sf::Font* font; int font_size = 32;
@@ -230,6 +254,8 @@ namespace fr
 			*/
 			void set_size_ref();
 	};
+	 
+	 
 	/* Execute various animations (and other effects) on a frame;
 	 * Supply t as a number between 0 or 1 that determines how far the animation
 	 * has progressed

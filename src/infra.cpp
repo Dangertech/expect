@@ -277,7 +277,7 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 			if (x < 0 || y < 0 || x >gvsize.x || y > gvsize.y)
 				continue;
 			/* Draw it with less alpha */
-			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
 			frrep.fill.a -= 130;
 			frrep.bg.a -= 130;
 			frrep.ch = L'.';
@@ -291,7 +291,7 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
 			frrep.fill.a = transparency;
 			frrep.bg.a = transparency;
 			f.set_char(frrep, phpos.x, phpos.y);
@@ -310,7 +310,7 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			fr::ObjRep frrep = gv::evaluate_rep(agg, ent);
+			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
 			f.set_char(frrep, phpos.x, phpos.y);
 		}
 	}
@@ -356,7 +356,7 @@ void in::GfxManager::fill_cli()
 		}
 		std::wstring msg;
 		int x = 4;
-		fr::ObjRep rep = fr::EMPTY;
+		fr::ChrRep rep = fr::EMPTY;
 		switch (this_entry.l)
 		{
 			case cli::INPUT:
@@ -366,7 +366,7 @@ void in::GfxManager::fill_cli()
 				rep.fill = sf::Color(CLI_USER);
 				break;
 			case cli::DEBUG:
-				rep = fr::ObjRep(L' ', sf::Color(128, 128, 128));
+				rep = fr::ChrRep(L' ', sf::Color(128, 128, 128));
 				break;
 			case cli::MESSAGE:
 				break;
@@ -383,7 +383,7 @@ void in::GfxManager::fill_cli()
 	}
 	 
 	/* Draw the "PS1" of the CLI input */
-	fr::ObjRep s(CLI_PS1);
+	fr::ChrRep s(CLI_PS1);
 	if (cli_dat->get_active())
 	{
 		s.fill = sf::Color(CLI_ACTIVE);
@@ -393,7 +393,7 @@ void in::GfxManager::fill_cli()
 		{
 			for(int x = 2; x<size_x-2; x++)
 			{
-				cli_frame->set_char(fr::ObjRep(L' ', sf::Color::Black, 
+				cli_frame->set_char(fr::ChrRep(L' ', sf::Color::Black, 
 							sf::Color(CLI_ACTIVE, CLI_ALPHA)), 
 						x, y);
 			}
@@ -441,7 +441,7 @@ void in::GfxManager::make_layers()
 	{
 		gv.push_back(new fr::Frame(*gv_font, s.get_gv_font_size(), 
 				sf::Vector2i(0, 0), sf::Vector2i(5, 5)));
-		gv[gv.size()-1]->set_standard_scale(1+(0.05*(gv.size()-1)));
+		gv[gv.size()-1]->set_standard_scale(1+(0.1*(gv.size()-1)));
 	}
 	update_sizes();
 	std::wcout << gv.size() << std::endl;
@@ -483,13 +483,13 @@ bool in::anim_is_active(float seconds_on, float seconds_off)
 	return false;
 }
 
-fr::ObjRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
+fr::ChrRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
 {
 	/* The task of this function might grow incredibly complex
 	 * and is already moderately complex; It looks a bit hacked together
 	 * right now, but that's OK.
 	 */
-	fr::ObjRep rep(L'?');
+	fr::ChrRep rep(L'?');
 	if(agg->get_cmp<fa::Playable>(id))
 	{
 		rep.ch = L'@';
