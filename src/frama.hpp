@@ -65,14 +65,14 @@ namespace fr
 	{
 		sf::Texture* txt;
 		sf::IntRect area;
-		sf::Color col;
+		sf::Color col = sf::Color::White;
 		sf::Color bg;
 		int size_mod = 1;
 		ImgRep
 		(
 			sf::Texture* mtxt,
 			sf::IntRect marea = sf::IntRect(0,0,0,0), /* Whole texture used */
-			sf::Color mcol = sf::Color(0,0,0,0),
+			sf::Color mcol = sf::Color::White,
 			sf::Color mbg = sf::Color(0,0,0,0),
 			int msize_mod = 1
 		)

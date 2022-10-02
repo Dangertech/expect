@@ -33,6 +33,8 @@ int main()
 	/* Construct a player Object and place its id in the entts vector */
 	entts.push_back(fa::deal_player(0, 0, 0, agg));
 	entts.push_back(fa::deal_item(0, 1, 0, agg));
+	entts.push_back(fa::deal_item(1, 1, 0, agg));
+	agg.get_cmp<fa::Eatable>(entts[entts.size()-1])->type = fa::Eatable::RATION;
 	/* Construct some walls */
 	for (int z = 0; z < 5; z++)
 	{

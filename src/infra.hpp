@@ -8,6 +8,56 @@
 
 namespace in
 {
+	/* Contains static data and functions for showing things to the gameview */
+	class RepCreator
+	{
+		public:
+			RepCreator(ecs::Aggregate* magg)
+			{
+				agg = magg;
+				load_textures();
+			}
+			struct Rep
+			{
+				/* 0 means chrrep should be used, 1 means imgrep
+				 * should be used 
+				 */
+				bool to_use = 0; 
+				fr::ChrRep chrrep;
+				fr::ImgRep imgrep;
+			};
+			/* Main function of this class;
+			 * Evaluates a character it is sent and returns
+			 * a struct where either a procedurally generated ChrRep or 
+			 * an ImgRep should be drawn to a gameview frame
+			 */
+			Rep evaluate_rep(ecs::entity_id);
+		private:
+			ecs::Aggregate* agg;
+			fr::ChrRep evaluate_chr(ecs::entity_id);
+			fr::ImgRep evaluate_img(ecs::entity_id);
+			 
+			sf::Texture tilemap;
+
+			enum Tilename 
+			{ 
+				FOOD_SLIME_MOLD,
+				FOOD_RATION
+			};
+			const int tile_x = 32, tile_y = 32;
+			const std::unordered_map<Tilename, Vec2> tilelocs
+			{
+				{FOOD_SLIME_MOLD, {0, 0}}, 
+				{FOOD_RATION, {1, 0}} 
+			};
+			/* Looks up a tile location from tilelocs and
+			 * converts it to a IntRect
+			 */
+			sf::IntRect tloc(Tilename);
+			 
+			void load_textures();
+	};
+	 
 	/* Manages game view, sidebars and other windows */
 	class GfxManager
 	{
@@ -42,6 +92,7 @@ namespace in
 			sf::Font* tx_font;
 			sf::Shader* blur;
 			std::vector<fr::Frame*> gv;
+			RepCreator* rc;
 			fr::Frame* cli_frame;
 			
 			int extra_gv_layers = 1;
@@ -81,9 +132,5 @@ namespace in
 	 */
 	bool anim_is_active(float seconds_on, float seconds_off);
 	
-	/* Contains static data and functions for showing things to the gameview */
-	namespace gv
-	{
-		fr::ChrRep evaluate_rep(ecs::Aggregate*, ecs::entity_id);
-	}
+
 }

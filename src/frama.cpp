@@ -68,7 +68,8 @@ void fr::Frame::set_char(ImgRep rep, int x, int y)
 	newobj.s.setTexture(*rep.txt);
 	if (rep.area != sf::IntRect(0,0,0,0))
 		newobj.s.setTextureRect(rep.area);
-	newobj.s.setColor(rep.col);
+	if (rep.col != sf::Color(0,0,0,0))
+		newobj.s.setColor(rep.col);
 	newobj.s.setScale(standard_scale, standard_scale);
 	newobj.size_mod = 1; 
 	

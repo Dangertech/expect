@@ -19,6 +19,7 @@ in::GfxManager::GfxManager(ecs::Aggregate& my_agg, cli::CliData& my_cli_dat)
 	gv_font = new sf::Font;
 	tx_font = new sf::Font;
 	blur = new sf::Shader;
+	rc = new RepCreator(agg);
 	if (!sf::Shader::isAvailable())
 		use_shaders = false;
 	if (!blur->loadFromFile("blur.frag", sf::Shader::Fragment))
@@ -56,6 +57,7 @@ in::GfxManager::~GfxManager()
 	for (auto x : gv)
 		delete x;
 	delete cli_frame;
+	delete rc;
 }
 
 void in::GfxManager::adjust_zoom(float chg)
@@ -277,11 +279,19 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 			if (x < 0 || y < 0 || x >gvsize.x || y > gvsize.y)
 				continue;
 			/* Draw it with less alpha */
-			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
-			frrep.fill.a -= 130;
-			frrep.bg.a -= 130;
-			frrep.ch = L'.';
-			f.set_char(frrep, x, y);
+			RepCreator::Rep rep = rc->evaluate_rep(ent);
+			if (rep.to_use == 0)
+			{
+				rep.chrrep.fill.a -= 130;
+				rep.chrrep.bg.a -= 130;
+				rep.chrrep.ch = L'.';
+				f.set_char(rep.chrrep, x, y);
+			}
+			else
+			{
+				rep.imgrep.col.a -= 130;
+				f.set_char(rep.imgrep, x, y);
+			}
 		}
 	}
 	/* This loop draws everything on the same level as the player
@@ -291,10 +301,20 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
-			frrep.fill.a = transparency;
-			frrep.bg.a = transparency;
-			f.set_char(frrep, phpos.x, phpos.y);
+			RepCreator::Rep rep = rc->evaluate_rep(ent);
+			std::cout << "Deciding on what to set" << std::endl;
+			if (rep.to_use == 0)
+			{
+				rep.chrrep.fill.a = transparency;
+				rep.chrrep.bg.a = transparency;
+				std::cout << "Setting character!" << std::endl;
+				f.set_char(rep.chrrep, phpos.x, phpos.y);
+			}
+			else
+			{
+				std::cout << "Setting image!" << std::endl;
+				f.set_char(rep.imgrep, phpos.x, phpos.y);
+			}
 		}
 	}
 	
@@ -310,8 +330,15 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			fr::ChrRep frrep = gv::evaluate_rep(agg, ent);
-			f.set_char(frrep, phpos.x, phpos.y);
+			RepCreator::Rep rep = rc->evaluate_rep(ent);
+			if (rep.to_use == 0)
+			{
+				f.set_char(rep.chrrep, phpos.x, phpos.y);
+			}
+			else
+			{
+				f.set_char(rep.imgrep, phpos.x, phpos.y);
+			}
 		}
 	}
 }
@@ -483,69 +510,128 @@ bool in::anim_is_active(float seconds_on, float seconds_off)
 	return false;
 }
 
-fr::ChrRep in::gv::evaluate_rep(ecs::Aggregate* agg, ecs::entity_id id)
+namespace in
 {
-	/* The task of this function might grow incredibly complex
-	 * and is already moderately complex; It looks a bit hacked together
-	 * right now, but that's OK.
-	 */
-	fr::ChrRep rep(L'?');
-	if(agg->get_cmp<fa::Playable>(id))
+	RepCreator::Rep RepCreator::evaluate_rep(ecs::entity_id id)
 	{
-		rep.ch = L'@';
-	}
-	else if (agg->get_cmp<fa::Wall>(id))
-	{
-		fa::Wall* w = agg->get_cmp<fa::Wall>(id);
-		rep.ch = L'#';
-		switch (w->type)
-		{
-			case fa::Wall::CONCRETE:
-				rep.fill = sf::Color(128,128,128);
-				break;
-			case fa::Wall::REDBRICK:
-				rep.fill = sf::Color(255, 80, 0);
-				break;
-		}
-		fa::Paintable* p = agg->get_cmp<fa::Paintable>(id);
-		if (p)
-		{
-			/* TODO: Merge the base color and the paintable color based on
-			 * the visibility
-			 */
-			if (p->visibility > 0)
-			{
-				rep.fill.r = (rep.fill.r + p->color.x)/2;
-				rep.fill.g = (rep.fill.g + p->color.y)/2;
-				rep.fill.b = (rep.fill.b + p->color.z)/2;
-			}
-		}
-	}
-	else if (agg->get_cmp<fa::Eatable>(id))
-	{
-		fa::Eatable* e = agg->get_cmp<fa::Eatable>(id);
-		switch (e->type)
-		{
-			case fa::Eatable::RATION:
-				rep.ch = L'&';
-				rep.fill = sf::Color(98,54,18);
-				break;
-			case fa::Eatable::SLIME_MOLD:
-				rep.ch = L'o';
-				rep.fill = sf::Color(15, 168, 142);
-		}
+		fr::ChrRep crep = evaluate_chr(id);
+		fr::ImgRep irep = evaluate_img(id);
+		if (irep.area != sf::IntRect(0,0,0,0))
+			return {1, crep, irep};
+		else
+			return {0, crep, irep};
 	}
 	
-	
-	if (agg->get_cmp<fa::Flammable>(id))
+	fr::ChrRep RepCreator::evaluate_chr(ecs::entity_id id)
 	{
-		if (agg->get_cmp<fa::Flammable>(id)->burning)
+		/* The task of this function might grow incredibly complex
+		 * and is already moderately complex; It looks a bit hacked together
+		 * right now, but that's OK.
+		 */
+		fr::ChrRep crep(L'?');
+		fr::ImgRep irep;
+		if(agg->get_cmp<fa::Playable>(id))
 		{
-			if (in::anim_is_active(0.5, 1.f))
+			crep.ch = L'@';
+		}
+		else if (agg->get_cmp<fa::Wall>(id))
+		{
+			fa::Wall* w = agg->get_cmp<fa::Wall>(id);
+			crep.ch = L'#';
+			switch (w->type)
 			{
-				rep.bg = sf::Color(255, 128, 0);
+				case fa::Wall::CONCRETE:
+					crep.fill = sf::Color(128,128,128);
+					break;
+				case fa::Wall::REDBRICK:
+					crep.fill = sf::Color(255, 80, 0);
+					break;
+			}
+			fa::Paintable* p = agg->get_cmp<fa::Paintable>(id);
+			if (p)
+			{
+				/* TODO: Merge the base color and the paintable color based on
+				 * the visibility
+				 */
+				if (p->visibility > 0)
+				{
+					crep.fill.r = (crep.fill.r + p->color.x)/2;
+					crep.fill.g = (crep.fill.g + p->color.y)/2;
+					crep.fill.b = (crep.fill.b + p->color.z)/2;
+				}
 			}
 		}
+		else if (agg->get_cmp<fa::Eatable>(id))
+		{
+			fa::Eatable* e = agg->get_cmp<fa::Eatable>(id);
+			switch (e->type)
+			{
+				case fa::Eatable::RATION:
+					crep.ch = L'&';
+					crep.fill = sf::Color(98,54,18);
+					break;
+				case fa::Eatable::SLIME_MOLD:
+					crep.ch = L'o';
+					crep.fill = sf::Color(15, 168, 142);
+			}
+		}
+		
+		
+		if (agg->get_cmp<fa::Flammable>(id))
+		{
+			if (agg->get_cmp<fa::Flammable>(id)->burning)
+			{
+				if (in::anim_is_active(0.5, 1.f))
+				{
+					crep.bg = sf::Color(255, 128, 0);
+				}
+			}
+		}
+		return crep;
 	}
-	return rep;
+	
+	fr::ImgRep RepCreator::evaluate_img(ecs::entity_id id)
+	{
+		fr::ImgRep irep;
+		irep.txt = nullptr;
+		if (tilemap.getSize() == sf::Vector2u(0,0))
+		{
+			/* Just chicken out and always use characters */
+			std::cout << "Size is 0" << std::endl;
+			return irep;
+		}
+		irep.txt = &tilemap;
+		if (agg->get_cmp<fa::Eatable>(id))
+		{
+			fa::Eatable* e = agg->get_cmp<fa::Eatable>(id);
+			switch (e->type)
+			{
+				case fa::Eatable::SLIME_MOLD:
+					irep.area = tloc(FOOD_SLIME_MOLD);
+					break;
+				case fa::Eatable::RATION:
+					irep.area = tloc(FOOD_RATION);
+				default:
+					break;
+			}
+		}
+		return irep;
+	}
+	
+	void RepCreator::load_textures()
+	{
+		if (!tilemap.loadFromFile("art/tilemap.png"))
+		{
+			std::cout << "Error! Couldn't load tilemap from ./art/tilemap.jpg!" 
+				<< std::endl;
+		} 
+	}
+
+	sf::IntRect RepCreator::tloc(Tilename t)
+	{
+		if (tilelocs.find(t) == tilelocs.end())
+			return sf::IntRect(0,0,0,0);
+		Vec2 metapos = tilelocs.at(t);
+		return sf::IntRect(metapos.x*tile_x, metapos.y*tile_y, tile_x, tile_y);
+	}
 }
