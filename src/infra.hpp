@@ -38,7 +38,7 @@ namespace in
 			fr::ImgRep evaluate_img(ecs::entity_id);
 			 
 			sf::Texture tilemap;
-
+			 
 			enum Tilename 
 			{ 
 				FOOD_SLIME_MOLD,
@@ -51,7 +51,7 @@ namespace in
 				{FOOD_RATION, {1, 0}} 
 			};
 			/* Looks up a tile location from tilelocs and
-			 * converts it to a IntRect
+			 * converts it to an IntRect
 			 */
 			sf::IntRect tloc(Tilename);
 			 

@@ -87,6 +87,8 @@ std::vector<sf::Event> in::GfxManager::get_events()
 		{
 			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 			update_sizes();
+			cvs.clear();
+			std::cout << "Refreshed camviews!" << std::endl;
 		}
 		if (e.type == sf::Event::KeyPressed && !cli_dat->get_active())
 		{
@@ -302,17 +304,14 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		if (phpos.x != -1)
 		{
 			RepCreator::Rep rep = rc->evaluate_rep(ent);
-			std::cout << "Deciding on what to set" << std::endl;
 			if (rep.to_use == 0)
 			{
 				rep.chrrep.fill.a = transparency;
 				rep.chrrep.bg.a = transparency;
-				std::cout << "Setting character!" << std::endl;
 				f.set_char(rep.chrrep, phpos.x, phpos.y);
 			}
 			else
 			{
-				std::cout << "Setting image!" << std::endl;
 				f.set_char(rep.imgrep, phpos.x, phpos.y);
 			}
 		}

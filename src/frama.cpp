@@ -2,6 +2,7 @@
 #include "cmath"
 #include "frama.hpp"
 #include "const.h"
+#include "util.hpp"
 
 fr::ChrRep fr::Frame::get_char(int x, int y)
 {
@@ -17,6 +18,7 @@ fr::ChrRep fr::Frame::get_char(int x, int y)
 	}
 }
 
+/* ChrRep */
 void fr::Frame::set_char(ChrRep rep, int x, int y)
 {
 	if (y > get_grid_size().y || x > get_grid_size().x)
@@ -51,6 +53,7 @@ void fr::Frame::set_char(ChrRep rep, int x, int y)
 	
 }
 
+/* ImgRep */
 void fr::Frame::set_char(ImgRep rep, int x, int y)
 {
 	if (y > get_grid_size().y || x > get_grid_size().x)
@@ -70,25 +73,36 @@ void fr::Frame::set_char(ImgRep rep, int x, int y)
 		newobj.s.setTextureRect(rep.area);
 	if (rep.col != sf::Color(0,0,0,0))
 		newobj.s.setColor(rep.col);
-	newobj.s.setScale(standard_scale, standard_scale);
-	newobj.size_mod = 1; 
+	 
+	int unisize = smaller(sref.width, sref.height);
+	sf::FloatRect lbounds = newobj.s.getLocalBounds();
+	newobj.s.setScale(unisize/lbounds.width * standard_scale * rep.size_mod, 
+			unisize/lbounds.height * standard_scale * rep.size_mod);
+	newobj.size_mod = rep.size_mod; 
 	
-	/* Position */
 	float x_top = x*(sref.width*standard_scale) + origin.x + margin.x*x;
 	float y_top = y*(sref.height*standard_scale) + origin.y + margin.y*y;
-	newobj.s.setPosition(sf::Vector2f(x_top, y_top));
-	
+	 
 	/* Manage background */
 	sf::RectangleShape bg(sf::Vector2f(sref.width*standard_scale*rep.size_mod, 
 				sref.height*standard_scale*rep.size_mod));
 	bg.setPosition(x_top, y_top);
 	bg.setFillColor(rep.bg);
 	newobj.r = bg;
+	
+	/* Sprite Position */
+	sf::FloatRect gbounds = newobj.s.getGlobalBounds();
+	sf::FloatRect bggbounds = newobj.r.getGlobalBounds();
+	newobj.s.setPosition(sf::Vector2f(
+			x_top+(bggbounds.width-gbounds.width)/2, 
+			y_top+(bggbounds.height-gbounds.height)/2
+	));
 	 
 	/* Put into grid */
 	grid[(unsigned long)x << 32 | (unsigned long) y] = newobj;
 	to_update = true;
 }
+
 
 sf::Vector2i fr::Frame::print(std::wstring input, int x, int y, 
 		fr::ChrRep rep, bool autobreak, int max_x, int max_y, bool dry)

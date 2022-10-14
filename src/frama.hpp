@@ -262,7 +262,8 @@ namespace fr
 	 */
 	namespace anim
 	{
-		void slide_down(float t, Frame& fr, int slices, sf::Color slice_color, bool reverse = false, bool only_filled = false); 
+		void slide_down(float t, Frame& fr, int slices, sf::Color slice_color, 
+				bool reverse = false, bool only_filled = false); 
 		void border(fr::Frame&, sf::Color, wchar_t top = 0x2550,
 			wchar_t bottom = 0x2550, wchar_t left = 0x2551, wchar_t right = 0x2551, 
 			wchar_t top_left = 0x2554, 
