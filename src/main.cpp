@@ -103,6 +103,7 @@ int main()
 		 * externally (namely HIDs)
 		 */
 		std::vector<sf::Event> ev = gfx.get_events();
+		/* Input reaction logic */
 		bool skiptxt = false;
 		for (int i = 0; i < ev.size(); i++)
 		{
@@ -169,7 +170,7 @@ int main()
 		}
 		 
 		gfx.set_cam_center({plr_pos->x, plr_pos->y, plr_pos->z});
-		 /* Draw the stuff in view to the gv frame */
+		 /* Draw all frames */
 		gfx.render();
 		/* Wait some time to meet the fps requirement and not waste 
 		 * computing power for rendering some text at 500 fps

@@ -87,13 +87,6 @@ std::vector<sf::Event> in::GfxManager::get_events()
 		{
 			win->setView(sf::View(sf::FloatRect(0,0,e.size.width, e.size.height)));
 			update_sizes();
-			cvs.clear();
-			std::cout << "Refreshed camviews!" << std::endl;
-		}
-		if (e.type == sf::Event::KeyPressed && !cli_dat->get_active())
-		{
-			cvs.clear(); /* Not the best solution, but quick */
-			std::cout << "Refreshed camviews!" << std::endl;
 		}
 		/* Push back into a simulated queue to be batch
 		 * processed externally

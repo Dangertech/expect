@@ -1,4 +1,5 @@
 #include "commands.hpp"
+#include "puppeteer.hpp"
  
 
 /* TODO: THE SHITTIEST POSITION EVER FOR THIS FUNCTION */
@@ -97,6 +98,8 @@ namespace cmd
 			ret.push_back(cli::LogEntry(helpmsg, cli::MESSAGE));
 		}
 		 
+		int response = pptr::take_step(agg, pptr::plr(agg), dir);
+		/*
 		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
 		{
 			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
@@ -113,6 +116,7 @@ namespace cmd
 				pos->y += dir.y;
 			}
 		}
+		*/
 		return ret;
 	}
 	 
@@ -133,6 +137,8 @@ namespace cmd
 				return {cli::LogEntry(dirhelp(), cli::MESSAGE)};
 			}
 		}
+		int response = pptr::pickup(agg, pptr::plr(agg), dir);
+		/*
 		ecs::entity_id plr;
 		bool exists = false;
 		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
@@ -144,7 +150,7 @@ namespace cmd
 			return {cli::LogEntry(
 					L"You are dead and can not pick anything up.", cli::MESSAGE)};
 		fa::Position* pos = agg.get_cmp<fa::Position>(plr);
-		std::vector<ecs::entity_id> pot_targets = /* Potential Targets */
+		std::vector<ecs::entity_id> pot_targets = 
 			get_at_pos(pos->x+dir.x, pos->y+dir.y, pos->z, entts, agg);
 		std::vector<ecs::entity_id> targets;
 		for (ecs::entity_id ent : pot_targets)
@@ -158,11 +164,11 @@ namespace cmd
 					L"There is nothing to pick up.", cli::MESSAGE)};
 		else
 		{
-			/* TODO: Actual pickup code */
 			agg.destroy_entity(targets[0]);
 			return {cli::LogEntry(
 					L"You picked up an item!", cli::MESSAGE)};
 		}
+		*/
 	}
 	 
 	RET zoom(std::vector<std::wstring> args, 

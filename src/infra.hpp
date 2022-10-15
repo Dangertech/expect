@@ -106,8 +106,11 @@ namespace in
 			Vec3 cam_center;
 			
 			void update_sizes();
-			/* Logic to fill the gameview and cli frames with appropriate characters*/
-			void fill_gv(fr::Frame&, int z, bool below = false, float transparency = 255.f);
+			/* Logic to fill the gameview and cli frames with appropriate 
+			 * characters
+			 */
+			void fill_gv(fr::Frame&, int z, bool below = false, 
+					float transparency = 255.f);
 			void fill_cli();
 			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize, int z);
 			
@@ -121,6 +124,11 @@ namespace in
 				 
 				CamView(ecs::Aggregate* agg, Vec2 mxb, Vec2 myb, int mz);
 			};
+			/* Holds entity ids corresponding to a specific z layer in the 
+			 * world; Update mechanic is pretty complicated, so the layers are
+			 * simply cleared every time the player presses a button in get_events();
+			 * CamViews are created dynamically on fill_gv()
+			 */
 			std::unordered_map<int, CamView*> cvs;
 	};
 	 
@@ -131,6 +139,4 @@ namespace in
 	 * animations
 	 */
 	bool anim_is_active(float seconds_on, float seconds_off);
-	
-
 }
