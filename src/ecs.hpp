@@ -101,6 +101,8 @@ namespace ecs
 				T* cmp = static_cast<T*>(cmp_pools[cmp_id]->get(get_entity_idx(e_id)));
 				return cmp;
 			}
+
+			std::vector<entity_id> get_entts();
 		private:
 			int cmp_counter = 0;
 			 

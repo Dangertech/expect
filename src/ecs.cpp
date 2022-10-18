@@ -66,4 +66,14 @@ namespace ecs
 	{
 		return (id >> 32) != entity_idx(-1);
 	}
+
+	std::vector<entity_id> Aggregate::get_entts()
+	{
+		std::vector<entity_id> ret;
+		for (Entity x : entities)
+		{
+			if (is_entity_valid(x.id)) ret.push_back(x.id);
+		}
+		return ret;
+	}
 }

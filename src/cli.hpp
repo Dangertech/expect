@@ -17,6 +17,11 @@ namespace cli
 			c = my_c;
 			l = my_l;
 		}
+		LogEntry(std::wstring my_c)
+		{
+			c = my_c;
+			l = MESSAGE;
+		}
 	};
 
 	/* Manages I/O capabilities of the CLI */

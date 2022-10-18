@@ -293,6 +293,8 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 	 */
 	for (ecs::entity_id ent : cstd->entts)
 	{
+		if (!agg->get_cmp<fa::Position>(ent))
+			continue;
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{

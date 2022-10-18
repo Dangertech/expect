@@ -8,7 +8,7 @@
  */
  
 /* General Arguments */
-#define GARGS ecs::Aggregate& agg, ecs::entity_id
+#define GARGS ecs::Aggregate& agg, ecs::entity_id ent
 namespace pptr
 {
 		ecs::entity_id plr(ecs::Aggregate& agg); /* Get a player entity */
@@ -20,5 +20,7 @@ namespace pptr
 		 * the game on what went wrong on failure
 		 */
 		int pickup(GARGS, Vec2 dir);
+		/* 1: Entity does not have position component
+		 */
 		int take_step(GARGS, Vec2 dir);
 };

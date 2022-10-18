@@ -1,27 +1,6 @@
 #include "commands.hpp"
 #include "puppeteer.hpp"
  
-
-/* TODO: THE SHITTIEST POSITION EVER FOR THIS FUNCTION */
-/* NOTE: Having to do THIS for thousands of entities
- * would be inefficient as fuck.
- * Solution: Chonky Boi Chunks???
- */
-std::vector<ecs::entity_id> get_at_pos(int x, int y, int z,
-		std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
-{
-	std::vector<ecs::entity_id> ret;
-	for (int i = 0; i<entts.size(); i++)
-	{
-		fa::Position* pos = agg.get_cmp<fa::Position>(entts[i]);
-		if (pos == nullptr)
-			continue;
-		if (pos->x == x && pos->y == y && pos->z == z)
-			ret.push_back(entts[i]); 
-	}
-	return ret;
-}
-
 /* Resolves a direction name (like up, southeast or 1) to a relative position */
 Vec2 nametopos(std::wstring name)
 {
@@ -73,7 +52,7 @@ bool checkargs(std::vector<std::wstring> args, std::vector<cli::LogEntry>& ret, 
 {
 	if (args.size() == 0)
 	{
-		ret.push_back(cli::LogEntry(errmsg, cli::MESSAGE));
+		ret.push_back(cli::LogEntry(errmsg));
 		return true;
 	}
 	return false;
@@ -81,7 +60,7 @@ bool checkargs(std::vector<std::wstring> args, std::vector<cli::LogEntry>& ret, 
  
 namespace cmd
 {
-	RET move(std::vector<std::wstring> args, std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
+	RET move(std::vector<std::wstring> args, ecs::Aggregate& agg)
 	{
 		std::wstring helpmsg = dirhelp();
 		RET ret;
@@ -95,32 +74,24 @@ namespace cmd
 		}
 		catch (int e)
 		{
-			ret.push_back(cli::LogEntry(helpmsg, cli::MESSAGE));
+			return {cli::LogEntry(helpmsg)};
 		}
 		 
 		int response = pptr::take_step(agg, pptr::plr(agg), dir);
-		/*
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
+		switch (response)
 		{
-			fa::Position* pos = agg.get_cmp<fa::Position>(ent);
-			bool blocking = false;
-			for (ecs::entity_id glent : 
-					get_at_pos(pos->x+dir.x, pos->y+dir.y, pos->z, entts, agg))
-			{
-				if (agg.get_cmp<fa::Blocking>(glent) != nullptr)
-					blocking = true;
-			}
-			if (!blocking)
-			{
-				pos->x += dir.x;
-				pos->y += dir.y;
-			}
+			case 0:
+				return {{}};
+			case 1:
+				return {{L"You are not in a dimensional plane of existence!"}};
+			case 80:
+				return {{L"There's something in the way!"}};
+			default:
+				return {{L"Undefined Error", cli::DEBUG}};
 		}
-		*/
-		return ret;
 	}
 	 
-	RET pickup(std::vector<std::wstring> args, std::vector<ecs::entity_id> entts, ecs::Aggregate& agg)
+	RET pickup(std::vector<std::wstring> args, ecs::Aggregate& agg)
 	{
 		Vec2 dir = {0, 0};
 		/* Get direction */
@@ -134,41 +105,22 @@ namespace cmd
 			}
 			catch (int e)
 			{
-				return {cli::LogEntry(dirhelp(), cli::MESSAGE)};
+				return {cli::LogEntry(dirhelp())};
 			}
 		}
 		int response = pptr::pickup(agg, pptr::plr(agg), dir);
-		/*
-		ecs::entity_id plr;
-		bool exists = false;
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
+		switch (response)
 		{
-			plr = ent;
-			exists = true;
+			case 0:
+				return {{L"You picked up an item!"}};
+			case 1:
+				return {{std::wstring(L"You are not in a dimensional plane of existence ")
+					+ L"and thus can not pick anything up."}};
+			case 80:
+				return {{L"There is nothing to pick up here"}};
+			default:
+				return {{L"Undefined Error.", cli::DEBUG}};
 		}
-		if (!exists)
-			return {cli::LogEntry(
-					L"You are dead and can not pick anything up.", cli::MESSAGE)};
-		fa::Position* pos = agg.get_cmp<fa::Position>(plr);
-		std::vector<ecs::entity_id> pot_targets = 
-			get_at_pos(pos->x+dir.x, pos->y+dir.y, pos->z, entts, agg);
-		std::vector<ecs::entity_id> targets;
-		for (ecs::entity_id ent : pot_targets)
-		{
-			if(agg.get_cmp<fa::Pickable>(ent)) 
-				targets.push_back(ent);
-		}
-		 
-		if (!targets.size())
-			return {cli::LogEntry(
-					L"There is nothing to pick up.", cli::MESSAGE)};
-		else
-		{
-			agg.destroy_entity(targets[0]);
-			return {cli::LogEntry(
-					L"You picked up an item!", cli::MESSAGE)};
-		}
-		*/
 	}
 	 
 	RET zoom(std::vector<std::wstring> args, 
@@ -203,7 +155,7 @@ namespace cmd
 		for (int i = 1; i<unhandled_args.size(); i++)
 		{
 			ret.push_back(
-				cli::LogEntry(L"Argument not recognized: " + args[i], cli::MESSAGE));
+				cli::LogEntry(L"Argument not recognized: " + args[i]));
 		}
 		return ret;
 	}
@@ -216,7 +168,7 @@ namespace cmd
 		{
 			string += args[i] + L" ";
 		}
-			ret.push_back(cli::LogEntry(string, cli::MESSAGE)); 
+			ret.push_back(cli::LogEntry(string)); 
 		return ret;
 	}
 	RET quit(std::vector<std::wstring> args)
@@ -241,21 +193,21 @@ namespace cmd
 			cli.set_active(false);
 		}
 		else
-			return {{L"Argument not recognized: " + args[0], cli::MESSAGE}};
+			return {{L"Argument not recognized: " + args[0]}};
 		return RET();
 	}
 	RET become(std::vector<std::wstring> args, in::GfxManager& gfx)
 	{
 		if (!args.size())
-			return {{L"Please provide a setting you want to change!", cli::MESSAGE},
-				{L"Run 'help cmd become' for a list of settings!", cli::MESSAGE}};
+			return {{L"Please provide a setting you want to change!"},
+				{L"Run 'help cmd become' for a list of settings!"}};
 		if (args[0] == L"shaders")
 		{
 			gfx.set_shaders(!gfx.get_shaders());
 			if (gfx.get_shaders())
-				return {{L"Switched shaders on!", cli::MESSAGE}};
+				return {{L"Switched shaders on!"}};
 			else
-				return {{L"Switched shaders off!", cli::MESSAGE}};
+				return {{L"Switched shaders off!"}};
 		}
 		else if (args[0] == L"layers")
 		{
@@ -268,21 +220,21 @@ namespace cmd
 			ss << args[1];
 			int layers;
 			if (!(ss >> layers))
-				return {{L"Specify a number between 0 and 7.", cli::MESSAGE}}; 
+				return {{L"Specify a number between 0 and 7."}}; 
 			try
 			{
 				gfx.set_extra_layers(layers);
 			}
 			catch (int e)
 			{
-				return {{L"Specify a number between 0 and 7.", cli::MESSAGE}};
+				return {{L"Specify a number between 0 and 7."}};
 			}
 			return RET();
 		}
 		else
 		{
 			return {{std::wstring(L"Argument not understood; Run 'help cmd become' ")
-				+L"for help on this command!", cli::MESSAGE}};
+				+L"for help on this command!"}};
 		}
 	}
 }

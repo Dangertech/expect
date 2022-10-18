@@ -112,7 +112,6 @@ namespace in
 			void fill_gv(fr::Frame&, int z, bool below = false, 
 					float transparency = 255.f);
 			void fill_cli();
-			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize, int z);
 			
 			double seconds_since_startup = 0;
 			
@@ -124,6 +123,7 @@ namespace in
 				 
 				CamView(ecs::Aggregate* agg, Vec2 mxb, Vec2 myb, int mz);
 			};
+			Vec2 eval_position(fa::Position& pos, sf::Vector2i gvsize, int z);
 			/* Holds entity ids corresponding to a specific z layer in the 
 			 * world; Update mechanic is pretty complicated, so the layers are
 			 * simply cleared every time the player presses a button in get_events();

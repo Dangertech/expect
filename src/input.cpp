@@ -27,9 +27,9 @@ std::vector<cli::LogEntry> ipt::process_input
 		else if (line[0] == L"quit")
 			response = cmd::quit(args);
 		else if (line[0] == L"move")
-			response = cmd::move(args, entts, agg);
+			response = cmd::move(args, agg);
 		else if (line[0] == L"pickup")
-			response = cmd::pickup(args, entts, agg);
+			response = cmd::pickup(args, agg);
 		else if (line[0] == L"become")
 			response = cmd::become(args, gfx);
 		else (response.push_back(
