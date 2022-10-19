@@ -5,13 +5,13 @@ std::vector<cli::LogEntry> ipt::process_input
 (
 	std::wstring input,
 	ecs::Aggregate& agg,
-	std::vector<ecs::entity_id>& entts,
 	cli::CliData& cli,
 	in::GfxManager& gfx,
 	SettingContainer& set,
 	bool& skiptxt
 )
 {
+	pptr::Puppetmaster pup(agg, gfx);
 	std::vector<cli::LogEntry> response;
 	std::vector<std::wstring> line = split(input);
 	if (line.size() > 0)
@@ -27,9 +27,9 @@ std::vector<cli::LogEntry> ipt::process_input
 		else if (line[0] == L"quit")
 			response = cmd::quit(args);
 		else if (line[0] == L"move")
-			response = cmd::move(args, agg);
+			response = cmd::move(args, pup);
 		else if (line[0] == L"pickup")
-			response = cmd::pickup(args, agg);
+			response = cmd::pickup(args, pup);
 		else if (line[0] == L"become")
 			response = cmd::become(args, gfx);
 		else (response.push_back(

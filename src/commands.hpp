@@ -2,6 +2,7 @@
 #include "ecs.hpp"
 #include "infra.hpp"
 #include "settings.hpp"
+#include "puppeteer.hpp"
 #include <sstream>
 
 #define RET std::vector<cli::LogEntry>
@@ -12,8 +13,8 @@
  */
 namespace cmd
 {
-	RET move(std::vector<std::wstring> args, ecs::Aggregate& agg);
-	RET pickup(std::vector<std::wstring> args, ecs::Aggregate& agg);
+	RET move(std::vector<std::wstring> args, pptr::Puppetmaster&);
+	RET pickup(std::vector<std::wstring> args, pptr::Puppetmaster&);
 	RET zoom(std::vector<std::wstring> args, 
 			in::GfxManager& gfx, SettingContainer& set);
 	RET echo(std::vector<std::wstring> args);

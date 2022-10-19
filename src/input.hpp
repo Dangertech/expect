@@ -31,7 +31,6 @@ namespace ipt
 	(
 		std::wstring input,
 		ecs::Aggregate&,
-		std::vector<ecs::entity_id>&,
 		cli::CliData&,
 		in::GfxManager&,
 		SettingContainer&,

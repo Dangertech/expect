@@ -24,7 +24,7 @@ std::vector<ecs::entity_id> get_at_pos(int x, int y, int z,
 
 namespace pptr
 {
-	ecs::entity_id plr(ecs::Aggregate& agg)
+	ecs::entity_id Puppetmaster::plr()
 	{
 		for (ecs::entity_id ent : ecs::AggView<fa::Playable>(agg))
 		{
@@ -33,8 +33,10 @@ namespace pptr
 		return 0;
 	}
 	
-	int pickup(GARGS, Vec2 dir)
+	int Puppetmaster::pickup(ecs::entity_id ent, Vec2 dir)
 	{
+		if (dir.x > 1 || dir.x < -1 || dir.y > 1 || dir.y < -1)
+			return ERR_OVERFLOW;
 		fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 		/* TODO: Check if entity has inventory system */
 		if (pos == nullptr)
@@ -46,14 +48,17 @@ namespace pptr
 			{
 				/* TODO: Inventory and pickup code */
 				agg.destroy_entity(glent);
+				gfx.gschanged();
 				return 0;
 			}
 		}
 		return 80;
 	}
 	 
-	int take_step(GARGS, Vec2 dir)
+	int Puppetmaster::take_step(ecs::entity_id ent, Vec2 dir)
 	{
+		if (dir.x > 1 || dir.x < -1 || dir.y > 1 || dir.y < -1)
+			return ERR_OVERFLOW;
 		fa::Position* pos = agg.get_cmp<fa::Position>(ent);
 		if (pos == nullptr)
 			return 1;
@@ -68,6 +73,7 @@ namespace pptr
 		{
 			pos->x += dir.x;
 			pos->y += dir.y;
+			gfx.gschanged();
 			return 0;
 		}
 		return 80;

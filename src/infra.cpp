@@ -227,6 +227,10 @@ void in::GfxManager::update_sizes()
 		}
 		
 	}
+	/* Refresh camera views to incorporate new objects that might
+	 * have appeared in view
+	 */
+	cvs.clear(); 
 }
 
 Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize, int z)

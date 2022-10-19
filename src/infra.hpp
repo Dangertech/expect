@@ -77,6 +77,11 @@ namespace in
 			 * the game loop and it's end 
 			 */
 			void delay(double time_spent);
+			/* Communicate that the Aggregate has changed and the manager has
+			 * to recheck all entities
+			 * -> Used by the Puppetmaster
+			 */
+			void gschanged(){cvs.clear();}
 			
 			void adjust_zoom(float chg);
 			Vec3 get_cam_center() {return cam_center;}

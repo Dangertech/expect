@@ -60,7 +60,7 @@ bool checkargs(std::vector<std::wstring> args, std::vector<cli::LogEntry>& ret, 
  
 namespace cmd
 {
-	RET move(std::vector<std::wstring> args, ecs::Aggregate& agg)
+	RET move(std::vector<std::wstring> args, pptr::Puppetmaster& pup)
 	{
 		std::wstring helpmsg = dirhelp();
 		RET ret;
@@ -77,7 +77,7 @@ namespace cmd
 			return {cli::LogEntry(helpmsg)};
 		}
 		 
-		int response = pptr::take_step(agg, pptr::plr(agg), dir);
+		int response = pup.take_step(pup.plr(), dir);
 		switch (response)
 		{
 			case 0:
@@ -91,7 +91,7 @@ namespace cmd
 		}
 	}
 	 
-	RET pickup(std::vector<std::wstring> args, ecs::Aggregate& agg)
+	RET pickup(std::vector<std::wstring> args, pptr::Puppetmaster& pup)
 	{
 		Vec2 dir = {0, 0};
 		/* Get direction */
@@ -108,7 +108,7 @@ namespace cmd
 				return {cli::LogEntry(dirhelp())};
 			}
 		}
-		int response = pptr::pickup(agg, pptr::plr(agg), dir);
+		int response = pup.pickup(pup.plr(), dir);
 		switch (response)
 		{
 			case 0:

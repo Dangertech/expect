@@ -131,7 +131,7 @@ int main()
 					cli.set_active(false);
 					std::wstring final_string = cli.push_bfr();
 					std::vector<cli::LogEntry> response = 
-						ipt::process_input(final_string, agg, entts, cli, gfx, set, skiptxt);
+						ipt::process_input(final_string, agg, cli, gfx, set, skiptxt);
 					/* Make the response graphically available to the user */
 					for (int i = 0; i<response.size(); i++)
 						cli.log(response[i]);
@@ -153,7 +153,7 @@ int main()
 				/* Execute command of entered text */
 				std::wstring string = ipt::cmdmap.at(ev[i].key.code);
 				std::vector<cli::LogEntry> response = 
-					ipt::process_input(string, agg, entts, cli, gfx, set, skiptxt);
+					ipt::process_input(string, agg, cli, gfx, set, skiptxt);
 				/* Make the response graphically available to the user */
 				for (int i = 0; i<response.size(); i++)
 					cli.log(response[i]);
