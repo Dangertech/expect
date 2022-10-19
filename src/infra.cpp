@@ -243,31 +243,25 @@ Vec2 in::GfxManager::eval_position(fa::Position& pos, sf::Vector2i gvsize, int z
 		return {x,y};
 	return {-1,-1};
 }
+ 
 void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency)
 {
 	sf::Vector2i gvsize = f.get_grid_size();
-	Vec2 xbounds; xbounds.x = cam_center.x-gvsize.x/2; xbounds.y = cam_center.x+gvsize.x/2;
-	Vec2 ybounds; ybounds.x = cam_center.y-gvsize.y/2; ybounds.y = cam_center.y+gvsize.y/2;
-	/* View for the standard render */
-	CamView* cstd;
-	if (cvs.find(z) == cvs.end())
-	{
-		cvs[z] = new CamView(agg, xbounds, ybounds ,z);
-		cstd = cvs[z];
-	}
-	else 
-		cstd = cvs[z];
-	/* View for the below render */
-	CamView* cblw;
-	if (cvs.find(z-1) == cvs.end())
-	{
-		cvs[z-1] = new CamView(agg, xbounds, ybounds, z-1);
-		cblw = cvs[z-1];
-	}
-	else
-		cblw = cvs[z-1];
+	Vec2 xbounds = {cam_center.x-gvsize.x/2, cam_center.x+gvsize.x/2};
+	Vec2 ybounds = {cam_center.y-gvsize.y/2, cam_center.y+gvsize.y/2};
+	
+	 
 	if (below)
 	{
+		/* View for the below render */
+		CamView* cblw;
+		if (cvs.find(z-1) == cvs.end())
+		{
+			cvs[z-1] = new CamView(agg, xbounds, ybounds, z-1);
+			cblw = cvs[z-1];
+		}
+		else
+			cblw = cvs[z-1];
 		/* This loop draws everything one unit below the player (the floor)
 		 */
 		for (ecs::entity_id ent : cblw->entts)
@@ -278,21 +272,32 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 			if (x < 0 || y < 0 || x >gvsize.x || y > gvsize.y)
 				continue;
 			/* Draw it with less alpha */
-			RepCreator::Rep rep = rc->evaluate_rep(ent);
-			if (rep.to_use == 0)
+			fr::MultiRep rep = rc->evaluate_rep(ent);
+			if (rep.type == fr::CHR) 
 			{
 				rep.chrrep.fill.a -= 130;
 				rep.chrrep.bg.a -= 130;
 				rep.chrrep.ch = L'.';
 				f.set_char(rep.chrrep, x, y);
 			}
-			else
+			else 
 			{
 				rep.imgrep.col.a -= 130;
 				f.set_char(rep.imgrep, x, y);
 			}
 		}
 	}
+	 
+	/* View for the standard render */
+	CamView* cstd;
+	if (cvs.find(z) == cvs.end())
+	{
+		/* Create a new one if a camview for this z axis doesn't exist yet */
+		cvs[z] = new CamView(agg, xbounds, ybounds ,z);
+		cstd = cvs[z];
+	}
+	else 
+		cstd = cvs[z];
 	/* This loop draws everything on the same level as the player
 	 */
 	for (ecs::entity_id ent : cstd->entts)
@@ -302,8 +307,8 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			RepCreator::Rep rep = rc->evaluate_rep(ent);
-			if (rep.to_use == 0)
+			fr::MultiRep rep = rc->evaluate_rep(ent);
+			if (rep.type == fr::CHR)
 			{
 				rep.chrrep.fill.a = transparency;
 				rep.chrrep.bg.a = transparency;
@@ -328,8 +333,8 @@ void in::GfxManager::fill_gv(fr::Frame& f, int z, bool below, float transparency
 		Vec2 phpos = eval_position(*agg->get_cmp<fa::Position>(ent), gvsize, z);
 		if (phpos.x != -1)
 		{
-			RepCreator::Rep rep = rc->evaluate_rep(ent);
-			if (rep.to_use == 0)
+			fr::MultiRep rep = rc->evaluate_rep(ent);
+			if (rep.type == fr::CHR)
 			{
 				f.set_char(rep.chrrep, phpos.x, phpos.y);
 			}
@@ -361,7 +366,7 @@ void in::GfxManager::fill_cli()
 			catch (int e)
 			{
 			}
-			sf::Vector2i c = cli_frame->print(this_entry.c, 4, i, fr::EMPTY, true, 
+			sf::Vector2i c = cli_frame->print(this_entry.c, 4, i, fr::EMPTY_CHR, true, 
 					size_x-2, -1, true);
 			if (c.y != i)
 				extra += c.y-i;
@@ -381,7 +386,7 @@ void in::GfxManager::fill_cli()
 		}
 		std::wstring msg;
 		int x = 4;
-		fr::ChrRep rep = fr::EMPTY;
+		fr::ChrRep rep = fr::EMPTY_CHR;
 		switch (this_entry.l)
 		{
 			case cli::INPUT:
@@ -510,14 +515,14 @@ bool in::anim_is_active(float seconds_on, float seconds_off)
 
 namespace in
 {
-	RepCreator::Rep RepCreator::evaluate_rep(ecs::entity_id id)
+	fr::MultiRep RepCreator::evaluate_rep(ecs::entity_id id)
 	{
 		fr::ChrRep crep = evaluate_chr(id);
 		fr::ImgRep irep = evaluate_img(id);
 		if (irep.area != sf::IntRect(0,0,0,0))
-			return {1, crep, irep};
+			return {fr::IMG, crep, irep};
 		else
-			return {0, crep, irep};
+			return {fr::CHR, crep, irep};
 	}
 	
 	fr::ChrRep RepCreator::evaluate_chr(ecs::entity_id id)

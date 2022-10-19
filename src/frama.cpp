@@ -4,17 +4,18 @@
 #include "const.h"
 #include "util.hpp"
 
-fr::ChrRep fr::Frame::get_char(int x, int y)
+fr::MultiRep fr::Frame::get_rep(int x, int y)
 {
 	if (y > get_grid_size().y -1 || x > get_grid_size().x -1)
 		throw ERR_OVERFLOW;
 	if (grid.find((unsigned long)x << 32 | (unsigned long) y) == grid.end())
 	{
-		return EMPTY;
+		return {fr::CHR, EMPTY_CHR, EMPTY_IMG};
 	}
 	else
 	{
-		return grid.at((unsigned long)x << 32 | (unsigned long) y).refchr;
+		GridObj& obj = grid.at((unsigned long)x << 32 | (unsigned long) y);
+		return {obj.type, obj.refchr, obj.refimg};
 	}
 }
 
@@ -25,7 +26,7 @@ void fr::Frame::set_char(ChrRep rep, int x, int y)
 	{
 		throw ERR_OVERFLOW;
 	}
-	if (rep == fr::EMPTY)
+	if (rep == fr::EMPTY_CHR)
 	{
 		grid.erase((unsigned long)x << 32 | (unsigned long) y);
 		return;
@@ -67,7 +68,7 @@ void fr::Frame::set_char(ImgRep rep, int x, int y)
 	}
 	GridObj newobj;
 	newobj.refimg = rep;
-	newobj.uses_img = true;
+	newobj.type = IMG;
 	newobj.s.setTexture(*rep.txt);
 	if (rep.area != sf::IntRect(0,0,0,0))
 		newobj.s.setTextureRect(rep.area);
@@ -392,7 +393,7 @@ namespace anim
 			bool reverse, bool only_filled)
 	{
 		if (t > 1 || t < 0)
-			return;
+			return; /* Animation hasn't started yet/ is already over, bye bye! */
 		if (!reverse)
 		{
 			float lid_pos = fr.get_grid_size().y*(t*t);
@@ -404,18 +405,26 @@ namespace anim
 				{
 					sf::Color col = slice_color;
 					col.a = ((y-lid_pos-slices+1)/slices)*255;
-					ChrRep th = fr.get_char(x, y);
-					if (th.ch == L' ' && only_filled)
-						continue;
-					th.bg = col; 
-					fr.set_char(th, x, y);
+					fr::MultiRep rep = fr.get_rep(x, y);
+					if (rep.type == CHR)
+					{
+						ChrRep th = rep.chrrep;
+						if (th.ch == L' ' && only_filled)
+							continue;
+						th.bg = col; 
+						fr.set_char(th, x, y);
+					}
+					else
+					{
+						fr.set_char(fr::ChrRep(L' ', col, col), x, y);
+					}
 				}
 			}
 			for (int y = lid_pos;y<fr.get_grid_size().y; y++)
 			{
 				for (int x = 0; x<fr.get_grid_size().x; x++)
 				{
-					fr.set_char(EMPTY, x, y);
+					fr.set_char(EMPTY_CHR, x, y);
 				}
 			}
 		}
@@ -430,18 +439,26 @@ namespace anim
 				{
 					sf::Color col = slice_color;
 					col.a = 1-(((y-lid_pos)/slices)*255);
-					ChrRep th = fr.get_char(x, y);
-					if (th.ch == L' ' && only_filled)
-						continue;
-					th.bg = col; 
-					fr.set_char(th, x, y);
+					fr::MultiRep rep = fr.get_rep(x, y);
+					if (rep.type == CHR)
+					{
+						ChrRep th = rep.chrrep;
+						if (th.ch == L' ' && only_filled)
+							continue;
+						th.bg = col; 
+						fr.set_char(th, x, y);
+					}
+					else
+					{
+						fr.set_char(fr::ChrRep(L' ', col, col), x, y);
+					}
 				}
 			}
 			for (int y = 0;y<lid_pos; y++)
 			{
 				for (int x = 0; x<fr.get_grid_size().x; x++)
 				{
-					fr.set_char(EMPTY, x, y);
+					fr.set_char(EMPTY_CHR, x, y);
 				}
 			}
 		}

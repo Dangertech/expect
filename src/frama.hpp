@@ -59,7 +59,6 @@ namespace fr
 				&& bg == r.bg && bold == r.bold;
 		}
 	};
-	const ChrRep EMPTY(L' ');
 
 	struct ImgRep
 	{
@@ -80,6 +79,16 @@ namespace fr
 			txt = mtxt; area = marea; col = mcol; bg = mbg; size_mod = msize_mod;
 		}
 		ImgRep(){}
+	};
+	const ChrRep EMPTY_CHR(L' ');
+	const ImgRep EMPTY_IMG;
+	 
+	enum RepType {CHR, IMG};
+	struct MultiRep
+	{
+		RepType type;
+		ChrRep chrrep;
+		ImgRep imgrep;
 	};
 	 
 	class Frame
@@ -107,12 +116,8 @@ namespace fr
 				grid = {};
 			}
 			 
-			/* Get the object representation of a character back;
-			 * Please note that this lookup is very expensive as all
-			 * objects are stored in an unsorted vector to make performance
-			 * improvements in other areas, so it's best to use it sparingly
-			 */
-			ChrRep get_char(int x, int y);
+			/* Get the object representation of a character back; */
+			MultiRep get_rep(int x, int y);
 			/* Set a character on the grid by providing a specification
 			 * in form of a ChrRep or ImgRep
 			 */
@@ -206,7 +211,7 @@ namespace fr
 				float size_mod = 1;
 				ChrRep refchr;
 				ImgRep refimg;
-				bool uses_img = false;
+				RepType type = CHR;
 			};
 			std::unordered_map<unsigned long, GridObj> grid;
 			sf::Font* font; int font_size = 32;

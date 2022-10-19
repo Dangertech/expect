@@ -17,21 +17,12 @@ namespace in
 				agg = magg;
 				load_textures();
 			}
-			struct Rep
-			{
-				/* 0 means chrrep should be used, 1 means imgrep
-				 * should be used 
-				 */
-				bool to_use = 0; 
-				fr::ChrRep chrrep;
-				fr::ImgRep imgrep;
-			};
 			/* Main function of this class;
 			 * Evaluates a character it is sent and returns
 			 * a struct where either a procedurally generated ChrRep or 
 			 * an ImgRep should be drawn to a gameview frame
 			 */
-			Rep evaluate_rep(ecs::entity_id);
+			fr::MultiRep evaluate_rep(ecs::entity_id);
 		private:
 			ecs::Aggregate* agg;
 			fr::ChrRep evaluate_chr(ecs::entity_id);
