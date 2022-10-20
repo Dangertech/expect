@@ -5,17 +5,23 @@
 #include "ecs.hpp"
 #include "util.hpp"
 #include "anim.hpp"
+#include "world.hpp"
  
 
 namespace fa
 {
+	/* With the chunk system (world.hpp), Positions are
+	 * an interesting matter;
+	 */
 	struct Position
 	{
-			int x = 0, y = 0, z = 0;
-			void set(int mx, int my, int mz)
-			{
-				x = mx; y = my; z = mz;
-			}
+		public:
+			/* Set world coordinate positions */
+			void set(Vec3 pos);
+			void set(int x, int y, int z);
+			Vec3 get(); /* Get world coordinate positions */
+		private:
+			int local_x = 0, local_y = 0, z = 0;
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all
@@ -61,7 +67,8 @@ namespace fa
 		bool burning = false;
 	};
 	 
-	ecs::entity_id deal_player(int x, int y, int z, ecs::Aggregate& agg);
-	ecs::entity_id deal_wall(int x, int y, int z, ecs::Aggregate& agg);
-	ecs::entity_id deal_item(int x, int y, int z, ecs::Aggregate& agg);
+
+	ecs::entity_id deal_player(int x, int y, int z, wrld::WorldContainer&);
+	ecs::entity_id deal_wall(int x, int y, int z, wrld::WorldContainer&);
+	ecs::entity_id deal_item(int x, int y, int z, wrld::WorldContainer&);
 }

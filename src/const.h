@@ -10,3 +10,5 @@
 #define CLI_ACTIVE 147, 12, 167
 #define CLI_USER 244, 184, 12
 #define CLI_ALPHA 120
+
+#define CHUNK_SIZE 64

@@ -22,7 +22,7 @@ int main()
 	 * Each Chunk is an 
 	 */
 	//std::unordered_map<unsigned long,ecs::Aggregate> chunks;
-	WorldContainer wrld;
+	wrld::WorldContainer wrld;
 	/* Manages the command-line-interface to the right of the screen */
 	cli::CliData cli;
 	/* Manages everything related to displaying graphics,
@@ -34,10 +34,10 @@ int main()
 	cli.log(cli::LogEntry(std::wstring(L"Codename: \"") + VERSION_NAME + L"\"", cli::MESSAGE));
 	cli.log(cli::LogEntry(std::wstring(L"Last updated on: ") + VERSION_DATE, cli::MESSAGE));
 	/* Construct a player Object and place its id in the entts vector */
-	entts.push_back(fa::deal_player(0, 0, 0, agg));
-	entts.push_back(fa::deal_item(0, 1, 0, agg));
-	entts.push_back(fa::deal_item(1, 1, 0, agg));
-	agg.get_cmp<fa::Eatable>(entts[entts.size()-1])->type = fa::Eatable::RATION;
+	entts.push_back(fa::deal_player(0, 0, 0, wrld));
+	entts.push_back(fa::deal_item(0, 1, 0, wrld));
+	entts.push_back(fa::deal_item(1, 1, 0, wrld));
+	wrld.at(1,1,0)->get_cmp<fa::Eatable>(entts[entts.size()-1])->type = fa::Eatable::RATION;
 	/* Construct some walls */
 	for (int z = 0; z < 5; z++)
 	{
@@ -45,10 +45,10 @@ int main()
 		{
 			for (int j = -30; j<30; j++)
 			{
-				ecs::entity_id e = fa::deal_wall(i*4-4, j*4-4, z, agg);
+				ecs::entity_id e = fa::deal_wall(i*4-4, j*4-4, z, wrld);
 				if (j == 5)
 				{
-					fa::Paintable* p = agg.get_cmp<fa::Paintable>(e);
+					fa::Paintable* p = wrld.at(i,j,z)->get_cmp<fa::Paintable>(e);
 					if (p)
 					{
 						p->color = {0,255,0};
@@ -57,7 +57,7 @@ int main()
 				}
 				if (j == 2)
 				{
-					fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);
+					fa::Flammable* f = wrld.at(i,j,z)->get_cmp<fa::Flammable>(e);
 					if (f)
 					{
 						f->burning = true;
@@ -73,7 +73,7 @@ int main()
 		{
 			for (int j = -10; j<10; j++)
 			{
-				entts.push_back(fa::deal_wall(i*4-2, j*4-2, z, agg));
+				entts.push_back(fa::deal_wall(i*4-2, j*4-2, z, wrld));
 			}
 		}
 	}
@@ -81,10 +81,10 @@ int main()
 	{
 		for (int j = -30*4-4; j<30*4-4; j++)
 		{
-			ecs::entity_id e = fa::deal_wall(i, j, -1, agg);
+			ecs::entity_id e = fa::deal_wall(i, j, -1, wrld);
 			if (j == 2)
 			{
-				fa::Flammable* f = agg.get_cmp<fa::Flammable>(e);
+				fa::Flammable* f = wrld.at(i,j)->get_cmp<fa::Flammable>(e);
 				if (f)
 				{
 					f->burning = true;
