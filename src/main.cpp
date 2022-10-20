@@ -37,7 +37,7 @@ int main()
 	entts.push_back(fa::deal_player(0, 0, 0, wrld));
 	entts.push_back(fa::deal_item(0, 1, 0, wrld));
 	entts.push_back(fa::deal_item(1, 1, 0, wrld));
-	wrld.at(1,1,0)->get_cmp<fa::Eatable>(entts[entts.size()-1])->type = fa::Eatable::RATION;
+	wrld.at(1,1)->get_cmp<fa::Eatable>(entts[entts.size()-1])->type = fa::Eatable::RATION;
 	/* Construct some walls */
 	for (int z = 0; z < 5; z++)
 	{
@@ -48,7 +48,7 @@ int main()
 				ecs::entity_id e = fa::deal_wall(i*4-4, j*4-4, z, wrld);
 				if (j == 5)
 				{
-					fa::Paintable* p = wrld.at(i,j,z)->get_cmp<fa::Paintable>(e);
+					fa::Paintable* p = wrld.at(i,j)->get_cmp<fa::Paintable>(e);
 					if (p)
 					{
 						p->color = {0,255,0};
@@ -57,7 +57,7 @@ int main()
 				}
 				if (j == 2)
 				{
-					fa::Flammable* f = wrld.at(i,j,z)->get_cmp<fa::Flammable>(e);
+					fa::Flammable* f = wrld.at(i,j)->get_cmp<fa::Flammable>(e);
 					if (f)
 					{
 						f->burning = true;
@@ -94,6 +94,7 @@ int main()
 		}
 	}
 	
+	pptr::Puppetmaster pup(wrld, gfx);
 	while (gfx.win_open())
 	{
 		/* Get time to process this loop for fps matching and debugging purposes */
@@ -164,14 +165,9 @@ int main()
 		}
 		
 		/* Rendering Execution */
-		fa::Position* plr_pos = nullptr;
-		/* Accept the first playable object you find as the center of view */
-		for (ecs::entity_id ent : ecs::AggView<fa::Position, fa::Playable>(agg))
-		{
-			plr_pos = agg.get_cmp<fa::Position>(ent); 
-			break;
-		}
-		 
+		wrld::EntDescriptor plr_ent = pup.plr();
+		fa::Position* plr_pos = 
+			wrld.at(plr_ent.chunk_idx)->get_cmp<fa::Position>(plr_ent.id);
 		gfx.set_cam_center({plr_pos->x, plr_pos->y, plr_pos->z});
 		 /* Draw all frames */
 		gfx.render();

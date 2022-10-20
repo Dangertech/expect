@@ -163,7 +163,7 @@ namespace ecs
 	/* A helper for the user to quickly
 	 * iterate through entities with specific components
 	 * Goal is this:
-	 * for (entity_id ent : AggView<cmp_one, cmp_two>(scene))
+	 * for (entity_id ent : AggView<cmp_one, cmp_two>(Aggregate))
 	 * {
 	 * 	//This loop runs through every enity ent with cmp_one
 	 * 	//and cmp_two attached 

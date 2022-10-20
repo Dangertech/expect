@@ -12,12 +12,12 @@ namespace wrld
 	class WorldContainer
 	{
 		public:
-			ecs::Aggregate* at(Vec3 pos); 
 			ecs::Aggregate* at(Vec2 pos); 
-			ecs::Aggregate* at(int x, int y, int z); 
 			ecs::Aggregate* at(int x, int y); 
 			ecs::Aggregate* at(unsigned long idx);
+			unsigned long postoidx(Vec2 pos);
 			int count_chunks(){return chunks.size();};
+			std::vector<unsigned long> get_chunk_idxs();
 		private:
 			/* The key is a coordinate system corresponding to
 			 * the position of the chunks; The first 32 bits contain
@@ -36,11 +36,14 @@ namespace wrld
 			 */
 			const int chunk_size = CHUNK_SIZE;
 			/* Convert a vector2 into an unsigned long, with the 
-			 * first 32 bits containing the meta x position and the last
-			 * 32 bits containing the meta y position
+			 * first 32 bits containing the x position and the last
+			 * 32 bits containing the y position
 			 */
-			unsigned long conv_vec(Vec2 metapos);
+			unsigned long conv_vec(Vec2 pos);
 	};
+	
+	/* TODO: WorldView in some rare cases? */
+	
 	
 	/* Contains everything needed to uniquely identify a single
 	 * entity

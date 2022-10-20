@@ -17,11 +17,16 @@ namespace fa
 	{
 		public:
 			/* Set world coordinate positions */
-			void set(Vec3 pos);
-			void set(int x, int y, int z);
+			void set(Vec3 pos, wrld::WorldContainer& wrld);
+			//void set(int x, int y, int z);
 			Vec3 get(); /* Get world coordinate positions */
 		private:
 			int local_x = 0, local_y = 0, z = 0;
+			/* Must NEVER go out of sync with the actual chunk the
+			 * attached entity is in
+			 */
+			int chunk_x = 0, chunk_y = 0;
+			bool initialized = false;
 	};
 	/* Other entities shouldn't differ
 	 * from the player in any way, they all

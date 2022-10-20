@@ -13,11 +13,11 @@ namespace pptr
 	class Puppetmaster
 	{
 		public:
-			Puppetmaster(ecs::Aggregate& magg, in::GfxManager& mgfx)
-				: agg(magg)
+			Puppetmaster(wrld::WorldContainer& mwrld, in::GfxManager& mgfx)
+				: wrld(mwrld)
 				, gfx(mgfx)
 				{}
-			ecs::entity_id plr(); /* Get a player entity */
+			wrld::EntDescriptor plr(); /* Get a player entity */
 			 
 			/* TODO: These functions let entities perform actions that can
 			 * also impact other entities and
@@ -30,15 +30,15 @@ namespace pptr
 			 * ERR_OVERFLOW: Invalid Vector was passed; 
 			 *   must be between -1 and 1 on x and y
 			 */
-			int pickup(ecs::entity_id, Vec2 dir);
+			int pickup(wrld::EntDescriptor, Vec2 dir);
 			/* 1: Entity does not have position component
 			 * 80: Position blocked
 			 * ERR_OVERFLOW: Invalid Vector was passed; 
 			 *   must be between -1 and 1 on x and y
 			 */
-			int take_step(ecs::entity_id, Vec2 dir);
+			int take_step(wrld::EntDescriptor, Vec2 dir);
 		private:
-			ecs::Aggregate& agg;
+			wrld::WorldContainer& wrld;
 			in::GfxManager& gfx;
 	};
 }
