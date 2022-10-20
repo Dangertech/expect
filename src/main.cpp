@@ -18,8 +18,11 @@ int main()
 {
 	std::cout << "Started execution." << std::endl;
 	SettingContainer set;
-	/* Manages in-game entities through an ECS */
-	ecs::Aggregate agg;
+	/* World Storage;
+	 * Each Chunk is an 
+	 */
+	//std::unordered_map<unsigned long,ecs::Aggregate> chunks;
+	WorldContainer wrld;
 	/* Manages the command-line-interface to the right of the screen */
 	cli::CliData cli;
 	/* Manages everything related to displaying graphics,
